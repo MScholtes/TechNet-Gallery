@@ -1,0 +1,505 @@
+PS2EXE-GUI v0.5.0.20
+Changes:
+- Application.EnableVisualStyles() as default for GUI applications
+- new parameter -noVisualStyles to prevent this
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.19):
+line 72 - inserted help text for -noVisualStyles
+lines 87 to 88 - adjusted version number and date
+lines 97 to 98 - added parameter -noVisualStyles
+line 102 - adjusted version number
+line 114 - adjusted version number
+lines 128 to 129 - added help text for -noVisualStyles
+line 152 - inserted help text for -noVisualStyles
+line 1093 - inserted form scale mode
+line 1181 - inserted form scale mode
+line 1297 - inserted form scale mode
+line 1430 - inserted form scale mode
+line 2308 - adjusted version number
+line 2366 - inserted Application.EnableVisualStyles()
+
+
+
+PS2EXE-GUI v0.5.0.19
+Changes:
+- converted file from UTF-16 to UTF-8
+- ignore control keys in secure string request in console mode
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.18):
+lines 87 to 88 - adjusted version number and date
+line 102 - adjusted version number
+line 114 - adjusted version number
+line 1983 - inserted check for control key
+line 2308 - adjusted version number
+
+
+
+PS2EXE-GUI v0.5.0.18
+Changes:
+- fixed "unlimited window width for GUI windows" issue in ps2exe.ps1 and Win-PS2EXE
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.17):
+lines 87 to 88 - adjusted version number and date
+line 102 - adjusted version number
+line 114 - adjusted version number
+line 1110 - inserted screen size check
+line 1192 - inserted screen size check
+line 1202 - inserted screen size check
+line 1207 - removed braces
+line 1212 - inserted screen size check
+line 1215 - removed braces
+line 1217 - removed braces
+line 1358 - inserted screen size check
+line 2299 - adjusted version number
+line 2567 - removed comment
+
+
+
+PS2EXE-GUI v0.5.0.17
+Changes:
+- set -noConfigFile as default, introduced parameter -configFile
+- created comment based help
+- removed aliases %, ? and select with full commmandlets
+- several smaller optimizations
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.16):
+before line 1 - comment based help
+lines 4 to 5 - new parameter -configFile
+line 9 - adjusted version number
+line 21 - adjusted version number
+lines 28 to line 32 - moved to line 162
+lines 34 to line 39 - moved to line 190
+lines 44 to 70 - changed help text
+lines 185 to 189 - inserted code for -configFile
+lines 301, 303, 306, 312, 331, 332, 2484, 2494 - removed aliases
+line 2197 - adjusted version number
+lines 2501 - changed for new default -noConfigFile
+
+
+
+PS2EXE-GUI v0.5.0.16
+Changes:
+- introduced parameter -noOutput to supress every standard output (incl. verbose and informational output)
+- introduced parameter -noError to supress every error output (incl. warning and debug output)
+- introduced parameter -supportos to use functions of newest Windows versions (execute [Environment]::OSVersion to see the difference)
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.15):
+lines 1 to 4 - definition of new parameters
+line 8 - adjusted version number
+line 21 - adjusted version number
+line 47 - expanded help text
+lines 69 to 71 - expanded help text
+line 148 - inserted code to check for valid parameters with -supportOS
+line 199 - inserted support for -noOutput and -noError for Powershell V2
+line 202 - inserted support for -supportOS for Powershell V2
+line 333 - added code for supportedOS manifest
+line 345 - inserted code for supportedOS manifest
+line 1880 - added code for -noOutput
+line 1890 - added code for -noOutput
+line 1895 - added code for -noOutput
+line 1900 - added code for -noOutput
+lines 1906 to 1907 - added code for -noError
+line 1910 - added code for -noError
+line 1916 - added code for -noError
+line 1920 - added code for -noError
+line 1923 - added code for -noError
+line 1928 - added code for -noOutput
+line 1932 - added code for -noOutput
+line 1937 - added code for -noOutput
+line 1947 - added code for -noOutput
+line 1950 - inserted code for -noError
+line 1953 - added code for -noOutput
+line 1958 - added code for -noOutput
+line 1983 - added code for -noOutput
+line 1987 - added code for -noOutput
+lines 1993 to 1994 - added code for -noError
+line 1997 - added code for -noError
+line 2164 - adjusted version number
+line 2405 - added code for -noError
+line 2410 - added code for -noError
+line 2487 - added code for supportOS
+
+
+
+PS2EXE-GUI v0.5.0.15
+Changes:
+- introduction of graphical front end "Win-PS2EXE"
+- parameter "output file" is not mandatory anymore, if target filename is not specified source filename is used with extension ".exe"
+- check if output file has extension ".exe" or ".com"
+- PS2EXE's own dialogs (Inputbox, Choicebox, Keypress and Progress form) use the application's icon if present
+- replacement of Write-Host with Write-Output, Write-Warning and Write-Error (affected lines not listed below)
+- cleanup of upper and lower case letters and white space (affected lines not listed below)
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.14):
+line 8 - adjusted version number
+line 41 - check for empty $outputFile removed
+lines 108 to 110 - added code to handle empty $outputFile
+line 121 - inserted code to check if $outputFile has extension ".exe" or ".com"
+line 362 - safer query for empty content
+line 1022 - inserted code to set application's icon for input box if present
+line 1107 - inserted code to set application's icon for choice box if present
+line 1234 - inserted code to set application's icon for keypress form if present
+line 1285 - added code to set application's icon for progress form form if present
+line 2140 - adjusted version number
+
+
+
+PS2EXE-GUI v0.5.0.14
+Changes:
+- introduced parameter -longPaths to support .Net4.62 long paths
+(requirements: 1. Windows 10, 2. "Long Path" policy set, 3. Compile with -longPaths, 4. the generated config file has to be in the same directory as the executable)
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.13):
+line 4 - definition of new parameters
+line 8 - adjusted version number
+line 21 - adjusted version number
+line 49 - expanded help text
+line 76 - appended help text
+line 156 - appended parameter checks for -longPaths
+lines 315 to 325 - inserted new manifest configuration for -longPaths parameter
+line 2120 - adjusted version number
+line 2392 - appended config file configuration for -longPaths parameter
+
+
+
+PS2EXE-GUI v0.5.0.13
+Changes:
+- Get-Credential returns $NULL on abort when compiled with -noConsole or -credentialGUI
+- implemented $Host.UI.RawUI.FlushInputBuffer() in console mode
+- $Host.UI.RawUI.FlushInputBuffer() in noConsole mode starts an invisible window to prevent further windows to be opened in the background
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.12):
+line 8 - adjusted version number
+line 21 - adjusted version number
+line 183 - parameters -credentialGUI and -noConfigfile for powershell v2 too
+lines 661 to 664 - implemented FlushInputBuffer() (flush input in console mode, invisible form in noconsole mode)
+line 1688 - PromptForCredential returns null on abort in noconsole mode
+line 1734 - PromptForCredential returns null on abort in noconsole mode
+line 2096 - adjusted version number
+
+
+
+PS2EXE-GUI v0.5.0.12
+Changes:
+- with -NoConsole the prompt for Read-Host is shown now for secure input
+- updated help text
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.11):
+line 8 - adjusted version number
+line 21 - adjusted version number
+lines 45 to 47 - expanded help text
+line 1798 - passing prompt to InputBox now
+line 2094 - adjusted version number
+
+
+
+PS2EXE-GUI v0.5.0.11
+Changes:
+- fixed errors with redirection of error stream and input stream ("handle is invalid")
+- $host.privatedata.ErrorForegroundColor to $host.privatedata.VerboseBackgroundColor set colors in console mode
+(can someone shoot Microsoft in the knee for this strange undocumented implementation)
+- $host.privatedata.ProgressForegroundColor set the color of the progress bar in noConsole mode (when visual styles are not activated)
+- fixed error with failing reference to Consolehost.dll
+- new parameter -credentialGUI to generate graphical GUI for Get-Credential in console mode
+- new parameter -noConfigfile to suppress generation of config file
+- smaller fixes
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.10):
+line 4 - definition of new parameters
+line 8 - adjusted version number
+line 21 - adjusted version number
+lines 49 to 73 - expanded help text
+line 155 - changed information text
+line 261 - fixed error with failing reference to Consolehost.dll
+line 386 - implementation of -credentialGUI
+line 596 - fixed error with redirection of input stream ("handle is invalid")
+line 1195 - set color for progress bar including conversion from ConsoleColor to Drawing.Color
+line 1199 to 1204 - removed redundant object generation
+line 1240 - inserted setting progress bar color
+line 1274 - inserted contructor for setting progress bar color
+line 1327 - inserted functions to check for redirection
+line 1334 - inserted variables for console colors
+line 1540 - implementation of -credentialGUI
+line 1731 to 1736 - optimized WriteDebugLine
+line 1746 to 1751 - optimized WriteErrorLine and implemented error redirection
+line 1800 - implemented setting progress bar color
+line 1815 to 1820 - optimized WriteVerboseLine
+line 1830 to 1835 - optimized WriteWarningLine
+line 1859 - inserted ConsoleProxy and PrivateData (very strange things)
+line 1903 - adjusted version number
+line 1940 to 1970 - removed functions to check for redirection (expanded and moved to line 1327)
+line 2037 - changed check for redirection
+linie 2239 to 2247 - implementation of -noConfigfile
+
+
+
+PS2EXE-GUI v0.5.0.10
+Changes:
+- Get-Credential is assuming a generic login so no "\user" is returned if domain name is not set
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.9):
+line 8 - adjusted version number
+line 21 - adjusted version number
+line 463 - checks for PSCredentialTypes.Generic instead of PSCredentialTypes.Domain now
+line 1903 - adjusted version number
+
+
+
+PS2EXE-GUI v0.5.0.9
+Changes:
+- added takeover of caption and message for $host.UI.PromptForCredential and Get-Credential.
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.8):
+line 8 - adjusted version number
+line 21 - adjusted version number
+lines 389 to 392 - removed comments
+line 437 - added Unicode coding
+line 458 - changed comment
+line 461 - inserted message and caption takeover
+line 474 - changed comment
+line 1905 - adjusted version number
+
+
+
+PS2EXE-GUI v0.5.0.8
+Changes:
+- $ERRORACTIONPREFERENCE = 'Stop' bug corrected. The last error is not swallowed anymore.
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.7):
+line 8 - adjusted version number
+line 21 - adjusted version number
+line 1905 - adjusted version number
+line 2167 - inserted expression to retrieve last error
+
+
+
+PS2EXE-GUI v0.5.0.7
+Changes:
+- parameter parsing bug corrected. A slash is not accepted as an introducing character for named parameters anymore.
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.6):
+line 8 - adjusted version number
+line 21 - adjusted version number
+line 1905 - adjusted version number
+line 2102 - corrected regular expression for parameter parsing
+
+
+
+PS2EXE-GUI v0.5.0.6
+Changes:
+- button texts for input corrected, tries now to use localized strings for OK and Cancel
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.5):
+line 8 - adjusted version number
+line 21 - adjusted version number
+lines 906 to 959 - get localized strings for OK and Cancel in input bix
+lines 975 to 986 - translated some comments
+line 1809 - adjusted version number
+
+
+
+PS2EXE-GUI v0.5.0.5
+Changes:
+- new parameters -title, -description, -company, -product, -copyright, -trademark and -version to set meta data (as can be seen in the properties dialog in tab "Details" in Windows Explorer)
+- new parameter -requireAdmin generates an executable that requires administrative rights and forces the UAC dialog (if UAC is enabled)
+- new parameter -virtualize generates an executable that uses application virtualization when accessing protected system file system folders or registry
+- several minor fixes
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.4):
+line 1 - introduced new parameters, spread parameters over 4 lines for better readability
+line 5 - adjusted version number
+line 18 - adjusted version number
+line 26 - shortened expression
+line 32 - shortened expression
+lines 54 to 60 - help text for new parameters
+line 119 - inserted check that -requireAdmin and -virtualize are not provided together
+line 152 - inserted new parameters for powershell v2
+lines 153 to 155 - prevent call to powershell v2 ps2exe when psexe is compiled itself
+line 168 - shortened expression
+line 174 - shortened expression
+line 180 - inserted value checks for new parameters
+lines 251 to 252 - inserted compiler options for new parameters
+line 303 - inserted compiler directives for new parameters
+line 1809 - adjusted version number
+line 2006 to 2036 - corrected bug in parameter computation ("number in parameter name")
+line 2054 - translated comment
+lines 2107 to 2110 - removed comments
+lines 2146 to 2151 - corrected encoding for write of config file
+line 2161 - appended deletion of manifest file (if generated before)
+
+
+
+PS2EXE-GUI v0.5.0.4
+Changes:
+- corrected input handler: advanced parameters ([CmdletBinding()]) are working for compiled scripts now
+- implemented input pipeline (only of strings) for compiled scripts (only Powershell V3 and above), e.g, Get-ChildItem | CompiledScript.exe
+- Powershell V2 (or PS2EXE with switch -runtime20) compiles with .Net V3.5x compiler rather than with .Net V2.0 compiler now (there is no Microsoft support for .Net V2 anymore, so I won't do either)
+- implemented missing console screen functions to move, get and set screen blocks (see example ScreenBuffer.ps1)
+- several minor fixes
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.3):
+line 5 - adjusted version number
+line 18 - adjusted version number
+lines 186 to 193 - check for V3.5 compiler, warning if only V2 compiler found
+line 407 - inserted pinvoke definitions for new screen functions
+lines 519 to 522 - implemented GetBufferContents method
+lines 588 to 591 - implemented ScrollBufferContents method
+line 598 - correction of block size in SetBufferContents(Rectangle, BufferCell) method
+lines 606 to 609 - implemented SetBufferContents(Coordinats, BufferCell[,]) method
+lines 1157 to 1160 - exception displays actual error message instead of fixed text
+lines 1226 to 1229 - exception displays actual error message instead of fixed text
+line 1664 - adjusted version number
+line 1701 - inserted pinvoke definitions for string pipeline functions
+lines 1765 to 1769 - corrected input handler and inserted input string pipeline
+lines 1771 to 1774 - better variable name for output collection
+line 1876 - corrected parameter
+line 1878 - modifications for input string pipeline
+
+
+
+PS2EXE-GUI v0.5.0.3
+Changes:
+- Write-Progress implemented for GUI output (parameter -noConsole), nesting of progresses is ignored
+- removed unnecessary parameter -runtime30 (there is no such thing as a 3.x runtime)
+- if -runtime20 and -runtime40 is supplied together an error message is generated now
+- two references to Console removed from -noConsole mode for better stability
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.2):
+line 1 - removed parameter -runtime30
+line 5 - adjusted version number
+line 18 - adjusted version number
+lines 26 to 28 - check for runtime40 instead of runtime30
+lines 38 to 66 - overworked help text
+lines 121 to 135 - removed runtime30
+lines 163 to 175 - removed runtime30
+line 205 - reference to ConsoleHost only in console mode now
+lines 208 to 213 - removed runtime30
+lines 217 to 233 - removed runtime30
+line 254 - removed unnecessary comment
+line 956 - inserted new class ProgressForm for display of a progress bar in GUI mode
+line 1421 - inserted new variable for WriteProgess in GUI mode
+lines 1422 to 1425 - method WriteProgress implemented for GUI mode
+line 1519 - adjusted version number
+lines 1641 to 1645 - replaced Console.WriteLine with MessageBox.Show for GUI mode
+line 1768 - corrected typo
+lines 1817 to 1821 - removed runtime30
+
+
+
+PS2EXE-GUI v0.5.0.2
+Changes:
+- STA or MTA mode is used corresponding to the powershell version when not specified (V3 or higher: STA, V2: MTA)
+  This prevents problems with COM and some graphic dialogs
+- icon file is seeked in the correct directory
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.1):
+line 5 - adjusted version number
+line 18 - adjusted version number
+lines 111 to 115 - overworked routine to get icon file path
+line 174 - when no -STA or -MTA switch is given, the threading apartment is set here according to the powershell version
+
+
+
+PS2EXE-GUI v0.5.0.1
+Changes:
+- PROGRESS handler removed
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.0):
+line 5 - adjusted version number
+line 18 - adjusted version number
+lines 1600 to 1603 - removed handler for progress stream, resulted in progress output converted to string (e.g.: "parent = -1 id = 0 act = Activity stat = State cur =  pct = -1 sec = -1 type = Completed")
+
+
+
+PS2EXE-GUI v0.5.0.0
+
+Changes by Markus Scholtes:
+- treats Powershell 5 or above like Powershell 4
+- Unused classes ReadKeyForm and CredentialForm in console output removed
+- remove dead code
+- System.Windows.Forms and System.Drawing are loaded for GUI output
+- Write methods use MessageBox.Show in GUI output
+- InputBox class introduced which is used for Readline, Read LineasSecureString and Prompt with GUI output
+- ChoiceBox-Klasse introduced which is used for PromptForChoice with GUI output
+- ReadKeyBox-Klasse introduced which is used for ReadKey with GUI output
+- Prompt accepts SecureString and PSCredential as field types now
+- Prompt: when conversion of input fails, the prompt reappears
+- PromptForPassword: corrected string overflow in 32 bit runtime
+- PromptForCredential for console: computer name is used, user name is demanded when needed
+- PromptForChoice accepts help texts and default values now
+- the console output methods do not use black background and white foreground, but use the actual colors now
+- missing methods WriteLine() and WriteLine(ConsoleColor, ConsoleColor, String) added
+- method SetBufferContents for Clear-Host added
+- method KeyAvailable added
+- method BufferSize for GUI output corrected
+- in GUI output the class Console is not called anymore
+- input and output file are seeked and generated in the correct directory
+- check that input file is not the same as the output file
+- doubled VERBOSE and WARNING handler removed
+- new, corrected and much expanded parser for command line parameters
+- several small fixes
+- revision of help and error texts
+
+What is still missing:
+Write-Progress
+
+
+List of changes (line numbers are from PS2EXE v0.5.0.0):
+lines 38 to 70 - updated help text
+line 74 - powershell versions greater than 4 are treated like version 4
+lines 94 to 107 - corrected generation of absolute file paths
+line 108 - added check whether input file is the same as output file
+line 140 - added icon file parameter for runtime 2.0
+line 167 - omitted, no need for Set-Location
+lines 207 to 208 - omitted, full paths already retrieved
+lines 253 to 272 - omitted
+lines 280 to 342 - omitted
+line 414 - corrected StringBuilder constructor for 32 bit environments
+line 430 - allocated enough space for long user or domain names
+lines 447 to 561 - omitted
+lines 564 to 582 - moved to beginning of c# code
+line 579 - added Forms and Drawing namespaces in GUI mode
+line 586 - removed variable CONSOLE, added variables to store console colors for GUI environment
+lines 588 to 598 - added GUI support for BackgroundColor
+lines 600 to 614 - corrected dummy size for BufferSize for GUI, so WriteLine is called
+lines 616 to 627 - added GUI support for CursorPosition
+lines 629 to 639 - added GUI support for CursorSize
+line 643 - removed exception
+lines 646 to 656 - added GUI support for ForegroundColor
+lines 663 to 669 - implemented KeyAvailable
+lines 671 to 674 - added GUI support for MaxPhysicalWindowSize
+lines 676 to 679 - added GUI support for MaxWindowSize
+line 694 - added support for NUMLOCK
+lines 698 to 700 - added working GUI support for ReadKey
+lines 709 to 712 - implemented, even Clear-Host works now
+lines 719 to 733 - added GUI support for WindowPosition
+lines 735 to 749 - added GUI support for WindowSize
+lines 751 to 761 - added GUI support for WindowTitle
+line 762 - added classes for input boxes, choice boxes and read key boxes
+line 765 - removed constant CONSOLE
+line 772 - initializing of screen colors added
+lines 775 to 856 - Prompt: added GUI support, added secure text, added help messages
+lines 858 to 906 - PromptForChoice: added GUI support
+lines 908 to 937 - PromptForCredential: corrected handling of readonly user names
+lines 939 to 964 - PromptForCredential: corrected handling of readonly user names
+line 973 - added private variables for input boxes
+lines 974 to 977 - added GUI support for ReadLine
+lines 979 to 986 - ReadLineAsSecureString: implemented password input in console and GUI
+lines 988 to 993 - Write: corrected color management, added GUI support
+lines 995 to 1000 - Write: corrected color management, added GUI support
+lines 1002 to 1007 - WriteDebugLine: corrected color management, added GUI support
+lines 1009 to 1014 - WriteErrorLine: corrected color management, added GUI support
+line 1016 - added function WriteLine(ConsoleColor, ConsoleColor, string)
+line 1016 - added function WriteLine()
+lines 1016 to 1021 - WriteLine: removed color management, added GUI support
+lines 1028 to 1033 - WriteVerboseLine: corrected color management, added GUI support
+lines 1035 to 1040 - WriteWarningLine: corrected color management, added GUI support
+line 1047 - removed constant CONSOLE
+line 1110 - set correct version number
+line 1150 - removed constant CONSOLE
+line 1193 to 1206 - removed Console.CancelKeyPress in case there is no console
+line 1213 to 1216 - removed handler for verbose stream, resulted in double verbose output
+line 1217 to 1220 - removed handler for warning stream, resulted in double warning output
+line 1275 to 1280 - inserted a much improved routine to retrieve parameters (still faulty in some situations)
+lines 1299 to 1303 - exception is displayed in a message box when there is no console
+lines 1305 to 1309 - wait text is displayed in a message box when there is no console
