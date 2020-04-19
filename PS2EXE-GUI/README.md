@@ -5,18 +5,21 @@ Since Technet Gallery will be closed, now here.
 
 See Script Center version: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI](https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5).
 
-Author: Markus Scholtes
+### Author: Markus Scholtes
 
-Version: v0.5.0.20
+### Version: v0.5.0.20
 
-Date: 2020-04-19
+### Date: 2020-04-19
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you can download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
 Unfortunately Ingo seems to have stopped working on his script so I overworked his script with some error fixes, improvements and output support for non-console WinForms scripts (parameter -noConsole to ps2exe.ps1).
 
 
-Module based version available now on Powershell Gallery, see here (https://www.powershellgallery.com/packages/ps2exe) or install with Install-Module PS2EXE
+Module based version available now on Powershell Gallery, see here (https://www.powershellgallery.com/packages/ps2exe) or install with
+```powershell
+Install-Module PS2EXE
+```
 
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
@@ -46,7 +49,7 @@ Not all parameters are supported, requires .Net 4.x. C# WPF application. With dr
 
 - see remarks below for formatting of output in GUI mode
 
-![GUI Output](GUI Output.jpg)
+![GUI Output](GUI-Output.jpg)
 
 ## Examples:
 Compile all of the examples in the Examples sub directory with
