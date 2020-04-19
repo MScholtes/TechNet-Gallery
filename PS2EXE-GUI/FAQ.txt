@@ -1,0 +1,2348 @@
+Most interesting questions from the "Questions and answers" section on Script center page:
+https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5/view/Discussions#content
+
+
+Powershell 7
+2 Posts | Letzter Beitrag März 10, 2020
+
+Geschrieben März 06, 2020
+Jamal1337
+Hello, since Powershell 7 Final is out now i would like to know if there will be a newer version soon where i can compile my PS7 script?
+
+Geschrieben März 10, 2020
+Markus Scholtes
+Hello Jamal1337,
+
+the issue with PS2EXE and PowerShell 6 or 7 is the underlying .Net Core. PS2EXE compiles a frame C# program containing the PowerShell script. .Net Core (and so PowerShell 7) does not deliver a compiler anymore in its base installation, one has to install the SDK to get one ("Roslyn").
+
+And once there is the compiler, the calling method has changed completely. I do not know how to implement this without weeks of work.
+
+If someone has a good idea how to make it "cheap", please tell.
+
+Greetings
+
+Markus
+
+
+
+Start-Transscript is not working normally in EXE
+3 Posts | Letzter Beitrag Februar 25, 2020
+
+Geschrieben Februar 24, 2020
+AW L
+I tested Start-Script is not working working normally after transferred from PS1 to EXE. Please take a look. Thanks!
+
+Geschrieben Februar 24, 2020
+AW L
+Sorry for the confusion. The Cmdlet is Start-Transcript. It looks like not working fine (record information to the file)
+
+Geschrieben Februar 25, 2020
+Markus Scholtes
+Hello AW L,
+
+beginning with Powershell V3 Microsoft made a weird implementation of Start-Transscript with mixing the code into the Powershell and the underlying host. So I did not implement this commandlet and have no plans to do so.
+
+Sorry for that.
+
+Greetings
+
+Markus
+
+
+
+Nach Erstellung einer *.exe mit ps2exe keine highlighted buttons
+2 Posts | Letzter Beitrag Februar 21, 2020
+
+Geschrieben Februar 21, 2020
+yelw0rc
+Hallo Markus,
+
+
+
+danke erstmal für dieses hilfreiche und nützliche Tool.
+
+
+
+Ich habe ein Skript mit Buttons und Progressbar. Wenn ich dieses Mittels ps2exe konvertiere, sind die Buttons nicht mehr "highlighted" und die Progressbar sieht auch anders aus, als wenn ich das Skript einfach so ausführe. Ich habe diese Frage bereits im Microsoft Technet gestellt, dort hatte man zwar Ideen, aber letztendlich hat man mich hierher verwiesen. Da ich hier keine Funktion zum Einfügen von Bildern gefunden habe, hinterlasse ich hier mal einen Link aus dem Forum, da ich dort 2 Beispiele in Bildform angehängt habe. https://social.technet.microsoft.com/Forums/de-DE/a05c6a1a-eae4-4add-a6c7-43cd43d403c9/nach-erstellung-einer-exe-mit-ps2exe-keine-highlighted-buttons?forum=powershell_de
+
+
+
+Was kann ich tun, damit die Buttons und die Progressbar so aussehen, wie sie in Bild 1, also bei Ausführung des Skriptes, aussehen?
+
+
+
+Vielen Dank.
+
+
+
+Gruß
+
+Christian
+
+
+Geschrieben Februar 21, 2020
+Markus Scholtes
+Hallo yelw0rc,
+
+du musst das Kommando
+[System.Windows.Forms.Application]::EnableVisualStyles()
+in dein Skript einfügen, und zwar bevor irgendwelche graphischen Objekte erzeugt werden. Damit sollte es dann klappen.
+
+Gruß
+
+Markus
+
+
+Hello yelw0rc,
+
+you must insert the command
+[System.Windows.Forms.Application]::EnableVisualStyles()
+into your script before any graphical objects are created. This should work then.
+
+Greetings
+
+Markus
+
+
+
+Start-job in my script , does not work after coverting to exe
+2 Posts | Letzter Beitrag Januar 31, 2020
+
+Geschrieben Januar 28, 2020
+Sushant7958
+I am using start-job in my code to monitor one command.
+
+after compiling i realize that exe is not capable to run that start-job chunk.
+
+
+
+any idea ?
+
+Geschrieben Januar 31, 2020
+Markus Scholtes
+Hello Sushant7958,
+
+Start-Job is working fine in PS2EXE. But if the compiled script ends all still running background jobs will be forcefully closed. That's part of the design.
+
+Greetings
+
+Markus
+
+
+
+Running EXE as another user
+2 Posts | Letzter Beitrag Januar 27, 2020
+
+Geschrieben Januar 25, 2020
+nickp85
+Hello,
+
+
+
+This little program is great for handing completed PS scripts to helpdesk folks without having to explain how to launch PS and run the script.  I have noticed though that if I run the EXE using shift+right click > run as different user, when the PS script has completed, the process is not exiting.  It stays in task manager until I kill it.  Does not seem to happen if I just double click the file.
+
+
+
+Any way to fix this so the process closes as expected when done?
+
+Geschrieben Januar 27, 2020
+Markus Scholtes
+Hello nickp85,
+
+this sounds a bit complicated. I think there is an issue with using PoshRSJob in PS2EXE. PoshRSJob starts a powershell runspace pool without closing it. Powershell.exe forcefully closes all runspaces on exit, but PS2EXE is running in a runspace by itself. So it waits for the runspaces to close what never happens, this leads to an infinite wait.
+
+I found no easy way to tell PoshRSJob to close its runspaces, so I see two workarounds:
+
+1. Change the runspaces of PoshRSJob to use its own threads
+
+Search for the file Start-RSJob.ps1 in the module directory of PoshRSJob, if installed for the AllUsers context the path is "C:\Program Files\WindowsPowerShell\Modules\poshrsjob\1.7.4.4\Public\Start-RSJob.ps1".
+
+Edit the file and insert the line
+  $RunspacePool.ThreadOptions = "UseNewThread"
+in the line before
+  $RunspacePool.Open()
+(line 524 as of version 1.7.4.4)
+
+Since PoshRSJob runspaces use their own threads now they can be distinguished from PS2EXE's runspace and get closed on exit.
+
+If you want the runspaces to close faster at the end replace
+  $RunspacePool.CleanupInterval = [timespan]::FromMinutes(2)
+with something like
+  $RunspacePool.CleanupInterval = [timespan]::FromSeconds(10)
+two lines before the expression mentioned above.
+
+
+2. Close the runspaces manually on exit of your script
+
+Put the following line on all places of your script where an exit can occur:
+
+Get-Runspace | ?{ $_.Id -ne [System.Management.Automation.Runspaces.Runspace]::DefaultRunspace } | ?{ $_.RunspaceAvailability -lt 3 } | %{ $_.Dispose() }
+
+This line closes all runspaces that are not "Busy" and obviously not the default runspace (you would crash the script engine then). I would not recommend to do this in regular scripts.
+
+Hope this helps.
+
+Greetings
+
+Markus
+
+
+
+Can't run exe created in Win10 on Win7 Machine
+2 Posts | Letzter Beitrag November 13, 2019
+
+Geschrieben November 12, 2019
+KMarryat
+I have a script that I would like to package using PS2EXE and be able to run it on Win7 or Win10 without a config file. All computers I will run it on will have .NET4 so I would like to be able to specify the requirements as Powershell2 and .NET4.
+
+
+
+Currently if I build the exe on Win7, I can run it on win10 but I get a prompt to install .NET2/3.5. If I use a config file with .Net4 specified it will run fine on Win10 without installing .NET2/3.5 but I would prefer not to have to distribute a config file with the exe.
+
+
+
+If I build the exe on Win10 and try to run it on win7 I get an error that the program has stopped working and I see the following error in the console.
+
+
+
+Unhandled Exception: System.IO.FileNotFoundException: Could not load file or assembly 'System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35' or one of its dependencies. The system cannot find the file specified. at ik.Powershell.PS2EXE.Main(String[] args)
+
+
+
+Is there a way to specify requirements as Powershell2 and .NET4 so it will run on win7 or win10 running .NET4?
+
+Geschrieben November 13, 2019
+Markus Scholtes
+Hello KMarryat,
+
+when I understand your environment correctly you try to do something that cannot function:
+- PowerShell Version 2 works only with .Net 2 or .Net 3 and NOT with .Net 4
+- PowerShell Version 3 or up is NOT included in .Net 4
+
+You have two choices when you want to use one binary:
+- install .Net 3 on Windows 10 and use PowerShell V2 there with a config file that enforces PowerShell 2
+- install WMF 5.1 on Windows 7 so you can use PowerShell V5.1 there with a config file that enforces PowerShell 5.1
+
+Greetings
+
+Markus
+
+
+
+Support for german Umlaute (special cases)
+2 Posts | Letzter Beitrag November 09, 2019
+
+Geschrieben November 08, 2019
+Jista
+Hello Markus,
+
+
+
+thank you for overworking and maintaining this project, very much appreciated.
+
+
+
+Im using ps2exe for converting a powershell script with a gui to a standalone .exe. The GUI is build with System.Windows.Forms-elements, so nothing out of the ordinary.
+
+
+
+However, after compiling to an .exe-File german special cases / "Umlaute" like äöüß are not displayed correctly anymore. Instead, these characters are displayed like "?".
+
+
+
+It seems like there is a change of encoding going on in the encapsulating process and the new charset does not support these characters.
+
+
+
+Are these special characters supported?
+
+
+
+Regards,
+
+Jakob
+
+
+
+
+
+
+
+
+
+
+Geschrieben November 09, 2019
+Markus Scholtes
+Hello Jakob,
+
+PS2EXE can handle special characters like Umlauts  but expects the source file to be UTF8 oder Unicode encoded. Please convert your source file before compiling, for example with
+
+  gc .\sourceASCII.ps1 | sc sourceUTF8.ps1 -Encoding UTF8
+
+Greetings
+
+Markus
+
+
+
+Can I run Compiled.exe file in Windows RE?
+2 Posts | Letzter Beitrag November 05, 2019
+
+Geschrieben November 04, 2019
+Minh Cu?ng
+Hello Markus.
+
+
+
+Can I run Compiled.exe file in Windows Recovery Environment?
+
+
+
+I have tried and get no output or error.
+
+
+
+Also thanks very much for Win-PS2EXE gui update.
+
+
+
+Greetings
+
+Geschrieben November 05, 2019
+Markus Scholtes
+Hello Minh Cu?ng,
+
+this does not work since there is no PowerShell installed in Windows RE.
+
+There are some instructions on how to install PowerShell in Windows RE on the web but it is quite difficult.
+
+Greetings
+
+Markus
+
+
+
+Encoding
+2 Posts | Letzter Beitrag September 27, 2019
+
+Geschrieben September 26, 2019
+A.F.Alves
+Hello!
+
+
+
+Would it be possible to add an option to change the encoding? I see that you set the encoding to UTF8, but in scripts that use Active Directory fields (ANSI) this causes errors in filenames and things like that. I have solved this problem by replacing all "UTF8" with "Default" in your script, but it would be nice to have an option to choose the desired encoding in the GUI or even through command line.
+
+
+
+Thank you!
+
+Geschrieben September 27, 2019
+Markus Scholtes
+Hello A.F. Alves,
+
+without investigating this topic, wouldn't it be the better way you convert or create your scripts in UTF8 or UNICODE Format. I think this would be much better because I guess those scripts would work independent of the localized character set of the computer.
+This was the reason for me to choose UTF8 as encoding since it "understands" UTF8 and UNICODE and is not langauge dependend.
+
+Greetings
+
+Markus
+
+
+
+
+Issue with come commands
+5 Posts | Letzter Beitrag September 20, 2019
+
+Geschrieben September 19, 2019
+EmilSkibsted
+Hi
+
+
+
+When I am using some cmdlets related to Hyper-V like:
+
+
+
+Get-VM
+
+Get-VMIntegrationService
+
+
+
+I get a blinking window (1 milisecond only) when I run the compiled exe.
+
+
+
+Please help.
+
+
+
+
+Geschrieben September 20, 2019
+Markus Scholtes
+Hello EmilSkibsted,
+
+I guess the "blinking window" is the Shell that opens when you run your command. You have two options:
+
+1. Start your program out of a Powershell window (or cmd.exe window)
+2. Compile with the Option -noConsole
+
+Greetings
+
+Markus
+
+Geschrieben September 20, 2019
+EmilSkibsted
+Hi again
+
+1. Not sure what you mean? I am compiling the exe from a .ps1 file.
+2. I am using the option -noConsole.
+
+IT is only for the cmdlets that relate to Hyper-V that is causing the blink. If add fx. Get-Service or something else there is no blinks...
+
+Geschrieben September 20, 2019
+EmilSkibsted
+I just filmed the popup, and it is a white window with the label: Progress.
+
+Geschrieben September 20, 2019
+Markus Scholtes
+Hello EmilSkibsted,
+
+I understand now. When loading modules or assemblies, PowerShell shows a progress bar (you may not notice it because it's shown for a short time only). When compiling with PS2EXE and -noConsole to a graphical executable, the progress bar obviously is shown in a window: your "blinking window".
+
+Please set the following command to the beginning of your script to prevent progress bars:
+$ProgressPreference = 'SilentlyContinue'
+
+To reenable progress bars use
+$ProgressPreference = 'Continue'
+
+
+Greetings
+
+Markus
+
+
+
+Is it possible to "pack" any other loaded files into the executable?
+2 Posts | Letzter Beitrag September 19, 2019
+
+Geschrieben September 18, 2019
+iRoger
+Hi,
+
+
+
+I use a PowerShell script to download data from an Analysis Services tabular model. I load a custom .dll library an other extra files into the script.
+
+
+
+Is it possible to "pack" all this resources into the executable file in order to have standalone application?
+
+
+
+
+
+Thanks and best regards!!
+
+Geschrieben September 19, 2019
+Markus Scholtes
+Hello iRoger,
+
+you want to create some kind of installer or self-extracting archive for your script, this is too much work for PS2EXE to integrate this function. I recommend an archiving tool like 7Zip or a program to create installers (Windows provides one with IExpress) for your purposes.
+
+Greetings
+
+Markus
+
+
+
+
+Is it possible to protect again a decompile?
+3 Posts | Letzter Beitrag September 13, 2019
+
+Geschrieben September 11, 2019
+Stefan071
+Hi there, is there a way to protect the .exe against a decompile backup to ps1 so I can protect the sourcecode of the software?
+
+Geschrieben September 12, 2019
+Markus Scholtes
+Hello Stefan071,
+
+this makes not really sense since PS2EXE encodes and not encrypts the source script.
+But you may open ps2exe.ps1 with a (good) text editor and replace the expression
+  s.StartsWith("-extract", StringComparison.InvariantCultureIgnoreCase)
+with
+  false
+
+Any script you compile afterwards is not decodable with a command line parameter, but still is decodable with a hex editor (and a lot of knowledge).
+
+Greetings
+
+Markus
+
+Geschrieben September 13, 2019
+Stefan071
+Thank you very much Markus. When you have a bit of your IP in the PS code it is really handy to know you are able to stop decompile. I know it's not 100% safe but it's a lot better than having it be super easy to get to the source and whatever.
+So thank you!
+
+
+
+
+
+unable to decompile EXE to ps1
+2 Posts | Letzter Beitrag September 09, 2019
+
+Geschrieben September 08, 2019
+Ankoji
+Hi Markus,
+
+
+
+One of my script was converted to EXE from PS1 and its not supporting for vSphere 6.7 environment. So i need to modify the script and tried to extract using -extract:”Filename”.
+
+Ex- .\ps2exe.ps1  VCMRv3.exe -extract:C:\Users\ankoj\Downloads\VCMR.ps1
+
+
+
+Could you please help on this ?
+
+
+
+Thanks,
+
+Ankoji
+
+ankojin@outlook.com
+
+Geschrieben September 09, 2019
+Markus Scholtes
+Hello Ankoji,
+
+it is easier as you think, try
+VCMRv3.exe -extract:C:\Users\ankoj\Downloads\VCMR.ps1
+without the .\ps2exe.ps1 in front.
+
+Greetings
+
+Markus
+
+
+
+"Start-Process [process] -Wait" doesn't work on Windows 7
+2 Posts | Letzter Beitrag September 06, 2019
+
+Geschrieben September 06, 2019
+Jeffrey McClain
+I used this tool to create an executable from a PowerShell script on my laptop (running Windows 10 64-bit, v1903). It worked great, I selected the options for run as admin as well as "noConsole" and tested on a couple Windows 10 machines.
+
+
+
+However, when I tested on a Windows 7 laptop I noticed that the "-Wait" flag wasn't respected (the commands executed fine, but didn't wait which caused issues with my verification logic).
+
+
+
+Is this a known issue? Is there a workaround?
+
+Geschrieben September 06, 2019
+Markus Scholtes
+Hello Jeffrey McClain,
+
+I guess this is a misunderstanding. When you compile a script with the option -NoConsole, a graphical program is generated. The shell does not wait for a graphical program to exit.
+
+You have to use start /wait (if started from cmd.exe) or Start-Process -Wait (from PowerShell) to instruct the shell to wait.
+
+Greetings
+
+Markus
+
+
+
+Can I get the exe file to run Powershell Console instead of cmd?
+2 Posts | Letzter Beitrag August 22, 2019
+
+Geschrieben August 21, 2019
+pmt205
+I have some lines in my script to do the Write-Progress while copying files, the progress bar still appears when I run the script using Powershell, but after I converted it to exe, the bar was not showed up in cmd console.
+
+Geschrieben August 22, 2019
+Markus Scholtes
+Hello prnt205,
+
+Write-Progress is not implemented if a "shell" program is compiled (no -NoConsole parameter). Because it is very complicated to implement, I have no plans to implement this. So Write-Progress is ignored.
+
+Sorry for that, greetings
+
+Markus
+
+
+
+Passing arguement
+5 Posts | Letzter Beitrag August 09, 2019
+
+Geschrieben August 08, 2019
+Abby Potter
+Hi Markus, I used PS2exe for converting .ps1 file. My ps1 file takes 2 arguments during installation. ie, .\my.ps1 "arg1","arg2". arg1 is used by an exe for installation. When I run from ps1, the exe takes arg1 as per the required logic but when I run ps2exe converted exe it takes both the arguments(arg1 and arg2)as input parameter which is causing issue. I verified the same by running process explorer. It would be very kind of you if you could help me.
+
+Geschrieben August 08, 2019
+Markus Scholtes
+Hello Abby Potter,
+
+I can explain this behaviour, but can not do anything about it because it's not under PS2EXE's control. When you pass "arg1","arg2" to a PowerShell script, an Array is passed to the script. If you pass "arg1","arg2" to an executable, the shell passes a string to the executable. So the string with the value "arg1","arg2" is the first parameter.
+
+Is it possible for you to set a blank after the comma? Could you omit the comma? This might work.
+
+Greetings
+
+Markus
+
+
+
+Add a parameter "-noNamedParams" to ps2exe.ps1
+5 Posts | Letzter Beitrag Juni 30, 2019
+
+Geschrieben Juni 25, 2019
+obrain17
+I created an enhancement for ps2exe:
+
+
+
+-noNamedParams = disable interpreting parameters in powershell style, means arguments will be passed directly
+
+
+
+If this parameter is set the part for "{ // parameter in powershell style" is commented, means "named parameter found" will be ignored, means all parameters will be handled as "unnamed" and passed directly to the original .ps code. This means especially that not $True or $False processing is done.
+
+The purpose is mainly if you want to call an external .exe or .cmd (e.g. with Start-Process  -ArgumentList …) that cannot deal with the powershell style parameters and you might pass the original parameters directly.
+
+
+
+Unfortunately I cannot upload my contribution because I am getting the message:
+
+
+
+"Sorry, you don't have privilege to upload a sample."
+
+
+
+
+
+
+Geschrieben Juni 25, 2019
+Markus Scholtes
+Hello obrain17,
+
+I have to admit I don't really understand your question.
+What is "argument passed directly"? PS2EXE is calling a Powershell script, so obviously there is no "direct" passing of parameters but always a "passing to Powershell".
+Why don't you set your parameters in quotes to pass them unchanged?
+
+Greetings
+
+Markus
+
+Geschrieben Juni 27, 2019
+obrain17
+Hello Markus,
+
+I do not call the program myself. In this case of course I could adapt the arguments, set them in quotes .etc..
+
+The purpose of the "-noNamedParams" option is when you want to write kind of a hook-program or replacement = an exe file that has the same  name of an already exiting one. It gets called, then does this and that, and afterwards it may call the original .exe passing the original arguments unchanged.
+
+Even if I only write a .ps1 that displays the $args on the console, this .ps1 will show them all correctly but a "ps2exe" compiled .exe would show $True" for empty arguments, remove some ":" from pathname, etc.
+
+But with my new "-noNamedParams" switch the .exe will behave exactly as the .ps1.
+
+Best regards,
+Rainer
+
+Geschrieben Juni 30, 2019
+Markus Scholtes
+Hello obrain17,
+
+I understand now. But I guess I will not implement this feature for two reasons. First the executables generated by PS2EXE shall behave as closest as possible like the original script. This switch would prevent this. Second, your request seems to be a very special request. I may change my mind if there are other people requesting this.
+
+Greetings
+
+Markus
+
+Geschrieben Juni 30, 2019
+obrain17
+Hello Markus,
+
+You are right, it is a very special request. For me it worked perfectly, but I understand I might be the only one needing this. And I already have it :-)
+
+As a last info for those who might been interested, here a part of a .ps1 script hat is making use of the feature of passing the parameters directly to another program:
+
+foreach($u in $Args)
+{
+  $v=[string]$u
+  $prm += $v + ' '
+}
+
+$process = Start-Process -Filepath $proc -ArgumentList $prm
+
+Best regards,
+Rainer
+
+
+
+Doesn't seem to work for me, don't know why
+9 Posts | Letzter Beitrag Mai 12, 2019
+
+Geschrieben Mai 10, 2019
+StefanBPS
+Hi, this is a very interesting tool for us but I can't get it to work.
+
+When I compile everything seems fine but when I then run the .exe like I do the .ps1 I get these errors that I don't understand. The powershell script runs fine.
+
+
+
+C:\abc>abc.exe settings.ps1
+
+ERROR: At line:632 char:41
+
++  cat c:\abc\allvms1.list | %{$_ -replace ?Name : ?,??} | %{$_ -replac ...
+
++                                         ~
+
+You must provide a value expression following the '-replace' operator.
+
+
+
+At line:632 char:42
+
++  cat c:\abc\allvms1.list | %{$_ -replace ?Name : ?,??} | %{$_ -replac ...
+
++                                          ~~~~~
+
+Unexpected token '?Name' in expression or statement.
+
+
+
+At line:632 char:71
+
++ ... bc\allvms1.list | %{$_ -replace ?Name : ?,??} | %{$_ -replace ?Name?, ...
+
++                                                                  ~
+
+You must provide a value expression following the '-replace' operator.
+
+
+
+At line:632 char:72
+
++ ... ms1.list | %{$_ -replace ?Name : ?,??} | %{$_ -replace ?Name?,??} | % ...
+
++                                                            ~~~~~~
+
+Unexpected token '?Name?' in expression or statement.
+
+
+
+At line:632 char:78
+
++ ... s1.list | %{$_ -replace ?Name : ?,??} | %{$_ -replace ?Name?,??} | %{ ...
+
++                                                                 ~
+
+Missing argument in parameter list.
+
+
+
+At line:632 char:98
+
++ ... lace ?Name : ?,??} | %{$_ -replace ?Name?,??} | %{$_ -replace ?----?, ...
+
++                                                                  ~
+
+You must provide a value expression following the '-replace' operator.
+
+
+
+At line:632 char:99
+
++ ... ame : ?,??} | %{$_ -replace ?Name?,??} | %{$_ -replace ?----?,??}> c: ...
+
++                                                            ~~~~~~
+
+Unexpected token '?----?' in expression or statement.
+
+
+
+And that goes on for a while.
+
+
+
+Any help would be very welcome.
+
+
+
+Regards,
+
+  Stefan
+
+Geschrieben Mai 10, 2019
+Markus Scholtes
+Hello StefanBPS,
+
+you have some non-ASCII apostrophs in your scripts like “Name : ”,“” (copy-and-paste-error form Word or a webbrowser?).
+PowerShell is nice if they appear in an ANSI encoded file, but PS2EXE converts the script internally to UNICODE. So you get an error then.
+
+Please replace the wrong apostrophs with the correct ones: ' or ". Then everything will be fine.
+
+Greetings
+
+Markus
+
+Geschrieben Mai 10, 2019
+StefanBPS
+Markus, that helped a lot, thank you.
+Could it be that I can't load the Veeam snapin for Powershell.
+
+This is my code:
+\\
+
+Add-PSSnapin VeeamPSSnapin
+
+if( -not $?)
+{
+Write-Output "$(Get-TimeStamp) restorevm function : error loading the the Veeam powershell snapin" | Out-file $tracefile -append
+mailandcleanup
+}
+\\
+
+And my trace files shows that the it's giving an error on the RC so it starts the mailandcleanup function.
+Is this a possible limitation of the PS2EXE? I felt like I was so close to having it work! :)
+
+Geschrieben Mai 10, 2019
+StefanBPS
+Oh, sorry, it gave that error because it was already loaded.
+
+The real problem is this part:
+
+ERROR: Cannot convert 'System.Object[]' to the type 'Veeam.Backup.Core.Infrastructure.CViDatastoreItem' required by parameter 'Datastore'. Specified method is not supported.
+
+
+Geschrieben Mai 10, 2019
+Markus Scholtes
+Hello StefanBPS,
+
+I guess I cannot help in this case since Veeam is a Commercial product I don not own. But it might be helpful if you post the command that leads to the error message.
+
+Greetings
+
+Markus
+
+Geschrieben Mai 10, 2019
+StefanBPS
+I understand, maybe you have an idea what the problem could be.
+I have this powershell script that I would really like to compile to .exe, it works fine in powershell and restores a VM, it doesn't work after it is compiled.
+
+
+Veeam needs some variables to be filled before the restore can start:
+
+$datastore = Find-VBRViDatastore -Server $abchost -Name ($abcdatastore)
+$resourcepool = Find-VBRViResourcePool -Server "$abchost" -Name "$abcresourcepool"
+$restorepoint = Get-VBRRestorePoint -Backup $job -Name $line | Select -Last 1
+
+This is what's in the variables at my test run with Powershell (I did a write-host)
+
+restorepoint is Veeam.Backup.Core.COib
+server is esx01.demo.local
+resourcepool is Veeam.Backup.Core.Infrastructure.CViResourcePoolItem
+datastore is STORE12_cpty_vol02_V3700demo
+vmname is Vyos05-abctmp
+<restore starts and works fine>
+
+This is what's in the variables at my test run with the compiled .exe (write-host again)
+
+restorepoint is Veeam.Backup.Core.COib
+server is esx01.demo.local
+resourcepool is Veeam.Backup.Core.Infrastructure.CViResourcePoolItem
+datastore is STORE12_cpty_vol02_V3700demo
+vmname is Vyos05-abctmp
+<restore error as seen below>
+
+but the restore command gives this error:
+
+ERROR: Cannot convert 'System.Object[]' to the type 'Veeam.Backup.Core.Infrastructure.CViDatastoreItem' required by parameter 'Datastore'. Specified method is not supported.
+
+
+Used restore command:
+
+restore command: Start-VBRRestoreVM –RestorePoint $restorepoint –Server $abchost -Resourcepool $resourcepool –Datastore $datastore -VMName "$line-abctmp" | Tee-Object -FilePath "c:\abc\logs\$line-vmrestorecommandoutput.log" -append
+
+Any help would be great, if not that's ok.
+
+Stefan
+
+Geschrieben Mai 10, 2019
+StefanBPS
+The problem seems to be the type of variables passed tot he Start-VBRRestoreVM command. Powershell has no problems with these and executes the restore but once you compile the powershell script it comes with the "ERROR: Cannot convert 'System.Object[]' to the type 'Veeam.Backup.Core.Infrastructure.CViDatastoreItem' required by parameter 'Datastore'. Specified method is not supported." error.
+
+I can't seem to work around this problem yet.
+
+Geschrieben Mai 11, 2019
+Markus Scholtes
+Hello StefanBPS,
+
+seems to me a similiar problem like the "apostroph issue". In the command line with Start-uVBRRestoreVM there are some "EN DASH" characters (ASCII code 0x96) instead of the regular "hyphen minus" (ASCII code 0x2d). Please copy the "minus" from –Datastore to the clipboard and use it to replace it with a correct minus.
+
+Did you copy commands from MS Word, this character is used there as a optional hyphen?
+
+Greetings
+
+Markus
+
+Geschrieben Mai 12, 2019
+StefanBPS
+This was it, you fixed it Markus.
+I'm so happy, I've been wanting to get this code into .exe for a while now and you made it possible.
+Thank you very much, I know these questions where very much powershell code related and not really related to your software so I'm extra grateful that you helped me like you did.
+Thanks again.
+
+Regards,
+  Stefan
+
+
+
+
+Compilation limitation?
+3 Posts | Letzter Beitrag April 05, 2019
+
+Geschrieben März 28, 2019
+AG_G1
+Hello Markus,
+
+
+
+I'm getting an compilation error :
+
+
+
+Could not create the PowerShell .exe file because of compilation errors. Use -verbose parameter to see details.
+
+COMMENTAIRES : error CS0013: Erreur inattendue lors de l'écriture des métadonnées dans le fichier 'd:\PS2EXEGUI\EXE\MyExe.exe' -- 'Pas d'espace logique restant pour la création de chaînes utilisateur supplémentaires.'
+
+
+
+I investigated, and it's due to some binaries integrated in my script by converted Base64 strings (picture, pdf, ...). Whatever the Base64 string, it looks like it has some limitation. There are about ten Base64 strings in my script for binaries sized 70ko up to 2Mo. And my script is sized 6200Ko, and about 16Mo once compiled.
+
+
+
+I found more information here:
+
+https://docs.microsoft.com/en-us/dotnet/framework/data/adonet/ef/performance-considerations#strategies-for-improving-performance
+
+It's talking about the size limit with large and complex models. But I don't know how to do.
+
+
+
+Thanks for your Help.
+
+Geschrieben März 29, 2019
+Markus Scholtes
+Hello AG_G1,
+
+you have a similiar problem that jackofalltech has (see question "Over Come 16777214" below), a string in C# is limited to a size of 16 MByte. Since PS2EXE-GUI compiles to C# and the PS1 script is held in a string variable in C#, this is a fixed limit!
+
+C# is storing ist strings UTF16 encoded, so the size of your script will be doubled. Additionally it is converted to a base64 string which leads to a another growth in size of 33 percent. This is the reason why your script raises from 6 MByte to over 16 MByte when compiled.
+
+I thought about it, but I found no way to get along with it. It is a hard limit. Please try to build smaller scripts.
+
+Greetings
+
+Markus
+
+
+
+
+hang over hash table
+6 Posts | Letzter Beitrag März 28, 2019
+
+Geschrieben März 24, 2019
+papamanman
+I compiled the ps1 file which get hash table from another ps1 program.
+
+but, compiled program didnt work.
+
+
+
+"ERROR: cant attach Index to type System.String Object" (transfered from Japanese, so it may be some difference)
+
+
+
+How to solve this problem ?
+
+thank you.
+
+
+
+*test_program1.ps1
+
+ ----------------------
+
+$HashTable = @{
+
+    "001" = "test1"
+
+    "002" = "test2"
+
+}
+
+./test_program2.exe $HashTable
+
+-------------------------
+
+
+
+*test_program2.exe
+
+-------------------------
+
+Param($HashTable)
+
+Write-Host $HashTable["test1"]
+
+Write-Host $HashTable["test2"]
+
+--------------------------
+
+Geschrieben März 24, 2019
+papamanman
+sorrry, there is mistake.
+
+*test_program2.exe
+-------------------------
+Param($HashTable)
+Write-Host $HashTable["001"]
+Write-Host $HashTable["002"]
+--------------------------
+
+Geschrieben März 24, 2019
+Markus Scholtes
+Hello papamanman,
+
+I'm sorry to say that this cannot work. PS2EXE compiles scripts to real executables, and all executables have only access to parameters of the type string! Parameters of a complex type like HashTable can only be passed to Commandlets or PowerShell functions.
+In your case your HashTable is implicitly converted to a string so the compiled script only gets the string "System.Collections.Hashtable" as parameter.
+
+There is nothing I can do about this since this is a limitation of the shell.
+
+Greetings
+
+Markus
+
+Geschrieben März 25, 2019
+Markus Scholtes
+Hello papamanman,
+
+you might work around the limitation if you store the object in a XML file:
+
+*test_program1.ps1
+----------------------
+Export-Clixml Hashtable.xml
+./test_program2.exe "Hashtable.xml"
+
+-------------------------
+
+
+*test_program2.exe
+-------------------------
+Param($XmlFile)
+$HashTable = Import-Clixml $XmlFile
+Write-Host $HashTable["test1"]
+Write-Host $HashTable["test2"]
+
+Greetings
+
+Markus
+
+Geschrieben März 25, 2019
+Markus Scholtes
+Sorry, a mistake in *test_program1.ps1, correct is
+$HashTable | Export-Clixml Hashtable.xml
+
+
+
+Geschrieben März 28, 2019
+papamanman
+Hi Markus,
+
+I understood PS2EXE cant convert HashTable.
+Your alternative idea is good for my purpose.
+
+Thank you so much!
+
+
+
+
+Exit codes
+5 Posts | Letzter Beitrag März 18, 2019
+
+Geschrieben März 13, 2019
+jackofalltech
+It looks like in something has changed with exit codes,Ending a script with Exit 1 no longer fills the $LASTEXITCODE.
+
+Geschrieben März 13, 2019
+jackofalltech
+This is only on exe files created with -NoConsole
+
+Geschrieben März 15, 2019
+Markus Scholtes
+Hello jackofalltech,
+
+this behavior is not PS2EXE specific, it is Windows specific for programs compiled to "WINEXE" (-NoConsole).
+
+In a cmd.exe you get the Errorlevel of those programs with the following code (for Powershell there are similiar ways):
+
+start /wait NoConsoleProg.exe
+echo %ERRORLEVEL%
+
+
+Greetings
+
+Markus
+
+Geschrieben März 18, 2019
+jackofalltech
+I could have swore this was working a few weeks ago
+
+Geschrieben März 18, 2019
+Markus Scholtes
+Hello jackofalltech,
+
+that never worked. Just start "notepad.exe" from a command line (cmd.exe or PowerShell.exe) to see what I mean. You cannot get an exit code from a program that is independently running, you have to (manually) wait for it to exit.
+
+Greetings
+
+Markus
+
+
+
+Pop Up Error Boxes
+4 Posts | Letzter Beitrag März 08, 2019
+
+Geschrieben März 08, 2019
+BFrisan
+When running newly created exe, every time there is an error in the background a window pops up showing that error message.  Is there a way to turn that off?
+
+I have a program that checks for certain thing on a computer. But if it can't ping it all the checks it tries to perform generates these error windows which I don't need to see.
+
+
+
+I'm creating exe using 2.0.ps1\ -inputfile .\file.ps1 -outputfile .\file.exe -noconsole
+
+Geschrieben März 08, 2019
+BFrisan
+Sorry typo above.
+I'm creating exe using: ps2exe.ps1 -inputfile .\file.ps1 -outputfile .\file.exe -noconsole
+
+Geschrieben März 08, 2019
+jackofalltech
+That is what the -NoConsole switch will do if you want to hid the error message add -ErrorAction SilentlyContinue or | out-null to the command that is throwing the error
+
+Geschrieben März 08, 2019
+Markus Scholtes
+Hello BFrisan,
+
+this behaviour is by design.
+
+You have to search for the command that generates the error and fix the error or prevent the error message by using the "-ErrorAction SilentlyContinue" option or by redirecting the error output like this (example is Get-ChildItem  for a not existing file):
+
+Get-ChildItem NotexistingFile 2> $NULL
+
+
+Greetings
+
+Markus
+
+
+
+
+
+BrowseForFolder on top
+4 Posts | Letzter Beitrag März 04, 2019
+
+Geschrieben März 02, 2019
+AG_G1
+Hello Markus,
+
+
+
+I have a form with a button to show a BrowseForFolder object.
+
+I wanted the BrowseForFolder object to be MostTop, so I did this:
+
+
+
+    ...
+
+    $handle = [System.Diagnostics.Process]::GetCurrentProcess().MainWindowHandle
+
+    $object = New-Object -ComObject Shell.Application
+
+    $folder = $object.BrowseForFolder($handle, $Message, $browseForFolderOptions, $InitialDirectory)
+
+    ...
+
+
+
+It's working fine when I run the script, but it's freezing my form without showing the BrowseForFolder object when I run the .exe.
+
+Could you please tell how I can fix the $handle?
+
+
+
+Greetings
+
+Geschrieben März 02, 2019
+jackofalltech
+This is what I use and it works for me
+
+[System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms") | Out-Null
+$SourceForm = New-Object System.Windows.Forms.FolderBrowserDialog
+$SourceForm.Rootfolder = "MyComputer"
+$SourceForm.Description = "Browse For Folder"
+[void]$SourceForm.ShowDialog()
+IF ($SourceForm.SelectedPath){$Path = $SourceForm.SelectedPath}
+
+Geschrieben März 03, 2019
+Markus Scholtes
+Hello AG_G1,
+
+when running your code in a compiled script, there is no window handle because you didn't created one. Please try the following code to use the parent process' window:
+...
+$handle = [System.Diagnostics.Process]::GetCurrentProcess().MainWindowHandle
+if ($handle -eq 0) { $handle = (Get-Process -PID ((Get-WMIObject -Class Win32_Process -Filter "ProcessID=$PID").ParentProcessId)).MainWindowHandle }
+$object = New-Object -ComObject Shell.Application
+…
+
+Another problem that can occur is an issue with MTA and COM (should occur only when using PowerShell V2) that leads to freezing windows. If this is your problem try to compile your script with the additional Parameter -STA
+
+Greetings
+
+Markus
+
+
+Geschrieben März 04, 2019
+AG_G1
+Thanks!
+
+I didn't change my code and add the -STA parameter, and it works fine!
+
+Thanks again.
+
+
+
+
+Import-Module SCCM
+3 Posts | Letzter Beitrag Februar 07, 2019
+
+Geschrieben Januar 30, 2019
+Al Raymond
+Hello!
+
+
+
+Thanks for maintaining this. I've run into a small problem. If I do this:
+
+
+
+Import-Module (Join-Path $(Split-Path $ENV:SMS_ADMIN_UI_PATH) ConfigurationManager.psd1)
+
+
+
+In the script form, it works fine. In the compiled form, it complains about being an old version. Here's the error text:
+
+
+
+ ERROR: A new version of the console is available (5.1810.1075.1700). Cmdlets may not function as expected or may corrupt your site's configuration if they are a different version than your
+
+site.
+
+
+
+I've done a little testing, but I haven't had a chance to dig in and see what might be causing the problem.
+
+
+
+Thanks!
+
+   -Al
+
+Geschrieben Februar 03, 2019
+Markus Scholtes
+Hello Al,
+
+I will test this next week when I have access to an SCCM Environment.
+
+Greetings
+
+Markus
+
+Geschrieben Februar 07, 2019
+Markus Scholtes
+Hello Al,
+
+I think there is an issue because the System Center Config Manager module is only a 32 bit module and not native 64 bit.
+
+Please compile your script with the additional parameter -x86 to aim 32 bit coding and the error message should disappear.
+
+Greetings
+
+Markus
+
+
+
+
+Arguments possible?
+3 Posts | Letzter Beitrag Januar 29, 2019
+
+Geschrieben Januar 29, 2019
+Martin Hofmann PTSGroup
+Hi, i would like to know if it is possible to pass Parameters with Arguments to the PowerShell Script?
+
+Geschrieben Januar 29, 2019
+Markus Scholtes
+Hello Martin,
+
+I guess you're asking if a compiled script can receive parameters. Yes, and it works just like the original script, for example:
+
+compiledscript.exe "Position Parameter" -Name "Named Parameter"
+
+But you have to be careful, every parameter has the type string and gets converted to the requested type (if possible).
+
+Greetings
+
+Markus
+
+
+Geschrieben Januar 29, 2019
+Martin Hofmann PTSGroup
+It´s working as expected. Thank you Markus for your Work.
+
+Greetz from Bremen
+
+
+
+
+Ohne Progress zu verwenden, poppt ein leeres Fenster mit dem Titel progress auf
+3 Posts | Letzter Beitrag Oktober 21, 2018
+
+Geschrieben Oktober 20, 2018
+CHBWien
+I wrote a script that is displaying it's own two forms. If I run the script in Powershell ise everything works like expected, no output is written into the console. If I compile it with a console output, it works, too. BUT if I compile it with -noconsole, a window pops up several times very shortly - like a blinking. Using a screen shot program I discovered, that it is an empty window with the title progress. I am not using ANY progress related function.
+
+
+
+Is this a bug? I am using Windows 10 1809. How can I prevent this window flickering?
+
+
+Geschrieben Oktober 20, 2018
+Markus Scholtes
+Hello CHBWien,
+
+when modules are loaded progress bars are displayed in powershell. In console mode they may appear and disappear so fast that you do not notice them.
+
+Try preventing any progress bar with the following command at the beginning of your script:
+
+$ProgressPreference = 'SilentlyContinue'
+
+Greetings
+
+Markus
+
+Geschrieben Oktober 21, 2018
+CHBWien
+Hi Markus,
+
+great advice. Works like a charm.
+
+Never realized, that progress bars appear on their own...
+
+THX!
+
+Christian
+
+
+
+ompiled Process does not exit
+3 Posts | Letzter Beitrag Juli 22, 2018
+
+Geschrieben Juli 18, 2018
+Scotlandhiker
+Hi Markus,
+
+
+
+Thanks for this great utility. It is working marvellously.
+
+
+
+There is just one matter disturbing my peace. I wrote a multi runspace WPF gui according to Foxdeploy's blog (https://foxdeploy.com/2016/05/17/part-v-powershell-guis-responsive-apps-with-progress-bars/ ). That is working all well. However, if I compile my gui, the process.exe remains active after closing the window. I have to kill it manually to get rid of it.
+
+
+
+Have you got any ideas, why this is so and how I could prevent it?
+
+
+
+Best
+
+Stefan the Scotlandhiker
+
+
+Geschrieben Juli 18, 2018
+Scotlandhiker
+Sorry I forgot. My parameters are like that:
+.\#ps2exe.ps1 -inputFile .\TMMT4K.ps1 -outputFile .\TMMT4K.exe -runtime40 -x64 -Mta -noConsole -iconFile .\Scots.ico -noConfigfile
+
+Geschrieben Juli 22, 2018
+Markus Scholtes
+Hello Stefan,
+
+it took me some time and brain to investigate this!
+
+There is a continuing bug or better said leak in the script of Foxdeploy's blog. Runspaces are opened but never closed.
+Powershell.exe closes those runspaces forcefully, PS2EXE waits (infinitely) for them to close. To see what I mean start the example from Foxdeploy with
+powershell.exe <PATH>\Powershell_GUI_Template.ps1
+(please provide the correct <PATH>)
+
+There are two ways to correct this
+
+1. Remove all appearances of
+  $newRunspace.ThreadOptions = "ReuseThread"
+With this change PS2EXE will close runspaces forcefully.
+
+2. Correctly close the runspaces after use
+This is more complicated, for the example "Powershell_GUI_Template.ps1" on Foxdeploy you have to insert
+	$runspace.Powershell.Runspace.Close()
+after line 82 (= $runspace.powershell.dispose())
+
+Change line 169
+  $jobCleanup.PowerShell.Dispose()
+to the three lines
+  $jobCleanup.PowerShell.EndInvoke($jobCleanup.Thread)
+  $jobCleanup.PowerShell.Dispose()
+  $jobCleanup.PowerShell.Runspace.Close()
+
+Append
+  $psCmd.EndInvoke($data)
+  $psCmd.Dispose()
+  $psCmd.Runspace.Close()
+at the end after
+  $data = $psCmd.BeginInvoke()
+
+(there is still a "runspace leak" left when closing the window while Update-Window is working, you have to fix it yourself)
+
+Greetings
+
+Markus
+
+
+
+
+DOS Errolevel
+2 Posts | Letzter Beitrag Juli 22, 2018
+
+Geschrieben Juli 20, 2018
+MKz991
+Thanks for your great work!
+
+I've produced an .exe of a simple script, but I noticed that the dos %errorlevel% is always 0 if the script runs correctly,even when the PS1 is just
+
+invoke-expression "cmd /c exit 1"
+
+
+
+is there a way for the built .exe to return the last exit code? (%errorlevel%) ?
+
+Many thanks!
+
+Geschrieben Juli 22, 2018
+Markus Scholtes
+Hello MKz991,
+
+as in powershell.exe there is no automatic return of the last exit code in PS2EXE to the calling shell. According to powershell scripts you have to use
+  exit $LASTEXITCODE
+as last command in your script to accomplish this.
+
+Greetings
+
+Markus
+
+
+
+
+Compiled with -NoConsole but there are some windows still flashing.
+5 Posts | Letzter Beitrag Juli 15, 2018
+
+Geschrieben Juli 13, 2018
+Minh Cu?ng
+Hi Marcus.
+
+
+
+Right after I execute the compiled file after compiling with -NoConsole switch, I see some flashing windows and flashing icons on taskbar too.
+
+How to absolutely hide all windows?
+
+
+
+Greetings
+
+Minh Cu?ng
+
+Geschrieben Juli 14, 2018
+Markus Scholtes
+Hello Minh Cu?ng,
+
+I can not reproduce this behaviour. When I compile my scripts with -noConsole, there are no windows or taskbar icons appearing. Is it possible that you start something in your script needing or generating a window? Does this happen with empty scripts too?
+
+Greetings
+
+Markus
+
+Geschrieben Juli 14, 2018
+Minh Cu?ng
+Hello Markus.
+
+You can test this behavior by compiling 2 examples code's line below:
+
+Example with CMDlets (compiling with -NoConsole):
+$Null = Invoke-WebRequest -uri "http://example.com/" -disableKeepAlive
+
+Example with CMD commands (compiling with -NoConsole -RequireAdmin):
+$Null = mountvol.exe x: /s
+
+Geschrieben Juli 15, 2018
+Markus Scholtes
+Hello Minh Cu?ng,
+
+Invoke-WebRequest shows a progress bar, which is displayed in a new window in -noConsole mode. If you don't want this window, disable displaying of progress bars with:
+
+$ProgressPreference = 'SilentlyContinue'
+$Null = Invoke-WebRequest -uri "http://example.com/" -disableKeepAlive
+$ProgressPreference = 'Continue'
+
+mountvol.exe needs a command shell to run so it starts its own if there is no shell present. This is the window that appears for a very short time. The solution is to start mountvol.exe (and its shell) hidden:
+
+$Null = Start-Process mountvol.exe -ArgumentList 'x:','/s' -WindowStyle Hidden
+
+
+Greetings
+
+Markus
+
+
+Geschrieben Juli 15, 2018
+Minh Cu?ng
+Thanks very much for your advice, Markus.
+
+Greetings
+
+Minh Cu?ng^
+
+
+
+
+
+Write-Progress
+2 Posts | Letzter Beitrag Juni 19, 2018
+
+Geschrieben Juni 19, 2018
+TommyTrut
+Any chance there will be support for Write-progress in console mode?
+
+Geschrieben Juni 19, 2018
+Markus Scholtes
+Hello TommyTrut,
+
+a proper implementation of Write-Progress in console mode would be very much work (every output would have to be hooked) for small benefit. So I do not plan to implement it.
+
+Greetings
+
+Markus
+
+
+
+
+Strange GUI
+3 Posts | Letzter Beitrag Juni 15, 2018
+
+Geschrieben Juni 15, 2018
+Crowlex
+Hi Markus
+
+
+
+I have written a script that will be used on alot of servers and everytime someone logs on it should run. Now to do that I need an .exe file. When I used your script to convert my script into a .exe file, it has 7 popup windows where the first one has "0" and the second one has "1" all the way to 6. Then an error pops up saying "It is not possible, to invoke a method for an expression, which is NULL" (translated from german, might not be 1-1 but tried my best translating it).
+
+Now after this error my script finally pops up. But when I close it, I again get a popup window saying "Cancel" or "OK".
+
+Now what might be the problem is, that I programmed my own GUI in my powershell script, but I am not the expert of what this script does.
+
+Is there a way to block these popup messages or another workaround? I would be thankful for your help.
+
+
+
+Thanks in advance
+
+Crowlex
+
+Geschrieben Juni 15, 2018
+Crowlex
+"Now what might be the problem is, that I programmed my own GUI in my powershell script, but I am not the expert of what **this script** does."
+
+For clarity, I mean your script here, otherwise it would be quite confusing
+
+Geschrieben Juni 15, 2018
+Markus Scholtes
+Hello Crowlex,
+
+the PS2EXE Parameter "-noConsole" does not mean that there is no output, the output will be presented in message boxes.
+
+When you want to get rid of the Output you have to find the commands in your script (maybe in executing the script in ps1 form) that generate output and suppress it.
+
+You can do this by piping to Out-Null, e.g.
+Get-Process | Out-Null
+
+The Cancel or OK at the end of the script is the result of your GUI window. Find the expression that calls .Show() or .ShowDialog() and suppress the output with the [VOID] type, e.g.
+
+[VOID]$Form.ShowDialog()
+
+Greetings
+
+Markus
+
+
+
+How to suppress all of the GUI boxes that pop up after enabling noconsole?
+3 Posts | Letzter Beitrag April 02, 2018
+
+Geschrieben März 29, 2018
+Raviolikant
+I add the -noconsole switch to ps2exe but because my script has 15 actions it is performing, it displays that dialog box 15 times which is not what the users would want to see or keep clicking. Is there anyway I can disable that GUI output too while hiding the console? Thanks.
+
+Geschrieben März 31, 2018
+Markus Scholtes
+Hello Raviolikant,
+
+I'm sorry there seems to be kind of misunderstanding. -noConsole meens no console output but it does not mean no output at all.
+
+You have two choices to work around:
+1. Capture each output in your script:
+You can does this in different ways, maybe by piping to Out-Null
+
+(Senseless) Example:
+Get-ChildItem | Out-Null
+
+2. Compile without the parameter -noConsole and hide the console window in your script:
+
+Include the following lines at the start of your script
+
+###############################################################
+Add-Type -Name WinAPI -Namespace Native -MemberDefinition '
+[DllImport("Kernel32.dll")]
+public static extern IntPtr GetConsoleWindow();
+
+[DllImport("user32.dll")]
+public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);
+'
+
+function Show-Console
+{
+	$ConsoleHandle = [Native.WinAPI]::GetConsoleWindow()
+	[Native.WinAPI]::ShowWindow($ConsoleHandle, 5) | Out-Null
+}
+
+function Hide-Console
+{
+	$ConsoleHandle = [Native.WinAPI]::GetConsoleWindow()
+	[Native.WinAPI]::ShowWindow($ConsoleHandle, 0) | Out-Null
+}
+###############################################################
+
+After that you can call
+Hide-Console
+to hide your console window and
+Show-Console
+to show the console again
+
+
+Greetings
+
+Markus
+
+
+
+
+Geschrieben April 02, 2018
+Raviolikant
+Thank you very much, Markus! That helps me a lot. Thank you, I appreciate it!
+
+
+
+
+.net error
+5 Posts | Letzter Beitrag März 30, 2018
+
+Geschrieben März 28, 2018
+FlorianMary
+Hello Markus,
+
+
+
+I used your script many times (thanks for it), but I can't use it for my last script and I can't find my problem, I hope you will be able to help me.
+
+
+
+So it's simple script to manage group membership of AD users. I'm using Windows form,  and this script is 90% similar to all my others scripts.
+
+
+
+I think there is only one difference, one of my function export list in txt file on my C: and in other function i use "Get-Content" command to read this file and display it in ListBox.
+
+So if i execute my script from ISE, it works but if convert it in EXE file with PS2EXE, when I start EXE file I have .NET error :
+
+
+
+-------------------------------------------------
+
+
+
+
+
+************** Exception Text **************
+
+System.InvalidCastException: Specified cast is not valid.
+
+   at System.Windows.Forms.UnsafeNativeMethods.CoCreateInstance(Guid& clsid, Object punkOuter, Int32 context, Guid& iid)
+
+   at System.Windows.Forms.StringSource..ctor(String[] strings)
+
+   at System.Windows.Forms.TextBox.SetAutoComplete(Boolean reset)
+
+   at System.Windows.Forms.TextBox.OnHandleCreated(EventArgs e)
+
+   at System.Windows.Forms.Control.WmCreate(Message& m)
+
+   at System.Windows.Forms.Control.WndProc(Message& m)
+
+   at System.Windows.Forms.TextBox.WndProc(Message& m)
+
+   at System.Windows.Forms.NativeWindow.Callback(IntPtr hWnd, Int32 msg, IntPtr wparam, IntPtr lparam)
+
+
+
+----------------------------------
+
+
+
+Thanks for your help.
+
+Geschrieben März 29, 2018
+Markus Scholtes
+Hello Florian,
+
+it is really hard to tell what is going wrong with your script. Maybe you have to compile it with the -STA parameter?
+
+If this does not help, I Need more information. What OS and Powershell version you are using (while compiling the script and while using the compiled binary). When does the error occur? What is your script doing?
+
+Greetings
+
+Markus
+
+Geschrieben März 29, 2018
+FlorianMary
+So, with "-STA" it's working :)))))))
+
+What is this option for ?
+
+Geschrieben März 30, 2018
+Markus Scholtes
+Hello Florian,
+
+fine it's working now.
+
+STA stands for Single Thread Apartment as opposed to MTA (Multi Thread Apartment).
+When compiling with -STA the whole process works in one thread.
+The problems you were facing have nothing to do with PS2EXE, Powershell or .Net, it is a COM issue. When calling some Windows file dialog controls in the background COM calls are made which only work in STA mode.
+STA mode is default for Powershell V3 or above, Powershell V2 is using MTA as default. So I guess you are using Powershell V2.
+
+Greetings
+
+Markus
+
+Geschrieben März 30, 2018
+FlorianMary
+Hello Markus,
+
+OK thank you for these explications !!
+
+It's PS V4 that's running on my server, but it works with -STA, so I will not try to find why it's not STA mode by default on my server ... !
+
+Ausblenden
+Error Message False on close
+2 Posts | Letzter Beitrag März 07, 2018
+
+Geschrieben März 06, 2018
+benzu
+At First thx for this great Tool!
+
+
+
+i converted my PS1 with XAML WPF GUI and almost everything works, only on close of the Application i get an Error Message "False" with an "OK" Button.
+
+
+
+How can i disable this message?
+
+
+
+thx for any help.
+
+Geschrieben März 07, 2018
+Markus Scholtes
+Hello benzu,
+
+when you compile a script with the option "-noConsole", every output is displayed in a messagebox.
+
+I have a guess what the reason for this is in your script:
+
+You start the WPF window somewhere in your script with a command similiar to this (the name of the variable $Window may vary):
+
+$Window.Showdialog()
+
+You have to change it to
+
+[VOID]$Window.Showdialog()
+
+as the command returns the text "false" which is then displayed in a message box. [VOID] "eats" everything returned, so "false" is not displayed anymore.
+
+Greetings
+
+Markus
+
+
+
+
+EnableVisualStyles not working anymore with Forms
+8 Posts | Letzter Beitrag Februar 20, 2018
+
+Geschrieben Februar 01, 2018
+Lemys
+Been a While that I dont get a new version of ps2exe. I use version 5.0.0 on a Windows 7 and my script with forms can use the "[System.Windows.Forms.Application]::EnableVisualStyles()" expression and get the right style after getting the EXE version.
+
+
+
+But I tried with the latest version (1/4/2018) and its just broken, the style just dont work anymore. Tried the ps2exe at the same Windows 7 and on a Windows 10.
+
+
+
+Think this will get fixed? Thanks.
+
+Geschrieben Februar 04, 2018
+Markus Scholtes
+Hello Lemys,
+
+I created a small WinForms program with a style and compiled it with PS2EXE. It works just fine with Windows 7 and with Windows 10, the style is shown when run as script and is shown when compiled with PS2EXE.
+
+Are you sure styles are activated in your OS. Maybe your selected style is not available? Is there an error message or other strange behaviour?
+
+Grettings
+
+Markus
+
+Geschrieben Februar 05, 2018
+Lemys
+Hi Markus!
+
+Thanks for the reply.
+
+I just enable the style right before showing the form:
+
+[System.Windows.Forms.Application]::EnableVisualStyles()
+[void]$Form.ShowDialog()
+
+There are no errors apearing.
+
+I noticed that also a "progress" screen keeps poping up as well when I run a job or import a module. Dunno if thats just something I can disable.
+
+Posted a video to show what happens.
+
+First was made with version 5.0.0 second one with 5.0.9 same script no changes.
+
+Video: https://www.youtube.com/watch?v=nRWczDrKmNg
+
+Geschrieben Februar 05, 2018
+Markus Scholtes
+Hello Lemys,
+
+the easy answer first. PS2EXE now shows a progress bar in situations a script would do that when compiled with "-noConsole", the progress bar is displayed in a GUI window. You disable this (default) behaviour with the following line (also in "normal" powershell scripts):
+$ProgressPreference = "SilentlyContinue"
+
+Now to your main question. According to your video I guess you have troubles with the style of the progress bar. The rest of the form seems okay to me. Can you post the code that creates the progress bar object and sample code that displays the bar so I can check this?
+
+Greetings
+
+Markus
+
+Geschrieben Februar 06, 2018
+Lemys
+Thanks for the "$ProgressPreference" explanation, had no idea. To remove all those little progress bar windows I had to put it in 4 diferent places in my script. Damn M$.
+
+About the progressbar:
+- Adds the bar:
+$ProgressBar = New-Object System.Windows.Forms.ProgressBar
+$ProgressBar.Location = new-object System.Drawing.point(15,55)
+$ProgressBar.size = new-object System.Drawing.Size(0,10)
+$ProgressBar.Minimum = $ProgressBar.Maximum = $ProgressBar.Value = 0
+$Form.Controls.Add($ProgressBar)
+
+- When I need to remove it
+$ProgressBar.size = new-object System.Drawing.Size(0,10)
+$Form.Controls.Remove($Form.Controls["ProgressBar"])
+
+- When I need to reset it
+$ProgressBar.Value = 0
+
+- To increment it
+$ProgressBar.Value += 1
+
+Thanks
+
+Geschrieben Februar 06, 2018
+Lemys
+o.O
+
+Strangely, after I set the "$ProgressPreference = "SilentlyContinue" before all the commands that made the "progress window" apear, the Style of the window started to work.
+
+The Progress Bar also got the right style.
+
+Se everything is working as expected now. Thanks e lot!
+
+Geschrieben Februar 07, 2018
+Markus Scholtes
+Hello Lemys,
+
+now I have an idea what was going wrong in your script. According to Microsoft: "To have an effect, System.Windows.Forms.Application.EnableVisualStyles must be called before creating any controls in the application".
+
+When loading any modules in PS2EXE, progress controls are generated and the calling of EnableVisualStyles() will have no effect afterwards.
+
+I will check if I can call EnableVisualStyles() in PS2EXE before executing the script when compiled with -noConsole.
+
+Greetings
+
+Markus
+
+Geschrieben Februar 20, 2018
+Lemys
+Thanks again for the reply, and the research you did to find what may be the problem.
+
+
+
+
+
+Im unable to extract contents of EXE file
+3 Posts | Letzter Beitrag Januar 03, 2018
+
+Geschrieben Januar 03, 2018
+Craig Risk
+I have the following command
+
+
+
+PS C:\Users\User\Desktop\ps> .\ps2exe.ps1 -inputfile "C:\Test.exe" -extract:"C:\test.ps1"
+
+
+
+but when I run this I get
+
+
+
+Input file or output file not specified!
+
+
+
+Any suggestions? I'm trying to decompile an exe I made with ps2exe but I'm unable to get this to work!
+
+Geschrieben Januar 03, 2018
+Markus Scholtes
+Hello Craig,
+
+it's much easier as you think. The extract-function is build into the executable:
+
+C:\Test.exe -extract:"C:\test.ps1"
+
+will do the work.
+
+Greetings
+
+Markus
+
+Geschrieben Januar 03, 2018
+Craig Risk
+Well, that was nice and easy!
+
+Thanks for your help.
+
+
+
+
+Need to avoid all -1 pop-ups in noConsole mode.
+2 Posts | Letzter Beitrag November 21, 2017
+
+Geschrieben November 15, 2017
+vvkprasad
+Markus Scholtes...Thanks for your nice tool.
+
+How can I avoid all kinds of pop-ups in noconsole mode. I don't want pop-ups with -1 and other output like disk size when mounting VHD etc., When I try with PS2EXE without GUI its not working with No console option. Thanks in advance.
+
+Geschrieben November 21, 2017
+Markus Scholtes
+Hello vvkprasad,
+
+since PS2EXE presents a message box for every output when used with the parameter -noConsole, this can be very annoying.
+
+To get rid of this you have to suppress the output of the commands you don't need. To do this, you might redirect the output, for example change a command
+cmdlet-withoutput
+to
+cmdlet-withoutput | Out-Null
+
+But you have to identify the commands with unneeded output by yourself.
+
+Greetings
+
+Markus
+
+
+
+
+
+Add resource to exe
+3 Posts | Letzter Beitrag August 16, 2017
+
+Geschrieben August 09, 2017
+SagiK
+Dear Markus,
+
+
+
+Thank you for this cool tool.
+
+I have created a script which contains forms, and put the company logo ("logo.ico") to this form.
+
+$Form.Icon = New-Object system.drawing.icon("logo.ico")
+
+When this file is not located in the folder, I got error message.
+
+Is it possible to add this resource to the .exe file when compiles?
+
+Regards,
+
+Krisztian
+
+
+Geschrieben August 09, 2017
+Markus Scholtes
+Hello SagiK,
+
+there is no possibility to embed the icon with PS2EXE. You have to embed it to the powershell source file.
+
+To do this you might do the following:
+
+1. Create a base64 string out of your icon:
+
+[CONVERT]::ToBase64String((Get-Content "logo.ico" -Encoding BYTE))
+
+Copy the resulting string to the clipboard
+
+2. Insert the following lines to your script:
+
+Add-Type -AssemblyName PresentationFramework
+
+$Base64Text = 'REPLACE_WITH_BASE64TEXT'
+$BITMAP = New-Object System.Windows.Media.Imaging.BitmapImage
+$BITMAP.BeginInit()
+$BITMAP.StreamSource = [System.IO.MemoryStream][System.Convert]::FromBase64String($Base64Text)
+$BITMAP.EndInit()
+$BITMAP.Freeze()
+
+# Convert the bitmap into an icon
+$IMAGE = [System.Drawing.Bitmap][System.Drawing.Image]::FromStream($BITMAP.StreamSource)
+$Form.Icon = [System.Drawing.Icon]::FromHandle($IMAGE.GetHicon())
+
+3. Replace REPLACE_WITH_BASE64TEXT with the copied base64 string
+
+This should work as powershell script and as compiled executable with PS2EXE.
+
+
+Reference: https://blog.netnerds.net/2015/10/use-base64-for-notifyicon-in-powershell/
+
+
+Greetings
+
+Markus
+
+Geschrieben August 16, 2017
+SagiK
+Thank you very much for this great solution.
+
+
+
+
+
+ssues found
+4 Posts | Letzter Beitrag Juni 24, 2017
+
+Geschrieben Juni 22, 2017
+xja888
+I'm probabaly asking too much but it would be really nice if the following works.
+
+
+
+write-host press any key to continue doesn't work in console mode. The screen exists anyway.
+
+$MyInvocation.MyCommand.Definition doesn't work.
+
+start-transcript doesn't log any echo
+
+Loading assembly fails, e.g System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SMO") | Out-Null
+
+but still cannot connect to the database.
+
+
+
+Good works.
+
+
+Geschrieben Juni 22, 2017
+Markus Scholtes
+Hello xja888,
+
+so many questions :-)
+
+1. write-host press any key to continue  works fine for me.
+But this is the wrong syntax, try the correct one:
+write-host "press any key to continue"
+
+2. I already described how to handle $MyInvocation.MyCommand.Definition in the Remarks section of this web page under "Script variables:".
+
+3. I have to check this. Might take some time.
+
+4. I need some days to check this, I do not always have a SQL Server environment to test.
+
+Greetings
+
+Markus
+
+Geschrieben Juni 23, 2017
+Markus Scholtes
+Hello xja888,
+
+tested the loading of SQL Server SMO assembly in a compiled script: it worked fine for me (tested Powershell v4 and v2).
+
+What message do you get when you remove the expression "| Out-Null" at the end of assembly loading command?
+
+Greetings
+
+Markus
+
+Geschrieben Juni 24, 2017
+Markus Scholtes
+Hello xja88,
+
+with your question for Start-Transcript you really gave me a very difficult task.
+
+Microsoft did not document the transcript function so I had to check by myself:
+Powershell 2: transcripts are implemented in the powershell host (powershell.exe)
+Powershell 3: transcripts are implemented in the powershell host (powershell.exe)
+Powershell 4: transcripts are implemented in the commandlets Start-Transcript, Out-Default and Stop-Transcript
+Powershell 5: transcripts are implemented in the commandlets Start-Transcript, Out-Default and Stop-Transcript
+Powershell 6 (Beta): in the source code transcripts are implemented in the powershell host (powershell.exe)
+
+Because of this situation I do not see a possibility to help you, the risk of getting incompatible is to high for me.
+
+If you are using Powershell 4 or 5 there is a workaround:
+Pipe ervery command you want to be logged to Out-Default (e.g, Get-ChildItem | Out-Default).
+
+Or insert the following command in the line before the expression powershell.AddCommand("out-string") in PS2EXE.PS1:
+  powershell.AddCommand("out-default");
+
+I'm sorry I can't do more for you.
+
+Greetings
+
+Markus
+
+
+
+
+How to pass Arguments/Switches to compiled version (EXE).
+2 Posts | Letzter Beitrag Mai 17, 2017
+
+Geschrieben Mai 17, 2017
+Surya Prakash1
+can you provide me an example on how to pass user defined arguments/switches to compiled version .EXE.
+
+
+
+Example:
+
+demo.ps1 input.csv output.txt
+
+
+
+Can I do same for .exe
+
+demo.exe input.csv output.txt
+
+
+Geschrieben Mai 17, 2017
+Markus Scholtes
+Hello Surya Prakash,
+
+as you guessed right, just pass your arguments to the compiled executable as if you would pass them to your script.
+
+Greetings
+
+Markus
+
+
+
+
+
+Error after conversion
+3 Posts | Letzter Beitrag Mai 02, 2017
+
+Geschrieben Mai 02, 2017
+p. van der Meer
+Hello Markus,
+
+
+
+i converted a script to exe but after conversion i get an error that its unable to find type [System.Windows.Messagebox]. When i run the script in Powershell ISE it runs without problems.
+
+a piece of the code is:
+
+Function Resetpassword {
+
+
+
+    IF ($objPasswordBox.text -eq $objPassword2Box.Text) {
+
+    Set-ADAccountPassword -Identity "$User" -Reset -NewPassword (ConvertTo-SecureString -AsPlainText "$Password1" -Force)
+
+    IF ($objCheckChangePasswordAtLogon.Checked -eq $true) {
+
+    Set-ADUser -Identity "$User" -ChangePasswordAtLogon $True
+
+    }
+
+    [System.Windows.MessageBox]::Show('Het wachtwoord is aangepast.')
+
+    }
+
+    IF ($objPasswordBox.text -ne $objPassword2Box.Text) {
+
+    [System.Windows.MessageBox]::Show('De wachtwoorden komen niet overeen')
+
+    }
+
+    $objPasswordBox.clear()
+
+    $objPassword2Box.clear()
+
+}
+
+
+
+I'm totally new to this and have no idea how fix this. I googled and found to add [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") or Add-Type –AssemblyName System.Windows.Forms to the script, but both didn't work.
+
+
+
+Do you have any idea?
+
+Thanks
+
+Paul
+
+Geschrieben Mai 02, 2017
+Markus Scholtes
+Hello Paul,
+
+please try [System.Windows.Forms.MessageBox]::Show('...') instead of [System.Windows.MessageBox]::Show('...'). You have to insert the command LoadWithPartialName("System.Windows.Forms") or Add-Type –AssemblyName System.Windows.Forms at the beginning of the script too.
+
+Greetings
+
+Markus
+
+Geschrieben Mai 02, 2017
+p. van der Meer
+Hello Markus,
+
+That worked, Thanks.
+
+Greetings
+Paul
+
+
+
+Is need for executionpolicy eliminated with converting to EXE?
+2 Posts | Letzter Beitrag April 13, 2017
+
+Geschrieben April 12, 2017
+clh54
+Does using this tool to convert to an .exe preclude the need to use the -executionPolicy parameter when running a .ps1 script?  If we still need to include an executionPolicy somehow, how do we accomplish that in conjunction with converting to the .exe using this tool?
+
+
+
+Thank you!
+
+Geschrieben April 13, 2017
+Markus Scholtes
+Hello clh54,
+
+PS2EXE compiled scripts ignore execution policies.
+
+Greetings
+
+Markus
+
+
+
+
+-mta vs -sta FolderBrowserDialog
+2 Posts | Letzter Beitrag April 10, 2017
+
+Geschrieben April 10, 2017
+HansCheska
+-mta option does not work for below
+
+
+
+        $Folder = New-Object System.Windows.Forms.FolderBrowserDialog
+
+        $Folder.Description = "Please select a directory"
+
+        $Folder.ShowNewFolderButton = $True
+
+        [void]$Folder.ShowDialog()
+
+
+
+However it works with -sta
+
+Geschrieben April 10, 2017
+Markus Scholtes
+Hello Hans,
+
+this is a restriction of the COM object model. Some COM objects only work in Single Thread Apartment mode (=STA). There is nothing we can do about it.
+
+Greetings
+
+Markus
+
+
+
