@@ -1,5 +1,5 @@
 # TechNet-Gallery
-Copies of my *'Script Center'* and *'Technet Gallery'* publications because Technet gallery will be closed soon.
+You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because Technet gallery will be closed soon.
 
 
 ## PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI 
