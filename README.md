@@ -10,4 +10,4 @@ Overworking of the great script of Ingo Karstein with GUI support. The GUI outpu
 ## Powershell Webserver 
 Powershell script that starts a webserver (without IIS). Powershell command execution, script execution, upload, download and other functions are implemented. 
 
-### Project page: [Powershell Webserver](https://github.com/MScholtes/TechNet-Gallery/tree/master/Powershell Webserver)
+### Project page: [Powershell Webserver](https://github.com/MScholtes/TechNet-Gallery/tree/master/Powershell%20Webserver)
