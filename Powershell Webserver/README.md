@@ -47,6 +47,7 @@ Update 1.2 - 2019-08-30
 * if no base directory is passed as parameter, the current directory is used as base path
 
 Update 1.1 - 2017-11-29: implemented delivery of static content if no "active" command is requested
+
 Update 1.01 - 2016-10-24: introduced a form with POST method for downloading files (just for fun and practise).
 
 ## Examples:
