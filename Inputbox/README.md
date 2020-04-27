@@ -6,8 +6,6 @@ Since Technet Gallery will be closed, now here.
 See Script Center version: [Inputbox for Powershell](https://gallery.technet.microsoft.com/Inputbox-for-Powershell-6ac0741d).
 
 ## Description
-With [System.Windows.Forms.MessageBox]::Show(...) you can display a messagebox in every powershell script, but a function to display an inputbox is missing. So I wrote this small c# class InputBox for it.
-
 The class InputBox features:
 * automatic resizing to text sizes
 * default value
@@ -31,7 +29,8 @@ if ([InputBox]::Show([ref] $Value, "Title to display", "Type in a text please") 
 ```powershell
 .\Start-Inputbox.ps1
 New-Variable PASS -Force
-if ([InputBox]::Show([ref]$PASS, "", "Need password:", $TRUE) -eq "OK") { "Password stored" } else { "Cancel" } ```
+if ([InputBox]::Show([ref]$PASS, "", "Need password:", $TRUE) -eq "OK") { "Password stored" } else { "Cancel" }
+```
 
 ```powershell
 .\Start-InputBox.ps1
