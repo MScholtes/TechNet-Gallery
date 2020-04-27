@@ -30,3 +30,15 @@ Powershell scripts to export and import firewall rules in CSV or JSON format.
 Two Powershell functions to split and join binary files fast. The functions are using .Net BinaryWriter methods. If .Net 4 or above is detected, the quick .CopyTo() method is used to join files.
 
 #### Project page: [Split-File](https://github.com/MScholtes/TechNet-Gallery/tree/master/Split-File)
+
+##
+## Replace-InFile.ps1: Replace text in files while preserving the encoding
+Replace-InFile.ps1 is a Powershell script I made to replace text in files programmatically without getting a mess with the text encodings. The script detects the encoding of each processed file and writes it back with the same encoding.
+
+#### Project page: [Split-File](https://github.com/MScholtes/TechNet-Gallery/tree/master/Replace-InFile)
+
+##
+## Inputbox for Powershell
+With [System.Windows.Forms.MessageBox]::Show(...) you can display a messagebox in every powershell script, but a function to display an inputbox is missing. So I wrote this small c# class InputBox for it.
+
+#### Project page: [Split-File](https://github.com/MScholtes/TechNet-Gallery/tree/master/Inputbox)
