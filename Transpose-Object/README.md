@@ -22,7 +22,7 @@ Show directory listing with a column instead of a row for every file/directory:
 dir | Transpose-Object | Out-GridView
 ```
 
-![Screenshot](Screenshot.jpg)
+![Screenshot](Screenshot.gif)
 
 Create a CSV file with a column instead of a row for every process:
 ```powershell
@@ -30,7 +30,7 @@ Create a CSV file with a column instead of a row for every process:
 ps | Transpose-Object | Export-Csv Processes.csv -Delimiter ';' -NoTypeInformation
 ```
 
-![Screenshot2](Screenshot2.jpg)
+![Screenshot2](Screenshot2.gif)
 
 Use and transpose only the default view properties:
 ```powershell
