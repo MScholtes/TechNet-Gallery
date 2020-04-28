@@ -42,3 +42,9 @@ Replace-InFile.ps1 is a Powershell script I made to replace text in files progra
 With [System.Windows.Forms.MessageBox]::Show(...) you can display a messagebox in every powershell script, but a function to display an inputbox is missing. So I wrote this small c# class InputBox for it.
 
 #### Project page: [Inputbox](https://github.com/MScholtes/TechNet-Gallery/tree/master/Inputbox)
+
+##
+## Transpose-Object: Powershell script to transpose objects from columns to rows
+Transpose-Object: Powershell script to transpose objects from columns to rows. Useful when the order displayed in a GridView (with Out-GridView) or in a CSV file (with Export-Csv) has to be rotated.
+
+#### Project page: [Transpose-Object](https://github.com/MScholtes/TechNet-Gallery/tree/master/Transpose-Object)
