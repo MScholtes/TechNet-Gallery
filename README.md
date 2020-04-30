@@ -48,3 +48,9 @@ With [System.Windows.Forms.MessageBox]::Show(...) you can display a messagebox i
 Transpose-Object: Powershell script to transpose objects from columns to rows. Useful when the order displayed in a GridView (with Out-GridView) or in a CSV file (with Export-Csv) has to be rotated.
 
 #### Project page: [Transpose-Object](https://github.com/MScholtes/TechNet-Gallery/tree/master/Transpose-Object)
+
+##
+## Create or close tabs in Internet Explorer
+With the COM interface and DOM you can control the browser Internet Explorer. I made a - for me - useful script to start a new Internet Explorer tab from powershell or close an existing tab.
+
+#### Project page: [Control-IE](https://github.com/MScholtes/TechNet-Gallery/tree/master/Control-IE)
