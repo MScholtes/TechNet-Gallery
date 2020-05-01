@@ -50,6 +50,34 @@ Transpose-Object: Powershell script to transpose objects from columns to rows. U
 #### Project page: [Transpose-Object](https://github.com/MScholtes/TechNet-Gallery/tree/master/Transpose-Object)
 
 ##
+## Get-Sessions: Powershell script for information on interactive logins (incl RDP)
+Get-Sessions: Powershell script to get information about interactive logins (including RDP sessions) including logon, connect, disconnect and logoff times.
+
+Session ID and remote host for RDP can be requested per parameter.
+
+#### Project page: [Get-Sessions](https://github.com/MScholtes/TechNet-Gallery/tree/master/Get-Sessions)
+
+##
+## Powershell MineSweeper
+Powershell game of MineSweeper with WinForms graphics.
+
+Based on the game of /\/\o\/\/.
+
+#### Project page: [Powershell MineSweeper](https://github.com/MScholtes/TechNet-Gallery/tree/master/Powershell%20MineSweeper)
+
+##
+## Write-Highlight: Highlighting of multiple search patterns in different colors
+Powershell script that highlights multiple search patterns in the output. You can give an array of regular expressions, every expression is marked in its own color.
+
+#### Project page: [Write-Highlight](https://github.com/MScholtes/TechNet-Gallery/tree/master/Write-Highlight)
+
+##
+## Script to manually import RDP certificates
+Script to import the registry keys and certificate thumbnails for unknown RDP connections. No RDP trust warnings will appear for the remote machine after running the script.
+
+#### Project page: [RDP-CertHash](https://github.com/MScholtes/TechNet-Gallery/tree/master/RDP-CertHash)
+
+##
 ## Create or close tabs in Internet Explorer
 With the COM interface and DOM you can control the browser Internet Explorer. I made a - for me - useful script to start a new Internet Explorer tab from powershell or close an existing tab.
 
