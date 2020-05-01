@@ -24,7 +24,7 @@ Based upon the script Get-ULogged.ps1 from [VGSandz](https://gallery.technet.mic
 ![Screenshot](Screenshot.gif)
 
 ## Examples
-assuming Get-Sessions.ps1 is in the current directory
+(assuming Get-Sessions.ps1 is in the current directory)
 
 Get logon information for the days 01/03 and 01/04/2019 including session id and remote host:
 ```powershell
@@ -34,6 +34,6 @@ Get-Sessions -After 01/03/2019 -Before 01/05/2019 -Detailed | Format-Table
 
 Get logon information for the last week for user Administrator on remote system REMOTESYSTEM:
 ```powershell
-. .\Get-Sessions.ps1 
+. .\Get-Sessions.ps1
 Get-Sessions -Computer REMOTESYSTEM -User Administrator
 ```
