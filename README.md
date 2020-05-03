@@ -58,6 +58,18 @@ Session ID and remote host for RDP can be requested per parameter.
 #### Project page: [Get-Sessions](https://github.com/MScholtes/TechNet-Gallery/tree/master/Get-Sessions)
 
 ##
+## Retrieve latest reboot time(s)
+Short script to retrieve the latest reboot time(s) of a computer
+
+#### Project page: [Get-RebootTime](https://github.com/MScholtes/TechNet-Gallery/tree/master/Get-RebootTime)
+
+##
+## Powershell script to compress log files (and IIS logs)
+This script compresses log files older than the current month to Zip archives in a given directory or in the IIS log directories and deletes the archived files.
+
+#### Project page: [Compress-LogDirectory](https://github.com/MScholtes/TechNet-Gallery/tree/master/Compress-LogDirectory)
+
+##
 ## Powershell MineSweeper
 Powershell game of MineSweeper with WinForms graphics.
 
