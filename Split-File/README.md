@@ -17,7 +17,10 @@ Two Powershell functions to split and join binary files fast. The functions are 
 
 If .Net 4 or above is detected, the quick .CopyTo() method is used to join files.
 
-## Usage:
+## Update
+2020-05-03: Split-File can chunk into parts of size > 2GB now
+
+## Usage
 in the following examples I assume all files are in the current directory
 
 Dot source the functions first:
