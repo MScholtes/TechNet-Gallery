@@ -23,7 +23,7 @@ The script uses the built-in commandlet Compress-Archive to compress, so no addi
 
 A regular start via scheduled tasks can be set up at a command prompt for example via (the path to the script has to be adjusted):
 
-```cmd
+```bat
 schtasks.exe /Create /TN "Archive IIS log files" /TR "Powershell.exe -NoProfile -Command \"^& 'C:\Work\Compress-LogDirectory.ps1' -IIS\"" /SC MONTHLY /D 15 /ST 21:15 /RU SYSTEM /RL HIGHEST /F
 ```
 (I'm sad that Powershell commandlets do not support monthly triggers so you have to use cmd.exe)
