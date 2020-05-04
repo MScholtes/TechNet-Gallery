@@ -1,0 +1,100 @@
+## 2018/10/08 Markus Scholtes ##
+Copyright: Markus Scholtes
+
+## LanManager-Einstellungen
+After a change a restart of the service LanManServer is necessary (e.g. with Restart-Service Lanmanserver -Force).
+Attention: The first time the service starts on a system or after a change of the security policy
+"Network access: Do not allow anonymous enumeration of SAM accounts and shares" the settings will reset to default.
+
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcShareConnect" # -> Connect to file and printer shares
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcShareAdminConnect" # -> Connect to administrative shares
+Masks when setting permissions:
+$AccessMask = 0x00000001 # Connect
+$AccessMask = 0x00000003 # Connect even to paused server
+$AccessMask = 0x000f0003 # Full access
+
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcConfigInfo" # -> Manage file and print sharing
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcTransportEnum" # -> Enumerate transport protocols
+Masks when setting permissions:
+$AccessMask = 0x00000001 # Read simple informations
+$AccessMask = 0x00000003 # Read advanced informations (unused with "SrvsvcTransportEnum")
+$AccessMask = 0x00000007 # Read advanced and administrative informations (unused with "SrvsvcTransportEnum")
+$AccessMask = 0x00000017 # Read and write advanced and administrative informations (unused with "SrvsvcTransportEnum")
+$AccessMask = 0x000f0017 # Full access
+
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcConnection" # -> Manage file / print server connections
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcServerDiskEnum" # -> Enumerate file server disks
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcStatisticsInfo" # -> Read file / print server statistics
+Masks when setting permissions:
+$AccessMask = 0x00000001 # Enumerate connections/disks or read statistics
+$AccessMask = 0x000f0001 # Full access
+
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcFile" # -> Manage file server open files
+Masks when setting permissions:
+$AccessMask = 0x00000001 # Enumerate open files
+$AccessMask = 0x00000011 # Enumerate and close open files
+$AccessMask = 0x000f0011 # Full access
+
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcShareAdminInfo" # -> Manage administrative Shares
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcShareFileInfo" # -> Manage file shares
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcSharePrintInfo" # -> Manage printer shares
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" "SrvsvcSessionInfo" # -> Manage file / print server sessions
+Masks when setting permissions:
+$AccessMask = 0x00000001 # Read simple informations
+$AccessMask = 0x00000003 # Read advanced and administrative informations
+$AccessMask = 0x00000013 # Read and write advanced and administrative informations (Close sessions for "SrvsvcSessionInfo")
+$AccessMask = 0x000f0013 # Full access
+
+
+
+## Security of the share "MyShare"
+After a change a restart of the service LanManServer is necessary (e.g. with Restart-Service Lanmanserver -Force).
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\Shares\Security" "MyShare"
+Masks when setting permissions:
+$AccessMask = 0x001200a9 # Read
+$AccessMask = 0x001301bf # Modify
+$AccessMask = 0x001f01ff # Full access
+
+
+
+## Security of the Remote Desktop connections
+The change applies only to future Remote Desktop connections
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations" "DefaultSecurity"
+or
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations\RDP-TCP" "Security"
+Masks when setting permissions:
+$AccessMask = 0x00000121 # Read information/Logon/Connect
+$AccessMask = 0x00000286 # Set information/Logoff/Message/Disconnect
+$AccessMask = 0x000f028e # Set information/Logoff/Message/Disconnect/Virtual channels
+$AccessMask = 0x000f03bf # Full access
+
+WMI alternative always sets Full access (there are only ACL masks 0, 1 und 2):
+wmic /namespace:\\root\CIMV2\TerminalServices PATH Win32_TSPermissionsSetting WHERE "TerminalName ='RDP-Tcp'" CALL AddAccount "Power Users",2
+
+
+
+## Security to control the BITS service
+Changes require a reboot.
+.\Get-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\BITS\Security" Security
+Masks when setting permissions:
+$AccessMask = 0x0002018d # Read access
+$AccessMask = 0x000201fd # Read access and start/stop/pause/continue service
+$AccessMask = 0x000f01ff # Full access
+
+
+
+## Launch permission for the DCOM application "PrintNotify" on Windows 10
+Bit mask must always contain 0x1
+.\Get-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AppID\{588E10FA-0618-48A1-BE2F-0AD93E899FCC}" "LaunchPermission"
+$AccessMask = 0x00000003 # Lokal start
+$AccessMask = 0x00000005 # Remote start
+$AccessMask = 0x00000009 # Lokal activation
+$AccessMask = 0x00000011 # Remote activation
+$AccessMask = 0x0000001f # All permissions
+
+## Access permission for the DCOM application "PrintNotify" on Windows 10
+Bit mask must always contain 0x1
+.\Get-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AppID\{588E10FA-0618-48A1-BE2F-0AD93E899FCC}" "AccessPermission"
+$AccessMask = 0x00000003 # Lokal access
+$AccessMask = 0x00000005 # Remote access
+$AccessMask = 0x00000007 # All permissions
