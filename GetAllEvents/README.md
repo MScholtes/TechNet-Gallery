@@ -3,7 +3,7 @@ Command line tool to query all events from all event logs (about 1200 in Windows
 
 Since Technet Gallery will be closed, now here.
 
-See Script Center version: [GetAllEvents: Query all events from all event logs)](https://gallery.technet.microsoft.com/scriptcenter/GetAllEvents-Query-all-d0a40b20).
+See Script Center version: [GetAllEvents: Query all events from all event logs](https://gallery.technet.microsoft.com/scriptcenter/GetAllEvents-Query-all-d0a40b20).
 
 ## Description
 Command line tool to query all events from all event logs (about 1200 in Windows 10) and display in GridView or export to text or csv file. A remote computer can be accessed.
