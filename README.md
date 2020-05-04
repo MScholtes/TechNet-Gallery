@@ -70,6 +70,24 @@ This script compresses log files older than the current month to Zip archives in
 #### Project page: [Compress-LogDirectory](https://github.com/MScholtes/TechNet-Gallery/tree/master/Compress-LogDirectory)
 
 ##
+## Powershell: Permissions for administrative shares (like ADMIN$) / registry ACLs
+Powershell scripts to get or set permissions for administrative shares and other registry stored ACLs like permissions for the server service, for shares, for Remote Desktop connections and for the access to services or DCOM applications.
+
+#### Project page: [AclInRegistry](https://github.com/MScholtes/TechNet-Gallery/tree/master/AclInRegistry)
+
+##
+## Powershell Module CredentialLocker
+Module to manage the Credential Locker, also known as Password Vault, which provides a way for you to store user credentials (username, password) in a secure fashion for web pages or your app. With this module you can manage stored credentials of Internet Explorer and Edge too.
+
+#### Project page: [CredentialLocker](https://github.com/MScholtes/TechNet-Gallery/tree/master/CredentialLocker)
+
+##
+## GetAllEvents: Query all events from all event logs
+Command line tool to query all events from all event logs (about 1200 in Windows 10) and display in GridView or export to text or csv file.
+
+#### Project page: [GetAllEvents](https://github.com/MScholtes/TechNet-Gallery/tree/master/GetAllEvents)
+
+##
 ## Powershell MineSweeper
 Powershell game of MineSweeper with WinForms graphics.
 
