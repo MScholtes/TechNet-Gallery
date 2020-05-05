@@ -76,6 +76,12 @@ Powershell scripts to get or set permissions for administrative shares and other
 #### Project page: [AclInRegistry](https://github.com/MScholtes/TechNet-Gallery/tree/master/AclInRegistry)
 
 ##
+## Convert short Powershell scripts to batches
+Script to convert short powershell scripts to batches. Generated batches run on double click and ignore execution policies.
+
+#### Project page: [AclInRegistry](https://github.com/MScholtes/TechNet-Gallery/tree/master/ConvertTo-Batch)
+
+##
 ## Powershell Module CredentialLocker
 Module to manage the Credential Locker, also known as Password Vault, which provides a way for you to store user credentials (username, password) in a secure fashion for web pages or your app. With this module you can manage stored credentials of Internet Explorer and Edge too.
 
@@ -106,6 +112,20 @@ Powershell script that highlights multiple search patterns in the output. You ca
 Script to import the registry keys and certificate thumbnails for unknown RDP connections. No RDP trust warnings will appear for the remote machine after running the script.
 
 #### Project page: [RDP-CertHash](https://github.com/MScholtes/TechNet-Gallery/tree/master/RDP-CertHash)
+
+##
+## "File Open" Dialog As Replacement for An Adminstrative Windows Explorer
+Since Windows Explorer cannot be started with administrative privileges starting with Windows 7, this script starts an administrative "File Open" dialog as a replacement.
+
+#### Project page: [Write-Highlight](https://github.com/MScholtes/TechNet-Gallery/tree/master/Admin-Explorer)
+
+##
+## Powershell: add line numbering, line coloring, directory size to output/pipeline
+Some fun powershell scripts to add additional information to your output or objects in the pipeline.
+
+Add-LineNumbering adds line numbering, Add-LineColoring adds alternating line colors and Add-SizeToDir adds file count and length.
+
+#### Project page: [Write-Highlight](https://github.com/MScholtes/TechNet-Gallery/tree/master/Add-LineNumbering)
 
 ##
 ## Create or close tabs in Internet Explorer
