@@ -1,70 +1,50 @@
-# "File Open" Dialog As Replacement for An Adminstrative Windows Explorer
-Since Windows Explorer cannot be started with administrative privileges starting with Windows 7, this script starts an administrative "File Open" dialog as a replacement.
+# Powershell: Permissions for administrative shares (like ADMIN$) / registry ACLs
+Powershell scripts to get or set permissions for administrative shares and other registry stored ACLs like permissions for the server service, for shares, for Remote Desktop connections and for the access to services or DCOM applications.
 
 Since Technet Gallery will be closed, now here.
 
-See Script Center version: ["File Open" Dialog As Replacement for An Adminstrative Windows Explorer](https://gallery.technet.microsoft.com/scriptcenter/Powershell-permissions-for-53d0c8ce).
-
-Now also on Powershell Gallery as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
-```powershell
-Install-Module SysAdminsFriends
-```
-
-Project page on github is [here](https://github.com/MScholtes/SysAdminsFriends).
+See Script Center version: [Powershell: Permissions for administrative shares (like ADMIN$) / registry ACLs](https://gallery.technet.microsoft.com/scriptcenter/Powershell-permissions-for-53d0c8ce).
 
 ## Description
-Starting with Windows 7 it is not possible to run Windows Explorer with administrative privileges, When you try to open a file oder folder that require those privileges, after asking whether you really want that access Windows Explorer changes the ACL of this file or folder! You will get access rights on that file, but those access rights will not be taken away after Windows Explorer is closed.
+Powershell scripts to get or set permissions for administrative shares (like C$ oder ADMIN$) and other registry stored ACLs like permissions for the server service, for shares, for Remote Desktop connections and for the access to services or DCOM applications.
 
-I think this is not only disturbing, changing the ACLs without taking the changes back is a security risk,
+Some permissions are stored in ACLs in binary values in the registry. Since they are not human readable, I developed two scripts to show or modify these ACLs.
 
-So I built a powershell function that calls the well known solution: the file open dialog (some start an "adminstrative notepad" to get that dialog).
+While the permissions are modified directly in the registry, the responsible service usually does not notice the change and has to be restarted (or the computer has to be restarted).
 
 ## Usage
-The following call (after dot sourcing with **". .\Admin-Explorer.ps1"** - assuming the script is in the current directory):
+Assuming the scripts are in the current directory, the command
 
 ```powershell
-AdminExplorer "C:\Windows\System32\config"
+.\Get-AclInRegistry.ps1 -Key "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" -Name "SrvsvcShareAdminConnect"
 ```
-starts (depending on your UAC settings after a confirmation) the file open dialog shown in the screenshot.
+shows the permissions for the administrative shares ADMIN$, C$ ...
 
-In this dialog you can do what you can do in Windows Explorer (copy, paste, create new folder, delete...), but you do have administrative rights. Whether you close the dialog with cancel or a selected file is of no meaning, the return value is not evaluated. But: no ACLs of files or folders are changed!
-
-Requirement: The admin account needs access right to **Admin-Explorer.ps1**, because a new instance of powershell has to be started when powershell is not in administrative mode already.
-
-![AdminExplorer](AdminExplorer.jpg)
-
-If you intend to use this function more often, I recommend to put the function in your powershell profile (use **Admin-Explorer-profile.ps1** for this).
-
-Other functions defined in Admin-Explorer.ps1 are:
-
-**Select-FileDialog** (starts a "File Open" or "Save As" dialogue)
-
-Example:
+The permissions for the administrative shares are modified with a command like this:
 ```powershell
-$file = Select-FileDialog -Title "Select a file" -Directory "C:\Users" -Filter "Powershell Scripts|*.ps1"
+.\Set-AclInRegistry.ps1 -Key "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\DefaultSecurity" -Name "SrvsvcShareAdminConnect" -Account "Power Users" -Action GRANT -AccessMask 0x00000001
 ```
 
-**Test-Admin** (checks whether the current Powershell runs in administrative mode)
+After a restart of the lanmanserver service (e.g. with Restart-Service Lanmanserver -Force) members of the "Power Users" group can access the administrative shares.
 
-Example:
+(Please see "Access masks.txt" for further remarks)
+
+![Screenshot](Screenshot.gif)
+
+## Examples
+For investigating a remote computer REMOTE and the last three reboot times you call
 ```powershell
-Test-Admin
+# Show permissions for the share "MyShare"
+.\Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Services\lanmanserver\Shares\Security" "MyShare"
+
+# Modify default permissions for Remote Desktop connections
+# (The change applies to all future Remote Desktop connections, not to existing)
+.\Set-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations" "DefaultSecurity" "DOMAIN\GROUP" SET 0x00000121
+
+# Modify permissions for the control of the BITS service. The change applies after restart of the computer.
+.\Set-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\BITS\Security" Security "nt authority\interactive" "revoke" 0x0002018d
+
+# Show the launch security of the DCOM application "PrintNotify" of Windows 10.
+.\Get-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AppID\{588E10FA-0618-48A1-BE2F-0AD93E899FCC}" "LaunchPermission"
 ```
-
-**Start-Elevated** (starts a program with administrative privileges)
-
-**su** (alias for Start-Elevated)
-
-**sudo** (alias for Start-Elevated)
-
-Example:
-```powershell
-Start-Elevated "cmd.exe" "/c pause"
-```
-
-**Start-ElevatedPowerShell** (starts an administrative powershell)
-
-Example:
-```powershell
-Start-ElevatedPowerShell "cd 'C:\Program Files';","ls"
-```
+Some important values for access masks are explained in file "Access masks.txt"
