@@ -79,7 +79,7 @@ Powershell scripts to get or set permissions for administrative shares and other
 ## Convert short Powershell scripts to batches
 Script to convert short powershell scripts to batches. Generated batches run on double click and ignore execution policies.
 
-#### Project page: [AclInRegistry](https://github.com/MScholtes/TechNet-Gallery/tree/master/ConvertTo-Batch)
+#### Project page: [ConvertTo-Batch](https://github.com/MScholtes/TechNet-Gallery/tree/master/ConvertTo-Batch)
 
 ##
 ## Powershell Module CredentialLocker
@@ -117,7 +117,7 @@ Script to import the registry keys and certificate thumbnails for unknown RDP co
 ## "File Open" Dialog As Replacement for An Adminstrative Windows Explorer
 Since Windows Explorer cannot be started with administrative privileges starting with Windows 7, this script starts an administrative "File Open" dialog as a replacement.
 
-#### Project page: [Write-Highlight](https://github.com/MScholtes/TechNet-Gallery/tree/master/Admin-Explorer)
+#### Project page: [Admin-Explorer](https://github.com/MScholtes/TechNet-Gallery/tree/master/Admin-Explorer)
 
 ##
 ## Powershell: add line numbering, line coloring, directory size to output/pipeline
@@ -125,7 +125,7 @@ Some fun powershell scripts to add additional information to your output or obje
 
 Add-LineNumbering adds line numbering, Add-LineColoring adds alternating line colors and Add-SizeToDir adds file count and length.
 
-#### Project page: [Write-Highlight](https://github.com/MScholtes/TechNet-Gallery/tree/master/Add-LineNumbering)
+#### Project page: [Add-LineNumbering](https://github.com/MScholtes/TechNet-Gallery/tree/master/Add-LineNumbering)
 
 ##
 ## Create or close tabs in Internet Explorer
