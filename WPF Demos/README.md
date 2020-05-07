@@ -39,7 +39,7 @@ Program to execute button functions.
 ### Demo 4: 04 Window Without XAML.cs
 Minimal WPF program without XAML: a window with text.
 
-Demo 5: 05 Bitmap Icon.cs
+### Demo 5: 05 Bitmap Icon.cs
 Program to show how to use icons and graphics.
 
 The images are defined as Base64 strings in the source code, so there is no dependency to other files (important :-) ).
