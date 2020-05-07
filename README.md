@@ -132,3 +132,11 @@ Add-LineNumbering adds line numbering, Add-LineColoring adds alternating line co
 With the COM interface and DOM you can control the browser Internet Explorer. I made a - for me - useful script to start a new Internet Explorer tab from powershell or close an existing tab.
 
 #### Project page: [Control-IE](https://github.com/MScholtes/TechNet-Gallery/tree/master/Control-IE)
+
+##
+## Tutorial: Graphical WPF programs in C# with just one source file
+Have you been already annoyed that you need Visual Studio or MSBuild to create WPF programs?
+
+Here is a small - and not really honest - tutorial of C# WPF programs that can be compiled without Visual Studio or MSBuild.
+
+#### Project page: [WPF Demos](https://github.com/MScholtes/TechNet-Gallery/tree/master/WPF%20Demos)
