@@ -11,7 +11,13 @@ See Script Center version: [Powershell Webserver](https://gallery.technet.micros
 
 ### Date: 2019-08-30
 
-Now also on Powershell Gallery as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
+Now also on Powershell Gallery as WebServer module, see [here](https://www.powershellgallery.com/packages/WebServer/) or install with 
+```powershell
+Install-Module Webserver
+```
+Project page on github is [here](https://github.com/MScholtes/WebServer).
+
+(also on Powershell Gallery as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
 ```powershell
 Install-Module SysAdminsFriends
 ```
@@ -95,6 +101,9 @@ After stopping the webserver you should remove the rule, e.g.:
 ```powershell
 netsh advfirewall firewall delete rule name="Powershell Webserver"
 ```
+
+### How to enable https encryption
+You can also let the **Powershell Webserver** deliver encrypted traffic. For a description look [here](https://github.com/MScholtes/WebServer/blob/master/https.md).
 
 ### Security
 There is no security!!! Once started the webserver can be accessed by everyone and everyone can do on the webserver system what you can do.
