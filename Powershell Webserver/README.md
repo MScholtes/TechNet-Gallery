@@ -22,7 +22,7 @@ Project page on github is [here](https://github.com/MScholtes/WebServer).
 Install-Module SysAdminsFriends
 ```
 
-Project page on github is [here](https://github.com/MScholtes/SysAdminsFriends).
+Project page on github is [here](https://github.com/MScholtes/SysAdminsFriends))
 
 ## Description
 
