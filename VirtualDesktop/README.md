@@ -1,7 +1,9 @@
 # Powershell commands to manage virtual desktops of Windows 10
 Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts.
 
-Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803, 1809 and 1903!
+Now with support for desktop names introduced with Windows 10 2004!
+
+Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 2004!
 
 Since Technet Gallery will be closed, now here.
 
@@ -15,6 +17,15 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+Update 2.5:
+support for desktop names introduced with Win 10 2004
+
+new functions Get-DesktopList, Get-DesktopName and Set-DesktopName
+
+desktop name as parameter for many functions
+
+support for verbose output
+
 Update 2.4: new function Find-WindowHandle
 
 Minor Update 2.3.1: fixed examples
@@ -28,7 +39,7 @@ version checking)
 
 Update 2.1: support for Windows 10 1809
 
-Update 2.1: support for Windows 10 1803
+Update 2.0: support for Windows 10 1803
 
 ## Sample session:
 * Load commands (assumes VirtualDesktop.ps1 is in the current path)
@@ -41,14 +52,24 @@ Update 2.1: support for Windows 10 1803
 New-Desktop | Switch-Desktop
 ```
 
+* Create a new virtual desktop and name it (only on Win 10 2004 or up)
+```powershell
+New-Desktop | Set-DesktopName -Name "The new one"
+```
+
 * Get second virtual desktop (count starts with 0) and remove it
 ```powershell
-Get-Desktop 1 | Remove-Desktop
+Get-Desktop 1 | Remove-Desktop -Verbose
 ```
 
 * Retrieves the count of virtual desktops
 ```powershell
 Get-DesktopCount
+```
+
+* Show list of virtual desktops
+```powershell
+Get-DesktopList
 ```
 
 * Move notepad window to current virtual desktop
@@ -79,10 +100,17 @@ The API is not or rarely documented by Microsoft. So there is a risk Microsoft c
 ## List of commands:
 For most of the functions you can hand the parameter as parameter or through the pipeline
 
+In most commands you can use a desktop object, the desktop number or a part of the desktop name as parameter desktop, see online help for more information.
+
 ```powershell
 Get-DesktopCount
 ```
 Get count of virtual desktops
+
+```powershell
+Get-DesktopList
+```
+Show list of virtual desktops
 
 ```powershell
 New-Desktop
@@ -112,6 +140,16 @@ Get current virtual desktop as desktop object.
 Get-Desktop -Index index
 ```
 Get virtual desktop with index number (0 to count-1). Returns desktop object.
+
+```powershell
+Get-DesktopName -Desktop desktop
+```
+Get name of virtual desktop. Returns string.
+
+```powershell
+Set-DesktopName -Desktop desktop -Name name
+```
+Set name of virtual desktop to name. Works only on Windows 10 2004 or up.
 
 ```powershell
 Get-DesktopIndex -Desktop desktop
