@@ -10,6 +10,7 @@ $OldDesktop = Get-CurrentDesktop
 
 "Number of virtual desktops: $(Get-DesktopCount)"
 "Number of new desktop: $(Get-DesktopIndex($NewDesktop))"
+"Name of new desktop: $(Get-DesktopName($NewDesktop))"
 
 Sleep 1
 
@@ -39,7 +40,7 @@ Pin-Window ((Get-Process "notepad")[0].MainWindowHandle)
 Sleep 1
 
 "Remove original desktop"
-Remove-Desktop $OldDesktop
+Remove-Desktop $OldDesktop -Verbose
 
 "Number of virtual desktops: $(Get-DesktopCount)"
 

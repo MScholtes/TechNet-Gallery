@@ -1,4 +1,4 @@
-Virtualdesktop.ps1		by Markus Scholtes, 2019
+Virtualdesktop.ps1		by Markus Scholtes, 2020
 
 Powershell commands to manage virtual desktops of Windows 10
 
@@ -9,7 +9,13 @@ document a programming interface to manage virtual desktops from a script or
 program. This set of powershell commands helps out and lets you control virtual
 desktops from scripts.
 
+Now with support for desktop names introduced with Windows 10 2004!
 
+Update 2.5:
+support for desktop names introduced with Win 10 2004
+new functions Get-DesktopList, Get-DesktopName and Set-DesktopName
+desktop name as parameter for many functions
+support for verbose output
 Update 2.4: new function Find-WindowHandle
 Minor Update 2.3.1: fixed examples
 Update 2.3: fixed COM interface error with Pin-Application
@@ -28,11 +34,17 @@ Sample session:
 # Create a new virtual desktop and switch to it
 New-Desktop | Switch-Desktop
 
+# Create a new virtual desktop and name it (only on Win 10 2004 or up)
+New-Desktop | Set-DesktopName -Name "The new one"
+
 # Get second virtual desktop (count starts with 0) and remove it
-Get-Desktop 1 | Remove-Desktop
+Get-Desktop 1 | Remove-Desktop -Verbose
 
 # Retrieves the count of virtual desktops
 Get-DesktopCount
+
+# Show list of virtual desktops
+Get-DesktopList
 
 # Move notepad window to current virtual desktop
 (ps notepad)[0].MainWindowHandle | Move-Window (Get-CurrentDesktop) | Out-Null
@@ -60,10 +72,14 @@ changes the API with an os update and this script will then not work anymore
 
 List of commands:
 (for most of the functions you can hand the parameter as parameter or through the pipeline)
+In most commands you can use a desktop object, the desktop number or a part of the desktop name as parameter desktop, see online help for more information.
 
 
 Get-DesktopCount
 Get count of virtual desktops
+
+Get-DesktopList
+Show list of virtual desktops
 
 New-Desktop
 Create virtual desktop. Returns desktop object.
@@ -85,6 +101,12 @@ Get virtual desktop with index number (0 to count-1). Returns desktop object.
 
 Get-DesktopIndex -Desktop desktop
 Get index number (0 to count-1) of virtual desktop. Returns integer or -1 if not found.
+
+Get-DesktopName -Desktop desktop
+Get name of virtual desktop. Returns string.
+
+Set-DesktopName -Desktop desktop -Name name
+Set name of virtual desktop to name. Works only on Windows 10 2004 or up.
 
 Get-DesktopFromWindow -Hwnd hwnd
 Get virtual desktop of window (whose window handle is passed). Returns desktop object.

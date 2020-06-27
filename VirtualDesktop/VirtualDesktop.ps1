@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.4 - new function Find-WindowHandle, 2019/09/04
+# Version 2.5 - support for naming virtual desktops, 2020/06/27
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -44,15 +44,16 @@ if ($OSBuild -ge 17661)
 
 Add-Type -Language CSharp -TypeDefinition @"
 using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text;
 
-// Based on http://stackoverflow.com/a/32417530, Windows 10 SDK and github projects Grabacr07/VirtualDesktop and mzomparelli/zVirtualDesktop
+// Based on http://stackoverflow.com/a/32417530, Windows 10 SDK, github project Grabacr07/VirtualDesktop and own research
 
 namespace VirtualDesktop
 {
+	#region COM API
 	internal static class Guids
 	{
 		public static readonly Guid CLSID_ImmersiveShell = new Guid("C2F03A33-21F5-47FA-B4BB-156362A2F239");
@@ -230,6 +231,25 @@ $(if ($Windows1803) {@"
 		Guid GetId();
 	}
 
+/*
+IVirtualDesktop2 not used now (available since Win 10 2004), instead reading names out of registry for compatibility reasons
+Excample code:
+IVirtualDesktop2 ivd2;
+string desktopName;
+ivd2.GetName(out desktopName);
+Console.WriteLine("Name of desktop: " + desktopName);
+
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("31EBDE3F-6EC3-4CBD-B9FB-0EF6D09B41F4")]
+	internal interface IVirtualDesktop2
+	{
+		bool IsViewVisible(IApplicationView view);
+		Guid GetId();
+		void GetName([MarshalAs(UnmanagedType.HString)] out string name);
+	}
+*/
+
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 	[Guid("F31574D6-B682-4CDC-BD56-1827860ABEC6")]
@@ -246,6 +266,26 @@ $(if ($Windows1803) {@"
 		IVirtualDesktop CreateDesktop();
 		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
 		IVirtualDesktop FindDesktop(ref Guid desktopid);
+	}
+
+	[ComImport]
+	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("0F3A72B0-4566-487E-9A33-4ED302F6D6CE")]
+	internal interface IVirtualDesktopManagerInternal2
+	{
+		int GetCount();
+		void MoveViewToDesktop(IApplicationView view, IVirtualDesktop desktop);
+		bool CanViewMoveDesktops(IApplicationView view);
+		IVirtualDesktop GetCurrentDesktop();
+		void GetDesktops(out IObjectArray desktops);
+		[PreserveSig]
+		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
+		void SwitchDesktop(IVirtualDesktop desktop);
+		IVirtualDesktop CreateDesktop();
+		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
+		IVirtualDesktop FindDesktop(ref Guid desktopid);
+		void Unknown1(IVirtualDesktop desktop, out IntPtr unknown1, out IntPtr unknown2);
+		void SetName(IVirtualDesktop desktop, [MarshalAs(UnmanagedType.HString)] string name);
 	}
 
 	[ComImport]
@@ -288,19 +328,28 @@ $(if ($Windows1803) {@"
 		[return: MarshalAs(UnmanagedType.IUnknown)]
 		object QueryService(ref Guid service, ref Guid riid);
 	}
+	#endregion
 
+	#region COM wrapper
 	internal static class DesktopManager
 	{
 		static DesktopManager()
 		{
 			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell));
 			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal).GUID);
+			try {
+				VirtualDesktopManagerInternal2 = (IVirtualDesktopManagerInternal2)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal2).GUID);
+			}
+			catch {
+				VirtualDesktopManagerInternal2 = null;
+			}
 			VirtualDesktopManager = (IVirtualDesktopManager)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_VirtualDesktopManager));
 			ApplicationViewCollection = (IApplicationViewCollection)shell.QueryService(typeof(IApplicationViewCollection).GUID, typeof(IApplicationViewCollection).GUID);
 			VirtualDesktopPinnedApps = (IVirtualDesktopPinnedApps)shell.QueryService(Guids.CLSID_VirtualDesktopPinnedApps, typeof(IVirtualDesktopPinnedApps).GUID);
 		}
 
 		internal static IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
+		internal static IVirtualDesktopManagerInternal2 VirtualDesktopManagerInternal2;
 		internal static IVirtualDesktopManager VirtualDesktopManager;
 		internal static IApplicationViewCollection ApplicationViewCollection;
 		internal static IVirtualDesktopPinnedApps VirtualDesktopPinnedApps;
@@ -350,7 +399,9 @@ $(if ($Windows1803) {@"
 			return appId;
 		}
 	}
+	#endregion
 
+	#region public interface
 	public class WindowInformation
 	{ // stores window informations
 		public string Title { get; set; }
@@ -359,54 +410,115 @@ $(if ($Windows1803) {@"
 
 	public class Desktop
 	{
+		// get window handle of current console window (even if powershell started in cmd)
+		[DllImport("Kernel32.dll")]
+		public static extern IntPtr GetConsoleWindow();
+
+		// get handle of active window
+		[DllImport("user32.dll")]
+		public static extern IntPtr GetForegroundWindow();
+
 		private IVirtualDesktop ivd;
 		private Desktop(IVirtualDesktop desktop) { this.ivd = desktop; }
 
 		public override int GetHashCode()
-		{ // Get hash
+		{ // get hash
 			return ivd.GetHashCode();
 		}
 
 		public override bool Equals(object obj)
-		{ // Compares with object
+		{ // compare with object
 			var desk = obj as Desktop;
 			return desk != null && object.ReferenceEquals(this.ivd, desk.ivd);
 		}
 
 		public static int Count
-		{ // Returns the number of desktops
+		{ // return the number of desktops
 			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(); }
 		}
 
 		public static Desktop Current
-		{ // Returns current desktop
+		{ // returns current desktop
 			get { return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 		}
 
 		public static Desktop FromIndex(int index)
-		{ // Create desktop object from index 0..Count-1
+		{ // return desktop object from index (-> index = 0..Count-1)
 			return new Desktop(DesktopManager.GetDesktop(index));
 		}
 
 		public static Desktop FromWindow(IntPtr hWnd)
-		{ // Creates desktop object on which window <hWnd> is displayed
+		{ // return desktop object to desktop on which window <hWnd> is displayed
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			Guid id = DesktopManager.VirtualDesktopManager.GetWindowDesktopId(hWnd);
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.FindDesktop(ref id));
 		}
 
 		public static int FromDesktop(Desktop desktop)
-		{ // Returns index of desktop object or -1 if not found
+		{ // return index of desktop object or -1 if not found
 			return DesktopManager.GetDesktopIndex(desktop.ivd);
 		}
 
+		public static string DesktopNameFromDesktop(Desktop desktop)
+		{ // return name of desktop or "Desktop n" if it has no name
+			Guid guid = desktop.ivd.GetId();
+
+			// read desktop name in registry
+			string desktopName = null;
+			try {
+				desktopName = (string)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VirtualDesktops\\Desktops\\{" + guid.ToString() + "}", "Name", null);
+			}
+			catch { }
+
+			// no name found, generate generic name
+			if (string.IsNullOrEmpty(desktopName))
+			{ // create name "Desktop n" (n = number starting with 1)
+				desktopName = "Desktop " + (DesktopManager.GetDesktopIndex(desktop.ivd) + 1).ToString();
+			}
+			return desktopName;
+		}
+
+		public static string DesktopNameFromIndex(int index)
+		{ // return name of desktop from index (-> index = 0..Count-1) or "Desktop n" if it has no name
+			Guid guid = DesktopManager.GetDesktop(index).GetId();
+
+			// read desktop name in registry
+			string desktopName = null;
+			try {
+				desktopName = (string)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VirtualDesktops\\Desktops\\{" + guid.ToString() + "}", "Name", null);
+			}
+			catch { }
+
+			// no name found, generate generic name
+			if (string.IsNullOrEmpty(desktopName))
+			{ // create name "Desktop n" (n = number starting with 1)
+				desktopName = "Desktop " + (index + 1).ToString();
+			}
+			return desktopName;
+		}
+
+		public static int SearchDesktop(string partialName)
+		{ // get index of desktop with partial name, return -1 if no desktop found
+			int index = -1;
+
+			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(); i++)
+			{ // loop through all virtual desktops and compare partial name to desktop name
+				if (DesktopNameFromIndex(i).ToUpper().IndexOf(partialName.ToUpper()) >= 0)
+				{ index = i;
+					break;
+				}
+			}
+
+			return index;
+		}
+
 		public static Desktop Create()
-		{ // Create a new desktop
+		{ // create a new desktop
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.CreateDesktop());
 		}
 
 		public void Remove(Desktop fallback = null)
-		{ // Destroy desktop and switch to <fallback>
+		{ // destroy desktop and switch to <fallback>
 			IVirtualDesktop fallbackdesktop;
 			if (fallback == null)
 			{ // if no fallback is given use desktop to the left except for desktop 0.
@@ -427,18 +539,26 @@ $(if ($Windows1803) {@"
 			DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(ivd, fallbackdesktop);
 		}
 
+		public void SetName(string Name)
+		{ // set name for desktop, empty string removes names
+			if (DesktopManager.VirtualDesktopManagerInternal2 != null)
+			{ // only if interface to set name is present
+				DesktopManager.VirtualDesktopManagerInternal2.SetName(this.ivd, Name);
+			}
+		}
+
 		public bool IsVisible
-		{ // Returns <true> if this desktop is the current displayed one
+		{ // return true if this desktop is the current displayed one
 			get { return object.ReferenceEquals(ivd, DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 		}
 
 		public void MakeVisible()
-		{ // Make this desktop visible
+		{ // make this desktop visible
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
 		}
 
 		public Desktop Left
-		{ // Returns desktop at the left of this one, null if none
+		{ // return desktop at the left of this one, null if none
 			get
 			{
 				IVirtualDesktop desktop;
@@ -451,7 +571,7 @@ $(if ($Windows1803) {@"
 		}
 
 		public Desktop Right
-		{ // Returns desktop at the right of this one, null if none
+		{ // return desktop at the right of this one, null if none
 			get
 			{
 				IVirtualDesktop desktop;
@@ -464,7 +584,7 @@ $(if ($Windows1803) {@"
 		}
 
 		public void MoveWindow(IntPtr hWnd)
-		{ // Move window <hWnd> to this desktop
+		{ // move window to this desktop
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			if (hWnd == GetConsoleWindow())
 			{ // own window
@@ -487,20 +607,25 @@ $(if ($Windows1803) {@"
 			}
 		}
 
+		public void MoveActiveWindow()
+		{ // move active window to this desktop
+			MoveWindow(GetForegroundWindow());
+		}
+
 		public bool HasWindow(IntPtr hWnd)
-		{ // Returns true if window <hWnd> is on this desktop
+		{ // return true if window is on this desktop
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			return ivd.GetId() == DesktopManager.VirtualDesktopManager.GetWindowDesktopId(hWnd);
 		}
 
 		public static bool IsWindowPinned(IntPtr hWnd)
-		{ // Returns true if window <hWnd> is pinned to all desktops
+		{ // return true if window is pinned to all desktops
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			return DesktopManager.VirtualDesktopPinnedApps.IsViewPinned(hWnd.GetApplicationView());
 		}
 
 		public static void PinWindow(IntPtr hWnd)
-		{ // pin window <hWnd> to all desktops
+		{ // pin window to all desktops
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			var view = hWnd.GetApplicationView();
 			if (!DesktopManager.VirtualDesktopPinnedApps.IsViewPinned(view))
@@ -510,7 +635,7 @@ $(if ($Windows1803) {@"
 		}
 
 		public static void UnpinWindow(IntPtr hWnd)
-		{ // unpin window <hWnd> from all desktops
+		{ // unpin window from all desktops
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			var view = hWnd.GetApplicationView();
 			if (DesktopManager.VirtualDesktopPinnedApps.IsViewPinned(view))
@@ -520,13 +645,13 @@ $(if ($Windows1803) {@"
 		}
 
 		public static bool IsApplicationPinned(IntPtr hWnd)
-		{ // Returns true if application for window <hWnd> is pinned to all desktops
+		{ // return true if application for window is pinned to all desktops
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			return DesktopManager.VirtualDesktopPinnedApps.IsAppIdPinned(DesktopManager.GetAppId(hWnd));
 		}
 
 		public static void PinApplication(IntPtr hWnd)
-		{ // pin application for window <hWnd> to all desktops
+		{ // pin application for window to all desktops
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			string appId = DesktopManager.GetAppId(hWnd);
 			if (!DesktopManager.VirtualDesktopPinnedApps.IsAppIdPinned(appId))
@@ -536,23 +661,15 @@ $(if ($Windows1803) {@"
 		}
 
 		public static void UnpinApplication(IntPtr hWnd)
-		{ // unpin application for window <hWnd> from all desktops
+		{ // unpin application for window from all desktops
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			var view = hWnd.GetApplicationView();
 			string appId = DesktopManager.GetAppId(hWnd);
 			if (DesktopManager.VirtualDesktopPinnedApps.IsAppIdPinned(appId))
-			{ // unpin only if already pinned
+			{ // unpin only if pinned
 				DesktopManager.VirtualDesktopPinnedApps.UnpinAppID(appId);
 			}
 		}
-
-		// get window handle of current console window (even if powershell started in cmd)
-		[DllImport("Kernel32.dll")]
-		public static extern IntPtr GetConsoleWindow();
-
-		// get handle of active window
-		[DllImport("user32.dll")]
-		public static extern IntPtr GetForegroundWindow();
 
 		// prepare callback function for window enumeration
 		private delegate bool CallBackPtr(int hwnd, int lParam);
@@ -603,6 +720,7 @@ $(if ($Windows1803) {@"
 			return result;
 		}
 	}
+	#endregion
 }
 "@
 
@@ -626,12 +744,60 @@ Get-DesktopCount
 
 Get count of virtual desktops
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
+	[Cmdletbinding()]
+	Param()
+
+	Write-Verbose "Count of virtual desktops: $([VirtualDesktop.Desktop]::Count)"
 	return [VirtualDesktop.Desktop]::Count
+}
+
+
+function Get-DesktopList
+{
+<#
+.SYNOPSIS
+Get list of virtual desktops
+.DESCRIPTION
+Get list of virtual desktops
+.INPUTS
+None
+.OUTPUTS
+Object
+.EXAMPLE
+Get-DesktopList
+
+Get list of virtual desktops
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
+https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
+.NOTES
+Author: Markus Scholtes
+Created: 2020/06/27
+#>
+	$DesktopList = @()
+	for ($I = 0; $I -lt [VirtualDesktop.Desktop]::Count; $I++)
+	{
+		$DesktopList += [PSCustomObject]@{
+			Number = $I
+			Name = [VirtualDesktop.Desktop]::DesktopNameFromIndex($I)
+			Visible = if ([VirtualDesktop.Desktop]::FromDesktop([VirtualDesktop.Desktop]::Current) -eq $I) { $TRUE } else { $FALSE }
+		}
+	}
+
+	return $DesktopList
 }
 
 
@@ -651,12 +817,23 @@ New-Desktop | Switch-Desktop
 
 Create virtual desktop and switch to it
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
-	return [VirtualDesktop.Desktop]::Create()
+	[Cmdletbinding()]
+	Param()
+
+	$Desktop = [VirtualDesktop.Desktop]::Create()
+	Write-Verbose "Created desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop))"
+
+	return $Desktop
 }
 
 
@@ -668,9 +845,9 @@ Switch to virtual desktop
 .DESCRIPTION
 Switch to virtual desktop
 .PARAMETER Desktop
-Number of desktop (starting with 0 to count-1) or desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .INPUTS
-Number of desktop (starting with 0 to count-1) or desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .OUTPUTS
 None
 .EXAMPLE
@@ -682,14 +859,23 @@ Switch-Desktop $Desktop
 
 Switch to virtual desktop $Desktop
 .EXAMPLE
+"Desktop 1" | Switch-Desktop
+
+Switch to second virtual desktop
+.EXAMPLE
 New-Desktop | Switch-Desktop
 
 Create virtual desktop and switch to it
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
@@ -697,6 +883,7 @@ Created: 2017/05/08
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{
 		$Desktop.MakeVisible()
+		Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 	}
 	else
 	{
@@ -704,11 +891,30 @@ Created: 2017/05/08
 		{
 			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
 			if ($TempDesktop)
-			{ $TempDesktop.MakeVisible() }
+			{
+				$TempDesktop.MakeVisible()
+				Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+			}
 		}
 		else
 		{
-			Write-Error "Parameter -Desktop has to be a Desktop object or an integer"
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					([VirtualDesktop.Desktop]::FromIndex($TempIndex)).MakeVisible()
+					Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
 		}
 	}
 }
@@ -725,9 +931,9 @@ Windows on the desktop to be removed are moved to the virtual desktop to the lef
 second desktop is used instead. If the current desktop is removed, this fallback desktop is activated too.
 If no desktop is supplied, the last desktop is removed.
 .PARAMETER Desktop
-Number of desktop (starting with 0 to count-1) or desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .INPUTS
-Number of desktop (starting with 0 to count-1) or desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .OUTPUTS
 None
 .EXAMPLE
@@ -739,14 +945,23 @@ Remove-Desktop $Desktop
 
 Remove virtual desktop $Desktop
 .EXAMPLE
+"Desktop 1" | Remove-Desktop
+
+Remove second virtual desktop
+.EXAMPLE
 New-Desktop | Remove-Desktop
 
 Create virtual desktop and remove it immediately
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
@@ -758,6 +973,7 @@ Created: 2017/05/08
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{
+		Write-Verbose "Removing desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		$Desktop.Remove()
 	}
 	else
@@ -766,11 +982,30 @@ Created: 2017/05/08
 		{
 			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
 			if ($TempDesktop)
-			{ $TempDesktop.Remove() }
+			{
+				Write-Verbose "Removing desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				$TempDesktop.Remove()
+			}
 		}
 		else
 		{
-			Write-Error "Parameter -Desktop has to be a Desktop object or an integer"
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					Write-Verbose "Removing desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+					([VirtualDesktop.Desktop]::FromIndex($TempIndex)).Remove()
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
 		}
 	}
 }
@@ -792,12 +1027,22 @@ Get-CurrentDesktop | Remove-Desktop
 
 Remove current virtual desktop
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
-	return [VirtualDesktop.Desktop]::Current
+	[Cmdletbinding()]
+	Param()
+
+	$Desktop = [VirtualDesktop.Desktop]::Current
+	Write-Verbose "Current desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
+	return $Desktop
 }
 
 
@@ -805,26 +1050,35 @@ function Get-Desktop
 {
 <#
 .SYNOPSIS
-Get virtual desktop with index number (0 to count-1)
+Get virtual desktop with index number (0 to count-1) or string (part of desktop name)
 .DESCRIPTION
-Get virtual desktop with index number (0 to count-1)
+Get virtual desktop with index number (0 to count-1) or string (part of desktop name)
 Returns $NULL if index number is out of range.
 Returns current desktop is index is omitted.
 .PARAMETER Index
-Number of desktop (starting with 0 to count-1)
+Number of desktop (starting with 0 to count-1) or string (part of desktop name)
 .INPUTS
-Int32
+Int32 or STRING
 .OUTPUTS
 Desktop object
 .EXAMPLE
 Get-Desktop 1 | Switch-Desktop
 
 Get object of second virtual desktop and switch to it
+.EXAMPLE
+"Desktop 1" | Get-Desktop | Switch-Desktop
+
+Get object of second virtual desktop and switch to it
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[OutputType([VirtualDesktop.Desktop])]
 	[Cmdletbinding()]
@@ -832,17 +1086,39 @@ Created: 2017/05/08
 
 	if ($NULL -eq $Index)
 	{
-		return [VirtualDesktop.Desktop]::Current
+		$Desktop = [VirtualDesktop.Desktop]::Current
+		Write-Verbose "Current desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
+		return $Desktop
 	}
 
 	if ($Index -is [ValueType])
 	{
-		return [VirtualDesktop.Desktop]::FromIndex($Index)
+		$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Index)
+		if ($NULL -ne $TempDesktop) { Write-Verbose "Desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')" }
+		return $TempDesktop
 	}
 	else
 	{
-		Write-Error "Parameter -Index has to be an integer"
-		return $NULL
+		if ($Index -is [STRING])
+		{
+			$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Index)
+			if ($TempIndex -ge 0)
+			{
+				$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($TempIndex)
+				Write-Verbose "Desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				return $TempDesktop
+			}
+			else
+			{
+				Write-Error "No desktop with name part '$Index' found"
+				return $NULL
+			}
+		}
+		else
+		{
+			Write-Error "Parameter -Index has to be an integer or string"
+			return $NULL
+		}
 	}
 }
 
@@ -857,20 +1133,29 @@ Get index number (0 to count-1) of virtual desktop
 Returns -1 if desktop cannot be found.
 Returns index of current desktop is parameter desktop is omitted.
 .PARAMETER Desktop
-Desktop object
+Desktop object or string (part of desktop name)
 .INPUTS
-Desktop object
+Desktop object or string (part of desktop name)
 .OUTPUTS
 Int32
 .EXAMPLE
 New-Desktop | Get-DesktopIndex
 
 Get index number of new virtual desktop
+.EXAMPLE
+Get-DesktopIndex "desktop 1"
+
+Get index number of desktop with name containing "desktop 1"
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[OutputType([INT32])]
 	[Cmdletbinding()]
@@ -878,17 +1163,212 @@ Created: 2017/05/08
 
 	if ($NULL -eq $Desktop)
 	{
-		return [VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::Current))
+		$Desktop = [VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::Current))
 	}
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{
+		Write-Verbose "Desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		return [VirtualDesktop.Desktop]::FromDesktop($Desktop)
 	}
 	else
 	{
-		Write-Error "Parameter -Desktop has to be a Desktop object"
-		return -1
+		if ($Desktop -is [STRING])
+		{
+			$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+			if ($TempIndex -ge 0)
+			{
+				Write-Verbose "Desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+				return [VirtualDesktop.Desktop]::FromIndex($TempIndex)
+			}
+			else
+			{
+				Write-Error "No desktop with name part '$Desktop' found"
+				return -1
+			}
+		}
+		else
+		{
+			Write-Error "Parameter -Desktop has to be a desktop object or string"
+			return -1
+		}
+	}
+}
+
+
+function Get-DesktopName
+{
+<#
+.SYNOPSIS
+Get name of virtual desktop
+.DESCRIPTION
+Get name of virtual desktop
+.PARAMETER Desktop
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+.INPUTS
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+.OUTPUTS
+String (name of desktop)
+.EXAMPLE
+Get-DesktopName 0
+
+Get name of first desktop
+.EXAMPLE
+Get-DesktopName $Desktop
+
+Get name of virtual desktop $Desktop
+.EXAMPLE
+"desktop" | Get-DesktopName
+
+Get name of first virtual desktop whose name contains "desktop"
+.EXAMPLE
+New-Desktop | Get-DesktopName
+
+Create virtual desktop and show its name
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
+https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
+.NOTES
+Author: Markus Scholtes
+Created: 2020/06/27
+#>
+	[Cmdletbinding()]
+	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
+
+	if ($Desktop -is [VirtualDesktop.Desktop])
+	{
+		Write-Verbose "Get name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
+		return ([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))
+	}
+	else
+	{
+		if ($Desktop -is [ValueType])
+		{
+			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+			if ($TempDesktop)
+			{
+				Write-Verbose "Get name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				return ([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))
+			}
+		}
+		else
+		{
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					Write-Verbose "Get name of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+					return ([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
+		}
+	}
+}
+
+
+function Set-DesktopName
+{
+<#
+.SYNOPSIS
+Set name of virtual desktop
+.DESCRIPTION
+Set name of virtual desktop
+.PARAMETER Desktop
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+.PARAMETER Name
+Name of desktop. If omitted or empty or $NULL, a name will be removed from the desktop.
+.INPUTS
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+.OUTPUTS
+None
+.EXAMPLE
+Set-DesktopName 0 "The first desktop"
+
+Set name of first desktop
+.EXAMPLE
+Set-DesktopName $Desktop
+
+Remove name of virtual desktop $Desktop
+.EXAMPLE
+"desktop" | Set-DesktopName -Name "First found"
+
+Set name of first virtual desktop whose name contains "desktop"
+.EXAMPLE
+New-Desktop | Set-DesktopName -Name "The new one"
+
+Create virtual desktop and set its name
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
+https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
+.NOTES
+Author: Markus Scholtes
+Created: 2020/06/27
+#>
+	[Cmdletbinding()]
+	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop, [Parameter(ValueFromPipeline = $FALSE)] $Name)
+
+	if ($NULL -eq $Name) { $Name = "" }
+
+	if ($Desktop -is [VirtualDesktop.Desktop])
+	{
+		if ($Name -ne "")
+		{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))') to '$Name'" }
+		else
+		{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')" }
+		$Desktop.SetName($Name)
+	}
+	else
+	{
+		if ($Desktop -is [ValueType])
+		{
+			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+			if ($TempDesktop)
+			{
+				if ($Name -ne "")
+				{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))') to '$Name'" }
+				else
+				{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')" }
+				$TempDesktop.SetName($Name)
+			}
+		}
+		else
+		{
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					if ($Name -ne "")
+					{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))') to '$Name'" }
+					else
+					{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')" }
+					([VirtualDesktop.Desktop]::FromIndex($TempIndex)).Setname($Name)
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
+		}
 	}
 }
 
@@ -911,11 +1391,20 @@ Desktop object
 Get-DesktopFromWindow ((Get-Process "notepad")[0].MainWindowHandle) | Switch-Desktop
 
 Switch to virtual desktop with notepad window
+.EXAMPLE
+Find-WindowHandle "notepad" | Get-DesktopFromWindow | Switch-Desktop
+
+Switch to virtual desktop with notepad window
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[OutputType([VirtualDesktop.Desktop])]
 	[Cmdletbinding()]
@@ -923,13 +1412,17 @@ Created: 2017/05/08
 
 	if ($Hwnd -is [IntPtr])
 	{
-		return [VirtualDesktop.Desktop]::FromWindow($Hwnd)
+		$Desktop = [VirtualDesktop.Desktop]::FromWindow($Hwnd)
+		if ($NULL -ne $Desktop) { Write-Verbose "Window is on desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')" }
+		return $Desktop
 	}
 	else
 	{
 		if ($Hwnd -is [ValueType])
 		{
-			return [VirtualDesktop.Desktop]::FromWindow([IntPtr]$Hwnd)
+			$Desktop = [VirtualDesktop.Desktop]::FromWindow([IntPtr]$Hwnd)
+			if ($NULL -ne $Desktop) { Write-Verbose "Window is on desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')" }
+			return $Desktop
 		}
 		else
 		{
@@ -948,20 +1441,29 @@ Checks whether a desktop is the displayed virtual desktop
 .DESCRIPTION
 Checks whether a desktop is the displayed virtual desktop
 .PARAMETER Desktop
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .INPUTS
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .OUTPUTS
 Boolean
 .EXAMPLE
 Get-DesktopIndex 1 | Test-CurrentDesktop
 
 Checks whether the desktop with count number 1 is the displayed virtual desktop
+.EXAMPLE
+Test-CurrentDesktop "desktop 2"
+
+Checks whether the desktop with string "desktop 2" in name is the displayed virtual desktop
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[OutputType([BOOLEAN])]
 	[Cmdletbinding()]
@@ -969,11 +1471,40 @@ Created: 2017/05/08
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{
+		Write-Verbose "Check visibility of desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		return $Desktop.IsVisible
 	}
 	else
 	{
-		Write-Error "Parameter -Desktop has to be a Desktop object"
+		if ($Desktop -is [ValueType])
+		{
+			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+			if ($TempDesktop)
+			{
+				Write-Verbose "Check visibility of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				return $TempDesktop.IsVisible
+			}
+		}
+		else
+		{
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					Write-Verbose "Check visibility of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+					return ([VirtualDesktop.Desktop]::FromIndex($TempIndex)).IsVisible
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
+		}
 		return $FALSE
 	}
 }
@@ -989,36 +1520,75 @@ Get the desktop object on the "left" side
 If there is no desktop on the "left" side $NULL is returned.
 Returns desktop "left" to current desktop if parameter desktop is omitted.
 .PARAMETER Desktop
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .INPUTS
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .OUTPUTS
 Desktop object
 .EXAMPLE
 Get-CurrentDesktop | Get-LeftDesktop | Switch-Desktop
 
-Switch to the desktop left to the displayed virtual desktop
+Switch to the desktop left of the displayed virtual desktop
+.EXAMPLE
+Get-LeftDesktop 1
+
+Get desktop left to second desktop
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
 
 	if ($NULL -eq $Desktop)
 	{
-		return ([VirtualDesktop.Desktop]::Current).Left
+		$Desktop = [VirtualDesktop.Desktop]::Current
 	}
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{
+		Write-Verbose "Returning desktop left of desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		return $Desktop.Left
 	}
 	else
 	{
-		Write-Error "Parameter -Desktop has to be a Desktop object"
+		if ($Desktop -is [ValueType])
+		{
+			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+			if ($TempDesktop)
+			{
+				Write-Verbose "Returning desktop left of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				return $TempDesktop.Left
+			}
+		}
+		else
+		{
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					Write-Verbose "Returning desktop left of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+					return ([VirtualDesktop.Desktop]::FromIndex($TempIndex)).Left
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
+		}
+
 		return $NULL
 	}
 }
@@ -1034,36 +1604,75 @@ Get the desktop object on the "right" side
 If there is no desktop on the "right" side $NULL is returned.
 Returns desktop "right" to current desktop if parameter desktop is omitted.
 .PARAMETER Desktop
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .INPUTS
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .OUTPUTS
 Desktop object
 .EXAMPLE
 Get-CurrentDesktop | Get-RightDesktop | Switch-Desktop
 
-Switch to the desktop right to the displayed virtual desktop
+Switch to the desktop right of the displayed virtual desktop
+.EXAMPLE
+Get-RightDesktop 1
+
+Get desktop right to second desktop
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
 
 	if ($NULL -eq $Desktop)
 	{
-		return ([VirtualDesktop.Desktop]::Current).Right
+		$Desktop = [VirtualDesktop.Desktop]::Current
 	}
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{
+		Write-Verbose "Returning desktop right of desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		return $Desktop.Right
 	}
 	else
 	{
-		Write-Error "Parameter -Desktop has to be a Desktop object"
+		if ($Desktop -is [ValueType])
+		{
+			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+			if ($TempDesktop)
+			{
+				Write-Verbose "Returning desktop right of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				return $TempDesktop.Right
+			}
+		}
+		else
+		{
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					Write-Verbose "Returning desktop right of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+					return ([VirtualDesktop.Desktop]::FromIndex($TempIndex)).Right
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
+		}
+
 		return $NULL
 	}
 }
@@ -1095,10 +1704,15 @@ New-Desktop | Move-Window (Get-ConsoleHandle) | Switch-Desktop
 
 Create virtual desktop and move powershell console window to it, then activate new desktop.
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $FALSE)] $Desktop, [Parameter(ValueFromPipeline = $TRUE)] $Hwnd)
@@ -1117,29 +1731,33 @@ Created: 2017/05/08
 
 	if (($Hwnd -is [IntPtr]) -And ($Desktop -is [VirtualDesktop.Desktop]))
 	{
+		Write-Verbose "Moving window to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		$Desktop.MoveWindow($Hwnd)
 		return $Desktop
 	}
 
 	if (($Hwnd -is [ValueType]) -And ($Desktop -is [VirtualDesktop.Desktop]))
 	{
+		Write-Verbose "Moving window to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		$Desktop.MoveWindow([IntPtr]$Hwnd)
 		return $Desktop
 	}
 
 	if (($Desktop -is [IntPtr]) -And ($Hwnd -is [VirtualDesktop.Desktop]))
 	{
+		Write-Verbose "Moving window to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Hwnd)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Hwnd))')"
 		$Hwnd.MoveWindow($Desktop)
 		return $Hwnd
 	}
 
 	if (($Desktop -is [ValueType]) -And ($Hwnd -is [VirtualDesktop.Desktop]))
 	{
+		Write-Verbose "Moving window to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Hwnd)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Hwnd))')"
 		$Hwnd.MoveWindow([IntPtr]$Desktop)
 		return $Hwnd
 	}
 
-	Write-Error "Parameters -Desktop and -Hwnd have to be a Desktop object and an IntPtr/integer pair"
+	Write-Error "Parameters -Desktop and -Hwnd have to be a desktop object and an IntPtr/integer pair"
 	return $NULL
 }
 
@@ -1153,9 +1771,9 @@ Move active window to virtual desktop
 Move active window to virtual desktop. The desktop object is handed to the output pipeline for further use.
 If parameter desktop is omitted, the current desktop is used.
 .PARAMETER Desktop
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .INPUTS
-Desktop object
+Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .OUTPUTS
 Desktop object
 .EXAMPLE
@@ -1165,12 +1783,21 @@ Move active window to current virtual desktop
 .EXAMPLE
 New-Desktop | Move-ActiveWindow | Switch-Desktop
 
-Create virtual desktop and move activate console window to it, then activate new desktop.
+Create virtual desktop and move activate window to it, then activate new desktop.
+.EXAMPLE
+Move-ActiveWindow "Desktop 2"
+
+Move activate window to second desktop
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 .LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2019/02/13
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
@@ -1182,12 +1809,47 @@ Created: 2019/02/13
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{
+		Write-Verbose "Moving active window to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		$Desktop.MoveWindow((Get-ActiveWindowHandle))
 		return $Desktop
 	}
+	else
+	{
+		if ($Desktop -is [ValueType])
+		{
+			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+			if ($TempDesktop)
+			{
+				Write-Verbose "Moving active window to desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				$TempDesktop.MoveWindow((Get-ActiveWindowHandle))
+				return $TempDesktop
+			}
+		}
+		else
+		{
+			if ($Desktop -is [STRING])
+			{
+				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+				if ($TempIndex -ge 0)
+				{
+					$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($TempIndex)
+					Write-Verbose "Moving active window to desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+					$TempDesktop.MoveWindow((Get-ActiveWindowHandle))
+					return $TempDesktop
+				}
+				else
+				{
+					Write-Error "No desktop with name part '$Desktop' found"
+				}
+			}
+			else
+			{
+				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+			}
+		}
 
-	Write-Error "Parameter -Desktop has to be a Desktop object"
 	return $NULL
+	}
 }
 
 
@@ -1216,10 +1878,19 @@ Get-Desktop 1 | Test-Window (Get-ConsoleHandle)
 
 Check if powershell console window is displayed on virtual desktop with number 1 (second desktop)
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[OutputType([BOOLEAN])]
 	[Cmdletbinding()]
@@ -1229,10 +1900,12 @@ Created: 2017/05/08
 	{
 		if ($Desktop -is [VirtualDesktop.Desktop])
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 			return $Desktop.HasWindow($Hwnd)
 		}
 		else
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop([VirtualDesktop.Desktop]::Current)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::Current))')"
 			return ([VirtualDesktop.Desktop]::Current).HasWindow($Hwnd)
 		}
 	}
@@ -1241,10 +1914,12 @@ Created: 2017/05/08
 	{
 		if ($Desktop -is [VirtualDesktop.Desktop])
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 			return $Desktop.HasWindow([IntPtr]$Hwnd)
 		}
 		else
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop([VirtualDesktop.Desktop]::Current)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::Current))')"
 			return ([VirtualDesktop.Desktop]::Current).HasWindow([IntPtr]$Hwnd)
 		}
 	}
@@ -1253,10 +1928,12 @@ Created: 2017/05/08
 	{
 		if ($Hwnd -is [VirtualDesktop.Desktop])
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop($Hwnd)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Hwnd))')"
 			return $Hwnd.HasWindow($Desktop)
 		}
 		else
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop([VirtualDesktop.Desktop]::Current)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::Current))')"
 			return ([VirtualDesktop.Desktop]::Current).HasWindow($Desktop)
 		}
 	}
@@ -1265,15 +1942,17 @@ Created: 2017/05/08
 	{
 		if ($Hwnd -is [VirtualDesktop.Desktop])
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop($Hwnd)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Hwnd))')"
 			return $Hwnd.HasWindow([IntPtr]$Desktop)
 		}
 		else
 		{
+			Write-Verbose "Checking window on desktop number $([VirtualDesktop.Desktop]::FromDesktop([VirtualDesktop.Desktop]::Current)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::Current))')"
 			return ([VirtualDesktop.Desktop]::Current).HasWindow([IntPtr]$Desktop)
 		}
 	}
 
-	Write-Error "Parameters -Desktop and -Hwnd have to be a Desktop object and an IntPtr/integer pair"
+	Write-Error "Parameters -Desktop and -Hwnd have to be a desktop object and an IntPtr/integer pair"
 	return $FALSE
 }
 
@@ -1296,10 +1975,15 @@ Pin-Window ((Get-Process "notepad")[0].MainWindowHandle)
 
 Pin notepad window to all desktops
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Hwnd)
@@ -1307,12 +1991,14 @@ Created: 2017/05/08
 	if ($Hwnd -is [IntPtr])
 	{
 		[VirtualDesktop.Desktop]::PinWindow($Hwnd)
+		Write-Verbose "Pinned window with handle $Hwnd to all desktops"
 	}
 	else
 	{
 		if ($Hwnd -is [ValueType])
 		{
 			[VirtualDesktop.Desktop]::PinWindow([IntPtr]$Hwnd)
+			Write-Verbose "Pinned window with handle $Hwnd to all desktops"
 		}
 		else
 		{
@@ -1340,10 +2026,15 @@ Unpin-Window ((Get-Process "notepad")[0].MainWindowHandle)
 
 Unpin notepad window from all desktops
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Hwnd)
@@ -1351,12 +2042,14 @@ Created: 2017/05/08
 	if ($Hwnd -is [IntPtr])
 	{
 		[VirtualDesktop.Desktop]::UnpinWindow($Hwnd)
+		Write-Verbose "Unpinned window with handle $Hwnd from all desktops"
 	}
 	else
 	{
 		if ($Hwnd -is [ValueType])
 		{
 			[VirtualDesktop.Desktop]::UnpinWindow([IntPtr]$Hwnd)
+			Write-Verbose "Unpinned window with handle $Hwnd from all desktops"
 		}
 		else
 		{
@@ -1384,10 +2077,15 @@ Test-WindowPinned ((Get-Process "notepad")[0].MainWindowHandle)
 
 Checks whether notepad window is pinned to all virtual desktops
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[OutputType([BOOLEAN])]
 	[Cmdletbinding()]
@@ -1395,12 +2093,14 @@ Created: 2017/05/08
 
 	if ($Hwnd -is [IntPtr])
 	{
+		Write-Verbose "Check if window with handle $Hwnd is pinned to all desktops"
 		return [VirtualDesktop.Desktop]::IsWindowPinned($Hwnd)
 	}
 	else
 	{
 		if ($Hwnd -is [ValueType])
 		{
+			Write-Verbose "Check if window with handle $Hwnd is pinned to all desktops"
 			return [VirtualDesktop.Desktop]::IsWindowPinned([IntPtr]$Hwnd)
 		}
 		else
@@ -1430,10 +2130,15 @@ Pin-Application ((Get-Process "notepad")[0].MainWindowHandle)
 
 Pin all notepad windows to all desktops
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Hwnd)
@@ -1441,12 +2146,14 @@ Created: 2017/05/08
 	if ($Hwnd -is [IntPtr])
 	{
 		[VirtualDesktop.Desktop]::PinApplication($Hwnd)
+		Write-Verbose "Pinned application with window handle $Hwnd to all desktops"
 	}
 	else
 	{
 		if ($Hwnd -is [ValueType])
 		{
 			[VirtualDesktop.Desktop]::PinApplication([IntPtr]$Hwnd)
+			Write-Verbose "Pinned application with window handle $Hwnd to all desktops"
 		}
 		else
 		{
@@ -1474,10 +2181,15 @@ Unpin-Application ((Get-Process "notepad")[0].MainWindowHandle)
 
 Unpin all notepad windows from all desktops
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Hwnd)
@@ -1485,12 +2197,14 @@ Created: 2017/05/08
 	if ($Hwnd -is [IntPtr])
 	{
 		[VirtualDesktop.Desktop]::UnpinApplication($Hwnd)
+		Write-Verbose "Unpinned application with window handle $Hwnd from all desktops"
 	}
 	else
 	{
 		if ($Hwnd -is [ValueType])
 		{
 			[VirtualDesktop.Desktop]::UnpinApplication([IntPtr]$Hwnd)
+			Write-Verbose "Unpinned application with window handle $Hwnd from all desktops"
 		}
 		else
 		{
@@ -1518,10 +2232,15 @@ Test-ApplicationPinned ((Get-Process "notepad")[0].MainWindowHandle)
 
 Checks whether notepad windows are pinned to all virtual desktops
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
+Updated: 2020/06/27
 #>
 	[OutputType([BOOLEAN])]
 	[Cmdletbinding()]
@@ -1529,12 +2248,14 @@ Created: 2017/05/08
 
 	if ($Hwnd -is [IntPtr])
 	{
+		Write-Verbose "Check if application with window handle $Hwnd is pinned to all desktops"
 		return [VirtualDesktop.Desktop]::IsApplicationPinned($Hwnd)
 	}
 	else
 	{
 		if ($Hwnd -is [ValueType])
 		{
+			Write-Verbose "Check if application with window handle $Hwnd is pinned to all desktops"
 			return [VirtualDesktop.Desktop]::IsApplicationPinned([IntPtr]$Hwnd)
 		}
 		else
@@ -1562,11 +2283,20 @@ Get-ConsoleHandle
 
 Get window handle of powershell console
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2018/10/22
+Updated: 2020/06/27
 #>
+	[Cmdletbinding()]
+	Param()
+
+	Write-Verbose "Retrieving console window handle"
 	if ([VirtualDesktop.Desktop]::GetConsoleWindow() -ne 0)
 	{ return [VirtualDesktop.Desktop]::GetConsoleWindow() }
 	else # maybe script is started in ISE
@@ -1590,11 +2320,20 @@ Get-ActiveWindowHandle
 
 Get window handle of foreground window
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2019/02/13
+Updated: 2020/06/27
 #>
+	[Cmdletbinding()]
+	Param()
+
+	Write-Verbose "Retrieving handle of active window"
 	return [VirtualDesktop.Desktop]::GetForegroundWindow()
 }
 
@@ -1625,27 +2364,36 @@ Find-WindowHandle * | ? { $_.Title -match "firefox" }
 
 Find all windows that contain the text "firefox" in their title
 .LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
 Created: 2019/09/04
+Updated: 2020/06/27
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Title)
 
 	if ($Title -eq "*")
 	{
+		Write-Verbose "Retrieving window titles and handles of all windows with titles"
 		return [VirtualDesktop.Desktop]::GetWindows()
 	}
 	else
 	{
+		Write-Verbose "Retrieving window handles of first window with '$Title' in title"
 		$RESULT = [VirtualDesktop.Desktop]::FindWindow($Title)
 		if ($RESULT)
 		{
+			Write-Verbose "Window '$($RESULT.Title)' found"
 			return $RESULT.Handle
 		}
 		else
 		{
+			Write-Verbose "No window found"
 			return 0
 		}
 	}
