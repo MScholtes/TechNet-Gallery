@@ -15,7 +15,7 @@ Powershell script that starts a webserver (without IIS). Powershell command exec
 
 ##
 ## Powershell commands to manage virtual desktops of Windows 10
-Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts. Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803, 1809 and 1903!
+Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts. Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 2004!
 
 #### Project page: [VirtualDesktop](https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop)
 
