@@ -1,3 +1,17 @@
+PS2EXE-GUI v0.5.0.21
+Changes:
+- support for nested progress bars (noConsole mode only)
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.20):
+lines 89 to 90 - adjusted version number and date
+line 104 - adjusted version number
+line 116 - adjusted version number
+lines 1403 to 1574 - overworked winforms class ProgressForm
+line 2131 - support for multiple progress bars
+line 2320 - adjusted version number
+
+
+
 PS2EXE-GUI v0.5.0.20
 Changes:
 - Application.EnableVisualStyles() as default for GUI applications

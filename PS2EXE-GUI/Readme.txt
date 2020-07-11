@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.20
-Release: 2020-04-19
+PS2EXE-GUI v0.5.0.21
+Release: 2020-07-11
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -21,9 +21,8 @@ Module based version available now on Powershell Gallery, see here (https://www.
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
 
-Update v0.5.0.20 - 2020-04-19
-Application.EnableVisualStyles() as default for GUI applications
-new parameter -noVisualStyles to prevent this
+Update v0.5.0.21 - 2020-07-11
+- support for nested progress bars (noConsole mode only)
 
 
 Full list of changes and fixes in Changes.txt.
