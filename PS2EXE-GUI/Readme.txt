@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.21
-Release: 2020-07-11
+PS2EXE-GUI v0.5.0.22
+Release: 2020-08-09
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -8,7 +8,6 @@ are generated.
 
 https://github.com/MScholtes/TechNet-Gallery/
 https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-GUI-Convert-e7cb69d5
-
 
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you can download here: PS2EXE : "Convert" PowerShell Scripts to EXE Files.
@@ -21,9 +20,11 @@ Module based version available now on Powershell Gallery, see here (https://www.
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
 
-Update v0.5.0.21 - 2020-07-11
-- support for nested progress bars (noConsole mode only)
-
+Update v0.5.0.22 - 2020-08-09
+- prompt for choice behaves like Powershell now (console mode only)
+- (limited) support for Powershell Core (starts Windows Powershell in the background)
+- fixed processing of negative parameter values
+- support for animated progress bars (noConsole mode only)
 
 Full list of changes and fixes in Changes.txt.
 
@@ -55,6 +56,15 @@ Per default output of commands are formatted line per line (as an array of strin
 
 Config files:
 PS2EXE create config files with the name of the generated executable + ".config". In most cases those config files are not necessary, they are a manifest that tells which .Net Framework version should be used. As you will usually use the actual .Net Framework, try running your excutable without the config file.
+
+Parameter processing:
+Compiled scripts process parameters like the original script does. One restriction comes from the Windows environment: for all executables all parameters have the type STRING, if there is no implicit conversion for your parameter type you have to convert explicitly in your script. You can even pipe content to the executable with the same restriction (all piped values have the type STRING).
+
+A generated executable has the following reserved parameters:
+-debug Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Break()".
+-extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME. The script will not be executed.
+-wait At the end of the script execution it writes "Hit any key to exit..." and waits for a key to be pressed.
+-end All following options will be passed to the script inside the executable. All preceding options are used by the executable itself.
 
 Password security:
 Never store passwords in your compiled script! One can simply decompile the script with the parameter -extract. For example

@@ -86,8 +86,8 @@ Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
 ps2exe.ps1 -inputFile C:\Data\MyScript.ps1 -outputFile C:\Data\MyScriptGUI.exe -iconFile C:\Data\Icon.ico -noConsole -title "MyScript" -version 0.0.0.1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScriptGUI.exe as graphical executable, icon and meta data
 .NOTES
-Version: 0.5.0.21
-Date: 2020-07-10
+Version: 0.5.0.22
+Date: 2020-08-09
 Author: Ingo Karstein, Markus Scholtes
 .LINK
 https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5
@@ -101,7 +101,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$verbose,
 
 <################################################################################>
 <##                                                                            ##>
-<##      PS2EXE-GUI v0.5.0.21                                                  ##>
+<##      PS2EXE-GUI v0.5.0.22                                                  ##>
 <##      Written by: Ingo Karstein (http://blog.karstein-consulting.com)       ##>
 <##      Reworked and GUI support by Markus Scholtes                           ##>
 <##                                                                            ##>
@@ -113,11 +113,18 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$verbose,
 
 if (!$nested)
 {
-	Write-Output "PS2EXE-GUI v0.5.0.21 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
+	Write-Output "PS2EXE-GUI v0.5.0.22 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
 }
 else
 {
-	Write-Output "PowerShell 2.0 environment started...`n"
+	if ($PSVersionTable.PSVersion.Major -eq 2)
+	{
+		Write-Output "PowerShell 2.0 environment started...`n"
+	}
+	else
+	{
+		Write-Output "PowerShell Desktop environment started...`n"
+	}
 }
 
 if ([STRING]::IsNullOrEmpty($inputFile))
@@ -158,6 +165,36 @@ if ([STRING]::IsNullOrEmpty($inputFile))
 	Write-Output "     longPaths = enable long paths ( > 260 characters) if enabled on OS (works only with Windows 10)`n"
 	Write-Output "Input file not specified!"
 	exit -1
+}
+
+if (!$nested -and ($PSVersionTable.PSEdition -eq "Core"))
+{ # starting Windows Powershell
+	$CallParam = ""
+	foreach ($Param in $PSBoundparameters.GetEnumerator())
+	{
+		if ($Param.Value -is [System.Management.Automation.SwitchParameter])
+		{	if ($Param.Value.IsPresent)
+			{	$CallParam += " -$($Param.Key):`$TRUE" }
+			else
+			{ $CallParam += " -$($Param.Key):`$FALSE" }
+		}
+		else
+		{	if ($Param.Value -is [STRING])
+			{
+				if (($Param.Value -match " ") -or ([STRING]::IsNullOrEmpty($Param.Value)))
+				{	$CallParam += " -$($Param.Key) '$($Param.Value)'" }
+				else
+				{	$CallParam += " -$($Param.Key) $($Param.Value)" }
+			}
+			else
+			{ $CallParam += " -$($Param.Key) $($Param.Value)" }
+		}
+	}
+
+	$CallParam += " -nested"
+
+	powershell -Command "&'$($MyInvocation.MyCommand.Path)' $CallParam"
+	exit $LASTEXITCODE
 }
 
 $psversion = 0
@@ -1404,6 +1441,13 @@ $(if ($noConsole){ @"
 	{
 		private ConsoleColor ProgressBarColor = ConsoleColor.DarkCyan;
 
+$(if (!$noVisualStyles) {@"
+		private System.Timers.Timer timer = new System.Timers.Timer();
+		private int barNumber = -1;
+		private int barValue = -1;
+		private bool inTick = false;
+"@ })
+
 		struct ProgressData
 		{
 			internal Label lblActivity;
@@ -1460,7 +1504,31 @@ $(if ($noConsole){ @"
 			this.StartPosition = FormStartPosition.CenterScreen;
 
 			this.ResumeLayout();
+$(if (!$noVisualStyles) {@"
+			timer.Elapsed += new System.Timers.ElapsedEventHandler(TimeTick);
+			timer.Interval = 50; // milliseconds
+			timer.AutoReset = true;
+			timer.Start();
+"@ })
 		}
+$(if (!$noVisualStyles) {@"
+		private void TimeTick(object source, System.Timers.ElapsedEventArgs e)
+		{ // worker function that is called by timer event
+
+			if (inTick) return;
+			inTick = true;
+			if (barNumber >= 0)
+			{
+				if (barValue >= 0)
+				{
+					progressDataList[barNumber].objProgressBar.Value = barValue;
+					barValue = -1;
+				}
+				progressDataList[barNumber].objProgressBar.Refresh();
+			}
+			inTick = false;
+		}
+"@ })
 
 		private void AddBar(ref ProgressData pd, int position)
 		{
@@ -1562,7 +1630,9 @@ $(if ($noVisualStyles) {@"
 			if (objRecord.RecordType == ProgressRecordType.Completed)
 			{
 				if (currentProgress < 0) return;
-
+$(if (!$noVisualStyles) {@"
+				if (barNumber == currentProgress) barNumber = -1;
+"@ })
 				this.Controls.Remove(progressDataList[currentProgress].lblActivity);
 				this.Controls.Remove(progressDataList[currentProgress].lblStatus);
 				this.Controls.Remove(progressDataList[currentProgress].objProgressBar);
@@ -1579,6 +1649,10 @@ $(if ($noVisualStyles) {@"
 
 				if (progressDataList.Count == 0)
 				{
+$(if (!$noVisualStyles) {@"
+					timer.Stop();
+					timer.Dispose();
+"@ })
 					this.Close();
 					return;
 				}
@@ -1684,17 +1758,36 @@ $(if ($noVisualStyles) {@"
 
 			if ((objRecord.PercentComplete >= 0) && (objRecord.PercentComplete <= 100))
 			{
+$(if (!$noVisualStyles) {@"
+				if (objRecord.PercentComplete < 100)
+					progressDataList[currentProgress].objProgressBar.Value = objRecord.PercentComplete + 1;
+				else
+					progressDataList[currentProgress].objProgressBar.Value = 99;
+				progressDataList[currentProgress].objProgressBar.Visible = true;
+				barNumber = currentProgress;
+				barValue = objRecord.PercentComplete;
+"@ } else {@"
 				progressDataList[currentProgress].objProgressBar.Value = objRecord.PercentComplete;
 				progressDataList[currentProgress].objProgressBar.Visible = true;
+"@ })
 			}
 			else
 			{ if (objRecord.PercentComplete > 100)
 				{
 					progressDataList[currentProgress].objProgressBar.Value = 0;
 					progressDataList[currentProgress].objProgressBar.Visible = true;
+$(if (!$noVisualStyles) {@"
+					barNumber = currentProgress;
+					barValue = 0;
+"@ })
 				}
 				else
+				{
 					progressDataList[currentProgress].objProgressBar.Visible = false;
+$(if (!$noVisualStyles) {@"
+					if (barNumber == currentProgress) barNumber = -1;
+"@ })
+				}
 			}
 
 			if (objRecord.SecondsRemaining >= 0)
@@ -1944,55 +2037,60 @@ $(if ($noConsole) {@"
 			if (iReturn == -1) { iReturn = defaultChoice; }
 			return iReturn;
 "@ } else {@"
-			if (!string.IsNullOrEmpty(caption))
-				WriteLine(caption);
+			if (!string.IsNullOrEmpty(caption)) WriteLine(caption);
 			WriteLine(message);
-			int idx = 0;
-			SortedList<string, int> res = new SortedList<string, int>();
-			foreach (ChoiceDescription cd in choices)
-			{
-				string lkey = cd.Label.Substring(0, 1), ltext = cd.Label;
-				int pos = cd.Label.IndexOf('&');
-				if (pos > -1)
+			do {
+				int idx = 0;
+				SortedList<string, int> res = new SortedList<string, int>();
+				string defkey = "";
+				foreach (ChoiceDescription cd in choices)
 				{
-					lkey = cd.Label.Substring(pos + 1, 1).ToUpper();
-					if (pos > 0)
-						ltext = cd.Label.Substring(0, pos) + cd.Label.Substring(pos + 1);
+					string lkey = cd.Label.Substring(0, 1), ltext = cd.Label;
+					int pos = cd.Label.IndexOf('&');
+					if (pos > -1)
+					{
+						lkey = cd.Label.Substring(pos + 1, 1).ToUpper();
+						if (pos > 0)
+							ltext = cd.Label.Substring(0, pos) + cd.Label.Substring(pos + 1);
+						else
+							ltext = cd.Label.Substring(1);
+					}
+					res.Add(lkey.ToLower(), idx);
+
+					if (idx > 0) Write("  ");
+					if (idx == defaultChoice)
+					{
+						Write(VerboseForegroundColor, rawUI.BackgroundColor, string.Format("[{0}] {1}", lkey, ltext));
+						defkey = lkey;
+					}
 					else
-						ltext = cd.Label.Substring(1);
+						Write(rawUI.ForegroundColor, rawUI.BackgroundColor, string.Format("[{0}] {1}", lkey, ltext));
+					idx++;
 				}
-				res.Add(lkey.ToLower(), idx);
+				Write(rawUI.ForegroundColor, rawUI.BackgroundColor, string.Format("  [?] Help (default is \"{0}\"): ", defkey));
 
-				if (idx > 0) Write("  ");
-				if (idx == defaultChoice)
+				string inpkey = "";
+				try
 				{
-					Write(ConsoleColor.Yellow, Console.BackgroundColor, string.Format("[{0}] {1}", lkey, ltext));
-					if (!string.IsNullOrEmpty(cd.HelpMessage))
-						Write(ConsoleColor.Gray, Console.BackgroundColor, string.Format(" ({0})", cd.HelpMessage));
+					inpkey = Console.ReadLine().ToLower();
+					if (res.ContainsKey(inpkey)) return res[inpkey];
+					if (string.IsNullOrEmpty(inpkey)) return defaultChoice;
 				}
-				else
+				catch { }
+				if (inpkey == "?")
 				{
-					Write(ConsoleColor.Gray, Console.BackgroundColor, string.Format("[{0}] {1}", lkey, ltext));
-					if (!string.IsNullOrEmpty(cd.HelpMessage))
-						Write(ConsoleColor.Gray, Console.BackgroundColor, string.Format(" ({0})", cd.HelpMessage));
+					foreach (ChoiceDescription cd in choices)
+					{
+						string lkey = cd.Label.Substring(0, 1);
+						int pos = cd.Label.IndexOf('&');
+						if (pos > -1) lkey = cd.Label.Substring(pos + 1, 1).ToUpper();
+						if (!string.IsNullOrEmpty(cd.HelpMessage))
+							WriteLine(rawUI.ForegroundColor, rawUI.BackgroundColor, string.Format("{0} - {1}", lkey, cd.HelpMessage));
+						else
+							WriteLine(rawUI.ForegroundColor, rawUI.BackgroundColor, string.Format("{0} -", lkey));
+					}
 				}
-				idx++;
-			}
-			Write(": ");
-
-			try
-			{
-				while (true)
-				{ string s = Console.ReadLine().ToLower();
-					if (res.ContainsKey(s))
-						return res[s];
-					if (string.IsNullOrEmpty(s))
-						return defaultChoice;
-				}
-			}
-			catch { }
-
-			return defaultChoice;
+			} while (true);
 "@ })
 		}
 
@@ -2458,7 +2556,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return new Version(0, 5, 0, 21);
+				return new Version(0, 5, 0, 22);
 			}
 		}
 
@@ -2630,7 +2728,9 @@ $(if (!$noConsole) {@"
 						for (int i = separator; i < args.Length; i++)
 						{
 							System.Text.RegularExpressions.Match match = regex.Match(args[i]);
-							if (match.Success && match.Groups.Count == 3)
+							double dummy;
+
+							if ((match.Success && match.Groups.Count == 3) && (!Double.TryParse(args[i], out dummy)))
 							{ // parameter in powershell style, means named parameter found
 								if (argbuffer != null) // already a named parameter in buffer, then flush it
 									powershell.AddParameter(argbuffer);

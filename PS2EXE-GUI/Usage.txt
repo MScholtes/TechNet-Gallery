@@ -44,11 +44,11 @@ Usage:
 noVisualStyles = disable visual styles for a generated windows GUI application (only with -noConsole)
   requireAdmin = if UAC is enabled, compiled executable run only in elevated context (UAC dialog appears if required)
      supportOS = use functions of newest Windows versions (execute [Environment]::OSVersion to see the difference)
-   virtualize = application virtualization is activated (forcing x86 runtime)
+    virtualize = application virtualization is activated (forcing x86 runtime)
      longPaths = enable long paths ( > 260 characters) if enabled on OS (works only with Windows 10)
 
 
-A generated executables has the following reserved parameters:
+A generated executable has the following reserved parameters:
 
 -debug              Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Break()".
 -extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME.
