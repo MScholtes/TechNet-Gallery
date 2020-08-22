@@ -1,5 +1,4 @@
 # Powershell functions to split and join binary files fast
-Powershell scripts to export and import firewall rules in CSV or JSON format.
 
 Since Technet Gallery will be closed, now here.
 
