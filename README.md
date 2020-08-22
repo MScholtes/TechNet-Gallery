@@ -4,7 +4,7 @@ You find copies of my *'Script Center'* and *'Technet Gallery'* publications her
 ### Version 1.0.3 / 2020/08/11
 PS2EXE 0.5.0.22:
 
-For a complete list of changes see here: [Changes](changes.md) 
+For a complete list of changes see here: [Changes](Changes.md) 
 
 ##
 ## PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
