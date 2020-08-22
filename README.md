@@ -3,16 +3,8 @@ You find copies of my *'Script Center'* and *'Technet Gallery'* publications her
 
 ### Version 1.0.3 / 2020/08/11
 PS2EXE 0.5.0.22:
-- prompt for choice behaves like Powershell now (console mode only)
-- (limited) support for Powershell Core (starts Windows Powershell in the background)
-- fixed processing of negative parameter values
-- support for animated progress bars (noConsole mode only)
 
-### Version 1.0.2 / 2020/07/11
-- PS2EXE 0.5.0.21: nested progress bars
-
-### Version 1.0.1 / 2020/06/27
-- Virtualdesktop 2.5: support for virtual desktop names (new in Win 10 2004)
+For a complete list of changes see here: [Changes](changes.md) 
 
 ##
 ## PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
@@ -28,7 +20,7 @@ Powershell script that starts a webserver (without IIS). Powershell command exec
 
 ##
 ## Powershell commands to manage virtual desktops of Windows 10
-Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts. Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803, 1809 and 1903!
+Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts. Compatible to Windows 10 1607, Server 2016, 1803 up to 2004!
 
 #### Project page: [VirtualDesktop](https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop)
 
