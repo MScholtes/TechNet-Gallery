@@ -1,5 +1,8 @@
 # Changes
 
+### Version 1.0.4 / 2020/08/22
+- added Export-FileSegment: Powershell functions to extract and insert binary data from and to files
+
 ### Version 1.0.3 / 2020/08/11
 PS2EXE 0.5.0.22:
 - prompt for choice behaves like Powershell now (console mode only)

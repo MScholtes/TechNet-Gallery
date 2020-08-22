@@ -1,8 +1,8 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because Technet Gallery will be closed soon.
 
-### Version 1.0.3 / 2020/08/11
-PS2EXE 0.5.0.22:
+### Version 1.0.4 / 2020/08/22
+- added Export-FileSegment: Powershell functions to extract and insert binary data from and to files
 
 For a complete list of changes see here: [Changes](Changes.md) 
 
@@ -35,6 +35,12 @@ Powershell scripts to export and import firewall rules in CSV or JSON format.
 Two Powershell functions to split and join binary files fast. The functions are using .Net BinaryWriter methods. If .Net 4 or above is detected, the quick .CopyTo() method is used to join files.
 
 #### Project page: [Split-File](https://github.com/MScholtes/TechNet-Gallery/tree/master/Split-File)
+
+##
+## Powershell functions to extract and insert binary data from and to files
+Two Powershell functions to extract and insert binary data from and to files. The functions are using .Net BinaryWriter and BinaryReader methods.
+
+#### Project page: [Export-Filesegment](https://github.com/MScholtes/TechNet-Gallery/tree/master/Export-Filesegment)
 
 ##
 ## Replace-InFile.ps1: Replace text in files while preserving the encoding
