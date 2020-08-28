@@ -1,3 +1,20 @@
+PS2EXE-GUI v0.5.0.23
+Changes:
+- bug fix for simultanous progress bars in one pipeline
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.22):
+lines 89 to 90 - adjusted version number and date
+line 104 - adjusted version number
+line 116 - adjusted version number
+line 1632 - inserted bug fix for simultanous progrss bar in one pipeline
+line 1649 - inserted bug fix for simultanous progrss bar in one pipeline
+line 1660 - inserted bug fix for simultanous progrss bar in one pipeline
+line 1632 - inserted bug fix for simultanous progrss bar in one pipeline
+line 2364 - inserted bug fix for simultanous progrss bar in one pipeline
+line 2559 - adjusted version number
+
+
+
 PS2EXE-GUI v0.5.0.22
 Changes:
 - prompt for choice behaves like Powershell now (only for console mode)
