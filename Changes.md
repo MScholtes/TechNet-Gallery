@@ -1,5 +1,8 @@
 # Changes
 
+### Version 1.0.5 / 2020/08/28
+- PS2EXE 0.5.0.23: bug fix for simultanous progress bars in one pipeline
+
 ### Version 1.0.4 / 2020/08/22
 - added Export-FileSegment: Powershell functions to extract and insert binary data from and to files
 

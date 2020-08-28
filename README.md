@@ -1,10 +1,10 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because Technet Gallery will be closed soon.
 
-### Version 1.0.4 / 2020/08/22
-- added Export-FileSegment: Powershell functions to extract and insert binary data from and to files
+### Version 1.0.5 / 2020/08/28
+- PS2EXE 0.5.0.23: bug fix for simultanous progress bars in one pipeline
 
-For a complete list of changes see here: [Changes](Changes.md) 
+For a complete list of changes see here: [Changes](Changes.md)
 
 ##
 ## PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
