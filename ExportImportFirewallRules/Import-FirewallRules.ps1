@@ -10,8 +10,8 @@ Input file
 Input in JSON instead of CSV format
 .NOTES
 Author: Markus Scholtes
-Version: 1.02
-Build date: 2020/02/15
+Version: 1.03
+Build date: 2020/10/12
 .EXAMPLE
 Import-FirewallRules.ps1
 Imports all firewall rules in the CSV file FirewallRules.csv in the current directory.
@@ -19,7 +19,7 @@ Imports all firewall rules in the CSV file FirewallRules.csv in the current dire
 Import-FirewallRules.ps1 WmiRules.json -json
 Imports all firewall rules in the JSON file WmiRules.json.
 #>
-Param($CSVFile = ".\FirewallRules.csv", [SWITCH]$JSON)
+Param($CSVFile = "", [SWITCH]$JSON)
 
 #Requires -Version 4.0
 
@@ -51,10 +51,12 @@ function ValueToBoolean([STRING]$Value, [BOOLEAN]$DefaultValue = $FALSE)
 
 if (!$JSON)
 { # read CSV file
+	if ([STRING]::IsNullOrEmpty($CSVFile)) { $CSVFile = ".\FirewallRules.csv" }
 	$FirewallRules = Get-Content $CSVFile | ConvertFrom-CSV -Delimiter ";"
 }
 else
 { # read JSON file
+	if ([STRING]::IsNullOrEmpty($CSVFile)) { $CSVFile = ".\FirewallRules.json" }
 	$FirewallRules = Get-Content $CSVFile | ConvertFrom-JSON
 }
 

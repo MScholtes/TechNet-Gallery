@@ -12,8 +12,8 @@ Input file
 Input in JSON instead of CSV format
 .NOTES
 Author: Markus Scholtes
-Version: 1.02
-Build date: 2020/02/15
+Version: 1.03
+Build date: 2020/10/12
 .EXAMPLE
 Remove-FirewallRules.ps1
 Removes all firewall rules according to a list in the CSV file FirewallRules.csv in the current directory.
@@ -21,17 +21,19 @@ Removes all firewall rules according to a list in the CSV file FirewallRules.csv
 Remove-FirewallRules.ps1 WmiRules.json -json
 Removes all firewall rules according to the list in the JSON file WmiRules.json.
 #>
-Param($CSVFile = ".\FirewallRules.csv", [SWITCH]$JSON)
+Param($CSVFile = "", [SWITCH]$JSON)
 
 #Requires -Version 4.0
 
 
 if (!$JSON)
 { # read CSV file
+	if ([STRING]::IsNullOrEmpty($CSVFile)) { $CSVFile = ".\FirewallRules.csv" }
 	$FirewallRules = Get-Content $CSVFile | ConvertFrom-CSV -Delimiter ";"
 }
 else
 { # read JSON file
+	if ([STRING]::IsNullOrEmpty($CSVFile)) { $CSVFile = ".\FirewallRules.json" }
 	$FirewallRules = Get-Content $CSVFile | ConvertFrom-JSON
 }
 
