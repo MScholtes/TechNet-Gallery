@@ -1,5 +1,8 @@
 # Changes
 
+### Version 1.0.6 / 2020/10/14
+- ExportImportFirewallRules V1.0.3: default file name for JSON data has extension json now
+
 ### Version 1.0.5 / 2020/08/28
 - PS2EXE 0.5.0.23: bug fix for simultanous progress bars in one pipeline
 
