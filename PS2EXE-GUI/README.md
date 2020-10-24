@@ -7,9 +7,9 @@ See Script Center version: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE File
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.23
+### Version: v0.5.0.24
 
-### Date: 2020-08-21
+### Date: 2020-10-24
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you can download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -24,9 +24,8 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.23 - 2020-08-21
-- bug fix for simultanous progress bars in one pipeline
-- new example Execute.ps1
+### Update v0.5.0.24 - 2020-10-24
+- refactored
 
 Full list of changes and fixes in Changes.txt.
 

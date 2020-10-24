@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.23
-Release: 2020-08-21
+PS2EXE-GUI v0.5.0.24
+Release: 2020-10-24
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -20,9 +20,8 @@ Module based version available now on Powershell Gallery, see here (https://www.
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
 
-Update v0.5.0.23 - 2020-08-21
-- bug fix for simultanous progress bars in one pipeline
-- new example Execute.ps1
+Update v0.5.0.24 - 2020-10-24
+- refactored
 
 Full list of changes and fixes in Changes.txt.
 

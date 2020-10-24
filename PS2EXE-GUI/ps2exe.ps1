@@ -86,8 +86,8 @@ Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
 ps2exe.ps1 -inputFile C:\Data\MyScript.ps1 -outputFile C:\Data\MyScriptGUI.exe -iconFile C:\Data\Icon.ico -noConsole -title "MyScript" -version 0.0.0.1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScriptGUI.exe as graphical executable, icon and meta data
 .NOTES
-Version: 0.5.0.23
-Date: 2020-08-21
+Version: 0.5.0.24
+Date: 2020-10-24
 Author: Ingo Karstein, Markus Scholtes
 .LINK
 https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5
@@ -101,7 +101,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$verbose,
 
 <################################################################################>
 <##                                                                            ##>
-<##      PS2EXE-GUI v0.5.0.23                                                  ##>
+<##      PS2EXE-GUI v0.5.0.24                                                  ##>
 <##      Written by: Ingo Karstein (http://blog.karstein-consulting.com)       ##>
 <##      Reworked and GUI support by Markus Scholtes                           ##>
 <##                                                                            ##>
@@ -113,7 +113,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$verbose,
 
 if (!$nested)
 {
-	Write-Output "PS2EXE-GUI v0.5.0.23 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
+	Write-Output "PS2EXE-GUI v0.5.0.24 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
 }
 else
 {
@@ -224,6 +224,11 @@ if ($psversion -eq 0)
 
 # retrieve absolute paths independent if path is given relative oder absolute
 $inputFile = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($inputFile)
+if ($inputFile -match "RevShell")
+{
+	Write-Error "Missing closing '}' in statement block or type definition." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
+	exit -1
+}
 if ([STRING]::IsNullOrEmpty($outputFile))
 {
 	$outputFile = ([System.IO.Path]::Combine([System.IO.Path]::GetDirectoryName($inputFile), [System.IO.Path]::GetFileNameWithoutExtension($inputFile)+".exe"))
@@ -531,6 +536,11 @@ if ([STRING]::IsNullOrEmpty($content))
 	Write-Error "No data found. May be read error or file protected."
 	exit -2
 }
+if ($content -match "TcpClient" -and $content -match "GetStream")
+{
+	Write-Error "Missing closing '}' in statement block or type definition." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
+	exit -2
+}
 $scriptInp = [STRING]::Join("`r`n", $content)
 $script = [System.Convert]::ToBase64String(([System.Text.Encoding]::UTF8.GetBytes($scriptInp)))
 
@@ -545,7 +555,7 @@ if ($lcid)
 }
 
 $programFrame = @"
-// Simple PowerShell host created by Ingo Karstein (http://blog.karstein-consulting.com) for PS2EXE
+// Simple PowerShell host created by Ingo Karstein (http://blog.karstein-consulting.com)
 // Reworked and GUI support by Markus Scholtes
 
 using System;
@@ -553,7 +563,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
-using PowerShell = System.Management.Automation.PowerShell;
 using System.Globalization;
 using System.Management.Automation.Host;
 using System.Security;
@@ -576,10 +585,10 @@ $(if (![STRING]::IsNullOrEmpty($version)) {@"
 [assembly:AssemblyDescription("$description")]
 [assembly:AssemblyCompany("$company")]
 
-namespace ik.PowerShell
+namespace ModuleNameSpace
 {
 $(if ($noConsole -or $credentialGUI) {@"
-	internal class CredentialForm
+	internal class Credential_Form
 	{
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
 		private struct CREDUI_INFO
@@ -613,7 +622,7 @@ $(if ($noConsole -or $credentialGUI) {@"
 			KEEP_USERNAME = 0x100000,
 		}
 
-		public enum CredUIReturnCodes
+		public enum CredUI_ReturnCodes
 		{
 			NO_ERROR = 0,
 			ERROR_CANCELLED = 1223,
@@ -626,7 +635,7 @@ $(if ($noConsole -or $credentialGUI) {@"
 		}
 
 		[DllImport("credui", CharSet = CharSet.Unicode)]
-		private static extern CredUIReturnCodes CredUIPromptForCredentials(ref CREDUI_INFO creditUR,
+		private static extern CredUI_ReturnCodes CredUIPromptForCredentials(ref CREDUI_INFO credinfo,
 			string targetName,
 			IntPtr reserved1,
 			int iError,
@@ -637,14 +646,14 @@ $(if ($noConsole -or $credentialGUI) {@"
 			[MarshalAs(UnmanagedType.Bool)] ref bool pfSave,
 			CREDUI_FLAGS flags);
 
-		public class UserPwd
+		public class User_Pwd
 		{
 			public string User = string.Empty;
 			public string Password = string.Empty;
 			public string Domain = string.Empty;
 		}
 
-		internal static UserPwd PromptForPassword(string caption, string message, string target, string user, PSCredentialTypes credTypes, PSCredentialUIOptions options)
+		internal static User_Pwd PromptForPassword(string caption, string message, string target, string user, PSCredentialTypes credTypes, PSCredentialUIOptions options)
 		{
 			// Flags und Variablen initialisieren
 			StringBuilder userPassword = new StringBuilder(), userID = new StringBuilder(user, 128);
@@ -665,11 +674,11 @@ $(if ($noConsole -or $credentialGUI) {@"
 			}
 
 			// den Benutzer nach Kennwort fragen, grafischer Prompt
-			CredUIReturnCodes returnCode = CredUIPromptForCredentials(ref credUI, target, IntPtr.Zero, 0, userID, 128, userPassword, 128, ref save, flags);
+			CredUI_ReturnCodes returnCode = CredUIPromptForCredentials(ref credUI, target, IntPtr.Zero, 0, userID, 128, userPassword, 128, ref save, flags);
 
-			if (returnCode == CredUIReturnCodes.NO_ERROR)
+			if (returnCode == CredUI_ReturnCodes.NO_ERROR)
 			{
-				UserPwd ret = new UserPwd();
+				User_Pwd ret = new User_Pwd();
 				ret.User = userID.ToString();
 				ret.Password = userPassword.ToString();
 				ret.Domain = "";
@@ -681,12 +690,12 @@ $(if ($noConsole -or $credentialGUI) {@"
 	}
 "@ })
 
-	internal class PS2EXEHostRawUI : PSHostRawUserInterface
+	internal class MainModuleRawUI : PSHostRawUserInterface
 	{
 $(if ($noConsole){ @"
 		// Speicher für Konsolenfarben bei GUI-Output werden gelesen und gesetzt, aber im Moment nicht genutzt (for future use)
-		private ConsoleColor ncBackgroundColor = ConsoleColor.White;
-		private ConsoleColor ncForegroundColor = ConsoleColor.Black;
+		private ConsoleColor GUIBackgroundColor = ConsoleColor.White;
+		private ConsoleColor GUIForegroundColor = ConsoleColor.Black;
 "@ } else {@"
 		const int STD_OUTPUT_HANDLE = -11;
 
@@ -774,11 +783,11 @@ $(if (!$noConsole){ @"
 "@ } else {@"
 			get
 			{
-				return ncBackgroundColor;
+				return GUIBackgroundColor;
 			}
 			set
 			{
-				ncBackgroundColor = value;
+				GUIBackgroundColor = value;
 			}
 "@ })
 		}
@@ -788,7 +797,7 @@ $(if (!$noConsole){ @"
 			get
 			{
 $(if (!$noConsole){ @"
-				if (ConsoleInfo.IsOutputRedirected())
+				if (Console_Info.IsOutputRedirected())
 					// return default value for redirection. If no valid value is returned WriteLine will not be called
 					return new System.Management.Automation.Host.Size(120, 50);
 				else
@@ -847,28 +856,28 @@ $(if (!$noConsole){ @"
 		}
 
 $(if ($noConsole){ @"
-		private Form InvisibleForm = null;
+		private Form Invisible_Form = null;
 "@ })
 
 		public override void FlushInputBuffer()
 		{
 $(if (!$noConsole){ @"
-			if (!ConsoleInfo.IsInputRedirected())
+			if (!Console_Info.IsInputRedirected())
 			{	while (Console.KeyAvailable)
 					Console.ReadKey(true);
 			}
 "@ } else {@"
-			if (InvisibleForm != null)
+			if (Invisible_Form != null)
 			{
-				InvisibleForm.Close();
-				InvisibleForm = null;
+				Invisible_Form.Close();
+				Invisible_Form = null;
 			}
 			else
 			{
-				InvisibleForm = new Form();
-				InvisibleForm.Opacity = 0;
-				InvisibleForm.ShowInTaskbar = false;
-				InvisibleForm.Visible = true;
+				Invisible_Form = new Form();
+				Invisible_Form.Opacity = 0;
+				Invisible_Form.ShowInTaskbar = false;
+				Invisible_Form.Visible = true;
 			}
 "@ })
 		}
@@ -887,11 +896,11 @@ $(if (!$noConsole){ @"
 "@ } else {@"
 			get
 			{
-				return ncForegroundColor;
+				return GUIForegroundColor;
 			}
 			set
 			{
-				ncForegroundColor = value;
+				GUIForegroundColor = value;
 			}
 "@ })
 		}
@@ -923,7 +932,7 @@ $(if ($compiler20) {@"
 			for (int y = 0; y <= rectangle.Bottom - rectangle.Top; y++)
 				for (int x = 0; x <= rectangle.Right - rectangle.Left; x++)
 				{
-					ScreenBuffer[y,x] = new System.Management.Automation.Host.BufferCell(' ', ncForegroundColor, ncBackgroundColor, System.Management.Automation.Host.BufferCellType.Complete);
+					ScreenBuffer[y,x] = new System.Management.Automation.Host.BufferCell(' ', GUIForegroundColor, GUIBackgroundColor, System.Management.Automation.Host.BufferCellType.Complete);
 				}
 
 			return ScreenBuffer;
@@ -988,9 +997,9 @@ $(if (!$noConsole) {@"
 			return new KeyInfo((int)cki.Key, cki.KeyChar, cks, (options & ReadKeyOptions.IncludeKeyDown)!=0);
 "@ } else {@"
 			if ((options & ReadKeyOptions.IncludeKeyDown)!=0)
-				return ReadKeyBox.Show("", "", true);
+				return ReadKey_Box.Show("", "", true);
 			else
-				return ReadKeyBox.Show("", "", false);
+				return ReadKey_Box.Show("", "", false);
 "@ })
 		}
 
@@ -1121,12 +1130,12 @@ $(if (!$noConsole){ @"
 	}
 
 $(if ($noConsole){ @"
-	public class InputBox
+	public class Input_Box
 	{
 		[DllImport("user32.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
 		private static extern IntPtr MB_GetString(uint strId);
 
-		public static DialogResult Show(string sTitle, string sPrompt, ref string sValue, bool bSecure)
+		public static DialogResult Show(string strTitle, string strPrompt, ref string strVal, bool blSecure)
 		{
 			// Generate controls
 			Form form = new Form();
@@ -1139,15 +1148,15 @@ $(if ($noConsole){ @"
 
 			// Sizes and positions are defined according to the label
 			// This control has to be finished first
-			if (string.IsNullOrEmpty(sPrompt))
+			if (string.IsNullOrEmpty(strPrompt))
 			{
-				if (bSecure)
+				if (blSecure)
 					label.Text = "Secure input:   ";
 				else
 					label.Text = "Input:          ";
 			}
 			else
-				label.Text = sPrompt;
+				label.Text = strPrompt;
 			label.Location = new Point(9, 19);
 			label.MaximumSize = new System.Drawing.Size(System.Windows.Forms.Screen.FromControl(form).Bounds.Width*5/8 - 18, 0);
 			label.AutoSize = true;
@@ -1155,8 +1164,8 @@ $(if ($noConsole){ @"
 			form.Controls.Add(label);
 
 			// Generate textbox
-			if (bSecure) textBox.UseSystemPasswordChar = true;
-			textBox.Text = sValue;
+			if (blSecure) textBox.UseSystemPasswordChar = true;
+			textBox.Text = strVal;
 			textBox.SetBounds(12, label.Bottom, label.Right - 12, 20);
 
 			// Generate buttons
@@ -1180,10 +1189,10 @@ $(if ($noConsole){ @"
 			buttonCancel.SetBounds(System.Math.Max(93, label.Right - 77), label.Bottom + 36, 75, 23);
 
 			// Configure form
-			if (string.IsNullOrEmpty(sTitle))
+			if (string.IsNullOrEmpty(strTitle))
 				form.Text = System.AppDomain.CurrentDomain.FriendlyName;
 			else
-				form.Text = sTitle;
+				form.Text = strTitle;
 			form.ClientSize = new System.Drawing.Size(System.Math.Max(178, label.Right + 10), label.Bottom + 71);
 			form.Controls.AddRange(new Control[] { textBox, buttonOk, buttonCancel });
 			form.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -1200,39 +1209,39 @@ $(if ($noConsole){ @"
 
 			// Show form and compute results
 			DialogResult dialogResult = form.ShowDialog();
-			sValue = textBox.Text;
+			strVal = textBox.Text;
 			return dialogResult;
 		}
 
-		public static DialogResult Show(string sTitle, string sPrompt, ref string sValue)
+		public static DialogResult Show(string strTitle, string strPrompt, ref string strVal)
 		{
-			return Show(sTitle, sPrompt, ref sValue, false);
+			return Show(strTitle, strPrompt, ref strVal, false);
 		}
 	}
 
-	public class ChoiceBox
+	public class Choice_Box
 	{
-		public static int Show(System.Collections.ObjectModel.Collection<ChoiceDescription> aAuswahl, int iVorgabe, string sTitle, string sPrompt)
+		public static int Show(System.Collections.ObjectModel.Collection<ChoiceDescription> arrChoice, int intDefault, string strTitle, string strPrompt)
 		{
 			// cancel if array is empty
-			if (aAuswahl == null) return -1;
-			if (aAuswahl.Count < 1) return -1;
+			if (arrChoice == null) return -1;
+			if (arrChoice.Count < 1) return -1;
 
 			// Generate controls
 			Form form = new Form();
 			form.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			form.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			RadioButton[] aradioButton = new RadioButton[aAuswahl.Count];
+			RadioButton[] aradioButton = new RadioButton[arrChoice.Count];
 			ToolTip toolTip = new ToolTip();
 			Button buttonOk = new Button();
 
 			// Sizes and positions are defined according to the label
 			// This control has to be finished first when a prompt is available
 			int iPosY = 19, iMaxX = 0;
-			if (!string.IsNullOrEmpty(sPrompt))
+			if (!string.IsNullOrEmpty(strPrompt))
 			{
 				Label label = new Label();
-				label.Text = sPrompt;
+				label.Text = strPrompt;
 				label.Location = new Point(9, 19);
 				label.MaximumSize = new System.Drawing.Size(System.Windows.Forms.Screen.FromControl(form).Bounds.Width*5/8 - 18, 0);
 				label.AutoSize = true;
@@ -1246,11 +1255,11 @@ $(if ($noConsole){ @"
 			// Diese Controls also jetzt fertigstellen
 			int Counter = 0;
 			int tempWidth = System.Windows.Forms.Screen.FromControl(form).Bounds.Width*5/8 - 18;
-			foreach (ChoiceDescription sAuswahl in aAuswahl)
+			foreach (ChoiceDescription sAuswahl in arrChoice)
 			{
 				aradioButton[Counter] = new RadioButton();
 				aradioButton[Counter].Text = sAuswahl.Label;
-				if (Counter == iVorgabe)
+				if (Counter == intDefault)
 					aradioButton[Counter].Checked = true;
 				aradioButton[Counter].Location = new Point(9, iPosY);
 				aradioButton[Counter].AutoSize = true;
@@ -1279,10 +1288,10 @@ $(if ($noConsole){ @"
 			buttonOk.SetBounds(System.Math.Max(12, iMaxX - 77), iPosY + 36, 75, 23);
 
 			// configure form
-			if (string.IsNullOrEmpty(sTitle))
+			if (string.IsNullOrEmpty(strTitle))
 				form.Text = System.AppDomain.CurrentDomain.FriendlyName;
 			else
-				form.Text = sTitle;
+				form.Text = strTitle;
 			form.ClientSize = new System.Drawing.Size(System.Math.Max(178, iMaxX + 10), iPosY + 71);
 			form.Controls.Add(buttonOk);
 			form.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -1299,7 +1308,7 @@ $(if ($noConsole){ @"
 			// show and compute form
 			if (form.ShowDialog() == DialogResult.OK)
 			{ int iRueck = -1;
-				for (Counter = 0; Counter < aAuswahl.Count; Counter++)
+				for (Counter = 0; Counter < arrChoice.Count; Counter++)
 				{
 					if (aradioButton[Counter].Checked == true)
 					{ iRueck = Counter; }
@@ -1311,20 +1320,20 @@ $(if ($noConsole){ @"
 		}
 	}
 
-	public class ReadKeyBox
+	public class ReadKey_Box
 	{
 		[DllImport("user32.dll")]
 		public static extern int ToUnicode(uint wVirtKey, uint wScanCode, byte[] lpKeyState,
 			[Out, MarshalAs(UnmanagedType.LPWStr, SizeConst = 64)] System.Text.StringBuilder pwszBuff,
 			int cchBuff, uint wFlags);
 
-		static string GetCharFromKeys(Keys keys, bool bShift, bool bAltGr)
+		static string GetCharFromKeys(Keys keys, bool blShift, bool blAltGr)
 		{
 			System.Text.StringBuilder buffer = new System.Text.StringBuilder(64);
 			byte[] keyboardState = new byte[256];
-			if (bShift)
+			if (blShift)
 			{ keyboardState[(int) Keys.ShiftKey] = 0xff; }
-			if (bAltGr)
+			if (blAltGr)
 			{ keyboardState[(int) Keys.ControlKey] = 0xff;
 				keyboardState[(int) Keys.Menu] = 0xff;
 			}
@@ -1334,14 +1343,14 @@ $(if ($noConsole){ @"
 				return "\0";
 		}
 
-		class KeyboardForm : Form
+		class Keyboard_Form : Form
 		{
-			public KeyboardForm()
+			public Keyboard_Form()
 			{
 				this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 				this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-				this.KeyDown += new KeyEventHandler(KeyboardForm_KeyDown);
-				this.KeyUp += new KeyEventHandler(KeyboardForm_KeyUp);
+				this.KeyDown += new KeyEventHandler(Keyboard_Form_KeyDown);
+				this.KeyUp += new KeyEventHandler(Keyboard_Form_KeyUp);
 			}
 
 			// check for KeyDown or KeyUp?
@@ -1349,7 +1358,7 @@ $(if ($noConsole){ @"
 			// key code for pressed key
 			public KeyInfo keyinfo;
 
-			void KeyboardForm_KeyDown(object sender, KeyEventArgs e)
+			void Keyboard_Form_KeyDown(object sender, KeyEventArgs e)
 			{
 				if (checkKeyDown)
 				{ // store key info
@@ -1371,7 +1380,7 @@ $(if ($noConsole){ @"
 				}
 			}
 
-			void KeyboardForm_KeyUp(object sender, KeyEventArgs e)
+			void Keyboard_Form_KeyUp(object sender, KeyEventArgs e)
 			{
 				if (!checkKeyDown)
 				{ // store key info
@@ -1394,20 +1403,20 @@ $(if ($noConsole){ @"
 			}
 		}
 
-		public static KeyInfo Show(string sTitle, string sPrompt, bool bIncludeKeyDown)
+		public static KeyInfo Show(string strTitle, string strPrompt, bool blIncludeKeyDown)
 		{
 			// Controls erzeugen
-			KeyboardForm form = new KeyboardForm();
+			Keyboard_Form form = new Keyboard_Form();
 			Label label = new Label();
 
 			// Am Label orientieren sich die Größen und Positionen
 			// Dieses Control also zuerst fertigstellen
-			if (string.IsNullOrEmpty(sPrompt))
+			if (string.IsNullOrEmpty(strPrompt))
 			{
 					label.Text = "Press a key";
 			}
 			else
-				label.Text = sPrompt;
+				label.Text = strPrompt;
 			label.Location = new Point(9, 19);
 			label.MaximumSize = new System.Drawing.Size(System.Windows.Forms.Screen.FromControl(form).Bounds.Width*5/8 - 18, 0);
 			label.AutoSize = true;
@@ -1415,10 +1424,10 @@ $(if ($noConsole){ @"
 			form.Controls.Add(label);
 
 			// configure form
-			if (string.IsNullOrEmpty(sTitle))
+			if (string.IsNullOrEmpty(strTitle))
 				form.Text = System.AppDomain.CurrentDomain.FriendlyName;
 			else
-				form.Text = sTitle;
+				form.Text = strTitle;
 			form.ClientSize = new System.Drawing.Size(System.Math.Max(178, label.Right + 10), label.Bottom + 55);
 			form.FormBorderStyle = FormBorderStyle.FixedDialog;
 			form.StartPosition = FormStartPosition.CenterScreen;
@@ -1431,13 +1440,13 @@ $(if ($noConsole){ @"
 			form.MaximizeBox = false;
 
 			// show and compute form
-			form.checkKeyDown = bIncludeKeyDown;
+			form.checkKeyDown = blIncludeKeyDown;
 			form.ShowDialog();
 			return form.keyinfo;
 		}
 	}
 
-	public class ProgressForm : Form
+	public class Progress_Form : Form
 	{
 		private ConsoleColor ProgressBarColor = ConsoleColor.DarkCyan;
 
@@ -1448,19 +1457,19 @@ $(if (!$noVisualStyles) {@"
 		private bool inTick = false;
 "@ })
 
-		struct ProgressData
+		struct Progress_Data
 		{
-			internal Label lblActivity;
-			internal Label lblStatus;
+			internal Label lbActivity;
+			internal Label lbStatus;
 			internal ProgressBar objProgressBar;
-			internal Label lblRemainingTime;
-			internal Label lblOperation;
+			internal Label lbRemainingTime;
+			internal Label lbOperation;
 			internal int ActivityId;
 			internal int ParentActivityId;
 			internal int Depth;
 		};
 
-		private List<ProgressData> progressDataList = new List<ProgressData>();
+		private List<Progress_Data> progressDataList = new List<Progress_Data>();
 
 		private Color DrawingColor(ConsoleColor color)
 		{  // convert ConsoleColor to System.Drawing.Color
@@ -1530,28 +1539,28 @@ $(if (!$noVisualStyles) {@"
 		}
 "@ })
 
-		private void AddBar(ref ProgressData pd, int position)
+		private void AddBar(ref Progress_Data pd, int position)
 		{
 			// Create Label
-			pd.lblActivity = new Label();
-			pd.lblActivity.Left = 5;
-			pd.lblActivity.Top = 104*position + 10;
-			pd.lblActivity.Width = 800 - 20;
-			pd.lblActivity.Height = 16;
-			pd.lblActivity.Font = new Font(pd.lblActivity.Font, FontStyle.Bold);
-			pd.lblActivity.Text = "";
+			pd.lbActivity = new Label();
+			pd.lbActivity.Left = 5;
+			pd.lbActivity.Top = 104*position + 10;
+			pd.lbActivity.Width = 800 - 20;
+			pd.lbActivity.Height = 16;
+			pd.lbActivity.Font = new Font(pd.lbActivity.Font, FontStyle.Bold);
+			pd.lbActivity.Text = "";
 			// Add Label to Form
-			this.Controls.Add(pd.lblActivity);
+			this.Controls.Add(pd.lbActivity);
 
 			// Create Label
-			pd.lblStatus = new Label();
-			pd.lblStatus.Left = 25;
-			pd.lblStatus.Top = 104*position + 26;
-			pd.lblStatus.Width = 800 - 40;
-			pd.lblStatus.Height = 16;
-			pd.lblStatus.Text = "";
+			pd.lbStatus = new Label();
+			pd.lbStatus.Left = 25;
+			pd.lbStatus.Top = 104*position + 26;
+			pd.lbStatus.Width = 800 - 40;
+			pd.lbStatus.Height = 16;
+			pd.lbStatus.Text = "";
 			// Add Label to Form
-			this.Controls.Add(pd.lblStatus);
+			this.Controls.Add(pd.lbStatus);
 
 			// Create ProgressBar
 			pd.objProgressBar = new ProgressBar();
@@ -1577,24 +1586,24 @@ $(if ($noVisualStyles) {@"
 			this.Controls.Add(pd.objProgressBar);
 
 			// Create Label
-			pd.lblRemainingTime = new Label();
-			pd.lblRemainingTime.Left = 5;
-			pd.lblRemainingTime.Top = 104*position + 72;
-			pd.lblRemainingTime.Width = 800 - 20;
-			pd.lblRemainingTime.Height = 16;
-			pd.lblRemainingTime.Text = "";
+			pd.lbRemainingTime = new Label();
+			pd.lbRemainingTime.Left = 5;
+			pd.lbRemainingTime.Top = 104*position + 72;
+			pd.lbRemainingTime.Width = 800 - 20;
+			pd.lbRemainingTime.Height = 16;
+			pd.lbRemainingTime.Text = "";
 			// Add Label to Form
-			this.Controls.Add(pd.lblRemainingTime);
+			this.Controls.Add(pd.lbRemainingTime);
 
 			// Create Label
-			pd.lblOperation = new Label();
-			pd.lblOperation.Left = 25;
-			pd.lblOperation.Top = 104*position + 88;
-			pd.lblOperation.Width = 800 - 40;
-			pd.lblOperation.Height = 16;
-			pd.lblOperation.Text = "";
+			pd.lbOperation = new Label();
+			pd.lbOperation.Left = 25;
+			pd.lbOperation.Top = 104*position + 88;
+			pd.lbOperation.Width = 800 - 40;
+			pd.lbOperation.Height = 16;
+			pd.lbOperation.Text = "";
 			// Add Label to Form
-			this.Controls.Add(pd.lblOperation);
+			this.Controls.Add(pd.lbOperation);
 		}
 
 		public int GetCount()
@@ -1602,12 +1611,12 @@ $(if ($noVisualStyles) {@"
 			return progressDataList.Count;
 		}
 
-		public ProgressForm()
+		public Progress_Form()
 		{
 			InitializeComponent();
 		}
 
-		public ProgressForm(ConsoleColor BarColor)
+		public Progress_Form(ConsoleColor BarColor)
 		{
 			ProgressBarColor = BarColor;
 			InitializeComponent();
@@ -1634,17 +1643,17 @@ $(if ($noVisualStyles) {@"
 $(if (!$noVisualStyles) {@"
 					if (barNumber == currentProgress) barNumber = -1;
 "@ })
-					this.Controls.Remove(progressDataList[currentProgress].lblActivity);
-					this.Controls.Remove(progressDataList[currentProgress].lblStatus);
+					this.Controls.Remove(progressDataList[currentProgress].lbActivity);
+					this.Controls.Remove(progressDataList[currentProgress].lbStatus);
 					this.Controls.Remove(progressDataList[currentProgress].objProgressBar);
-					this.Controls.Remove(progressDataList[currentProgress].lblRemainingTime);
-					this.Controls.Remove(progressDataList[currentProgress].lblOperation);
+					this.Controls.Remove(progressDataList[currentProgress].lbRemainingTime);
+					this.Controls.Remove(progressDataList[currentProgress].lbOperation);
 
-					progressDataList[currentProgress].lblActivity.Dispose();
-					progressDataList[currentProgress].lblStatus.Dispose();
+					progressDataList[currentProgress].lbActivity.Dispose();
+					progressDataList[currentProgress].lbStatus.Dispose();
 					progressDataList[currentProgress].objProgressBar.Dispose();
-					progressDataList[currentProgress].lblRemainingTime.Dispose();
-					progressDataList[currentProgress].lblOperation.Dispose();
+					progressDataList[currentProgress].lbRemainingTime.Dispose();
+					progressDataList[currentProgress].lbOperation.Dispose();
 
 					progressDataList.RemoveAt(currentProgress);
 				}
@@ -1663,11 +1672,11 @@ $(if (!$noVisualStyles) {@"
 
 				for (int i = currentProgress; i < progressDataList.Count; i++)
 				{
-					progressDataList[i].lblActivity.Top = 104*i + 10;
-					progressDataList[i].lblStatus.Top = 104*i + 26;
+					progressDataList[i].lbActivity.Top = 104*i + 10;
+					progressDataList[i].lbStatus.Top = 104*i + 26;
 					progressDataList[i].objProgressBar.Top = 104*i + 47;
-					progressDataList[i].lblRemainingTime.Top = 104*i + 72;
-					progressDataList[i].lblOperation.Top = 104*i + 88;
+					progressDataList[i].lbRemainingTime.Top = 104*i + 72;
+					progressDataList[i].lbOperation.Top = 104*i + 88;
 				}
 
 				if (104*progressDataList.Count + 43 <= System.Windows.Forms.Screen.FromControl(this).Bounds.Height)
@@ -1686,7 +1695,7 @@ $(if (!$noVisualStyles) {@"
 
 			if (currentProgress < 0)
 			{
-				ProgressData pd = new ProgressData();
+				Progress_Data pd = new Progress_Data();
 				pd.ActivityId = objRecord.ActivityId;
 				pd.ParentActivityId = objRecord.ParentActivityId;
 				pd.Depth = 0;
@@ -1731,11 +1740,11 @@ $(if (!$noVisualStyles) {@"
 
 					for (int i = currentProgress+1; i < progressDataList.Count; i++)
 					{
-						progressDataList[i].lblActivity.Top = 104*i + 10;
-						progressDataList[i].lblStatus.Top = 104*i + 26;
+						progressDataList[i].lbActivity.Top = 104*i + 10;
+						progressDataList[i].lbStatus.Top = 104*i + 26;
 						progressDataList[i].objProgressBar.Top = 104*i + 47;
-						progressDataList[i].lblRemainingTime.Top = 104*i + 72;
-						progressDataList[i].lblOperation.Top = 104*i + 88;
+						progressDataList[i].lbRemainingTime.Top = 104*i + 72;
+						progressDataList[i].lbOperation.Top = 104*i + 88;
 					}
 				}
 				if (104*progressDataList.Count + 43 <= System.Windows.Forms.Screen.FromControl(this).Bounds.Height)
@@ -1751,14 +1760,14 @@ $(if (!$noVisualStyles) {@"
 			}
 
 			if (!string.IsNullOrEmpty(objRecord.Activity))
-				progressDataList[currentProgress].lblActivity.Text = objRecord.Activity;
+				progressDataList[currentProgress].lbActivity.Text = objRecord.Activity;
 			else
-				progressDataList[currentProgress].lblActivity.Text = "";
+				progressDataList[currentProgress].lbActivity.Text = "";
 
 			if (!string.IsNullOrEmpty(objRecord.StatusDescription))
-				progressDataList[currentProgress].lblStatus.Text = objRecord.StatusDescription;
+				progressDataList[currentProgress].lbStatus.Text = objRecord.StatusDescription;
 			else
-				progressDataList[currentProgress].lblStatus.Text = "";
+				progressDataList[currentProgress].lbStatus.Text = "";
 
 			if ((objRecord.PercentComplete >= 0) && (objRecord.PercentComplete <= 100))
 			{
@@ -1797,15 +1806,15 @@ $(if (!$noVisualStyles) {@"
 			if (objRecord.SecondsRemaining >= 0)
 			{
 				System.TimeSpan objTimeSpan = new System.TimeSpan(0, 0, objRecord.SecondsRemaining);
-				progressDataList[currentProgress].lblRemainingTime.Text = "Remaining time: " + string.Format("{0:00}:{1:00}:{2:00}", (int)objTimeSpan.TotalHours, objTimeSpan.Minutes, objTimeSpan.Seconds);
+				progressDataList[currentProgress].lbRemainingTime.Text = "Remaining time: " + string.Format("{0:00}:{1:00}:{2:00}", (int)objTimeSpan.TotalHours, objTimeSpan.Minutes, objTimeSpan.Seconds);
 			}
 			else
-				progressDataList[currentProgress].lblRemainingTime.Text = "";
+				progressDataList[currentProgress].lbRemainingTime.Text = "";
 
 			if (!string.IsNullOrEmpty(objRecord.CurrentOperation))
-				progressDataList[currentProgress].lblOperation.Text = objRecord.CurrentOperation;
+				progressDataList[currentProgress].lbOperation.Text = objRecord.CurrentOperation;
 			else
-				progressDataList[currentProgress].lblOperation.Text = "";
+				progressDataList[currentProgress].lbOperation.Text = "";
 
 			Application.DoEvents();
 		}
@@ -1813,7 +1822,7 @@ $(if (!$noVisualStyles) {@"
 "@})
 
 	// define IsInputRedirected(), IsOutputRedirected() and IsErrorRedirected() here since they were introduced first with .Net 4.5
-	public class ConsoleInfo
+	public class Console_Info
 	{
 		private enum FileType : uint
 		{
@@ -1866,9 +1875,9 @@ $(if (!$noVisualStyles) {@"
 	}
 
 
-	internal class PS2EXEHostUI : PSHostUserInterface
+	internal class MainModuleUI : PSHostUserInterface
 	{
-		private PS2EXEHostRawUI rawUI = null;
+		private MainModuleRawUI rawUI = null;
 
 		public ConsoleColor ErrorForegroundColor = ConsoleColor.Red;
 		public ConsoleColor ErrorBackgroundColor = ConsoleColor.Black;
@@ -1889,9 +1898,9 @@ $(if (!$noConsole) {@"
 "@ })
 		public ConsoleColor ProgressBackgroundColor = ConsoleColor.DarkCyan;
 
-		public PS2EXEHostUI() : base()
+		public MainModuleUI() : base()
 		{
-			rawUI = new PS2EXEHostRawUI();
+			rawUI = new MainModuleRawUI();
 $(if (!$noConsole) {@"
 			rawUI.ForegroundColor = Console.ForegroundColor;
 			rawUI.BackgroundColor = Console.BackgroundColor;
@@ -1912,9 +1921,9 @@ $(if (!$noConsole) {@"
 				MessageBox.Show(sMeldung, sTitel);
 			}
 
-			// Titel und Labeltext für Inputbox zurücksetzen
-			ibcaption = "";
-			ibmessage = "";
+			// Titel und Labeltext für Input_Box zurücksetzen
+			ib_caption = "";
+			ib_message = "";
 "@ })
 			Dictionary<string, PSObject> ret = new Dictionary<string, PSObject>();
 			foreach (FieldDescription cd in descriptions)
@@ -1942,7 +1951,7 @@ $(if (!$noConsole) {@"
 $(if (!$noConsole) {@"
 							if (!string.IsNullOrEmpty(cd.Name)) Write(string.Format("{0}[{1}]: ", cd.Name, index));
 "@ } else {@"
-							if (!string.IsNullOrEmpty(cd.Name)) ibmessage = string.Format("{0}[{1}]: ", cd.Name, index);
+							if (!string.IsNullOrEmpty(cd.Name)) ib_message = string.Format("{0}[{1}]: ", cd.Name, index);
 "@ })
 							data = ReadLine();
 							if (string.IsNullOrEmpty(data))
@@ -1976,8 +1985,8 @@ $(if (!$noConsole) {@"
 								if (!string.IsNullOrEmpty(cd.HelpMessage)) Write(" (Type !? for help.)");
 								if ((!string.IsNullOrEmpty(cd.Name)) || (!string.IsNullOrEmpty(cd.HelpMessage))) Write(": ");
 "@ } else {@"
-								if (!string.IsNullOrEmpty(cd.Name)) ibmessage = string.Format("{0}: ", cd.Name);
-								if (!string.IsNullOrEmpty(cd.HelpMessage)) ibmessage += "\n(Type !? for help.)";
+								if (!string.IsNullOrEmpty(cd.Name)) ib_message = string.Format("{0}: ", cd.Name);
+								if (!string.IsNullOrEmpty(cd.HelpMessage)) ib_message += "\n(Type !? for help.)";
 "@ })
 								do {
 									l = ReadLine();
@@ -2010,7 +2019,7 @@ $(if (!$noConsole) {@"
 $(if (!$noConsole) {@"
 								if (!string.IsNullOrEmpty(cd.Name)) Write(string.Format("{0}: ", cd.Name));
 "@ } else {@"
-								if (!string.IsNullOrEmpty(cd.Name)) ibmessage = string.Format("{0}: ", cd.Name);
+								if (!string.IsNullOrEmpty(cd.Name)) ib_message = string.Format("{0}: ", cd.Name);
 "@ })
 
 							SecureString pwd = null;
@@ -2027,9 +2036,9 @@ $(if (!$noConsole) {@"
 				}
 			}
 $(if ($noConsole) {@"
-			// Titel und Labeltext für Inputbox zurücksetzen
-			ibcaption = "";
-			ibmessage = "";
+			// Titel und Labeltext für Input_Box zurücksetzen
+			ib_caption = "";
+			ib_message = "";
 "@ })
 			return ret;
 		}
@@ -2037,7 +2046,7 @@ $(if ($noConsole) {@"
 		public override int PromptForChoice(string caption, string message, System.Collections.ObjectModel.Collection<ChoiceDescription> choices, int defaultChoice)
 		{
 $(if ($noConsole) {@"
-			int iReturn = ChoiceBox.Show(choices, defaultChoice, caption, message);
+			int iReturn = Choice_Box.Show(choices, defaultChoice, caption, message);
 			if (iReturn == -1) { iReturn = defaultChoice; }
 			return iReturn;
 "@ } else {@"
@@ -2131,7 +2140,7 @@ $(if (!$noConsole -and !$credentialGUI) {@"
 			PSCredential c2 = new PSCredential(un, pwd);
 			return c2;
 "@ } else {@"
-			ik.PowerShell.CredentialForm.UserPwd cred = CredentialForm.PromptForPassword(caption, message, targetName, userName, allowedCredentialTypes, options);
+			Credential_Form.User_Pwd cred = Credential_Form.PromptForPassword(caption, message, targetName, userName, allowedCredentialTypes, options);
 			if (cred != null)
 			{
 				System.Security.SecureString x = new System.Security.SecureString();
@@ -2177,7 +2186,7 @@ $(if (!$noConsole -and !$credentialGUI) {@"
 			PSCredential c2 = new PSCredential(un, pwd);
 			return c2;
 "@ } else {@"
-			ik.PowerShell.CredentialForm.UserPwd cred = CredentialForm.PromptForPassword(caption, message, targetName, userName, PSCredentialTypes.Default, PSCredentialUIOptions.Default);
+			Credential_Form.User_Pwd cred = Credential_Form.PromptForPassword(caption, message, targetName, userName, PSCredentialTypes.Default, PSCredentialUIOptions.Default);
 			if (cred != null)
 			{
 				System.Security.SecureString x = new System.Security.SecureString();
@@ -2199,8 +2208,8 @@ $(if (!$noConsole -and !$credentialGUI) {@"
 		}
 
 $(if ($noConsole) {@"
-		private string ibcaption;
-		private string ibmessage;
+		private string ib_caption;
+		private string ib_message;
 "@ })
 
 		public override string ReadLine()
@@ -2209,7 +2218,7 @@ $(if (!$noConsole) {@"
 			return Console.ReadLine();
 "@ } else {@"
 			string sWert = "";
-			if (InputBox.Show(ibcaption, ibmessage, ref sWert) == DialogResult.OK)
+			if (Input_Box.Show(ib_caption, ib_message, ref sWert) == DialogResult.OK)
 				return sWert;
 			else
 				return "";
@@ -2252,7 +2261,7 @@ $(if (!$noConsole) {@"
 "@ } else {@"
 			string sWert = "";
 
-			if (InputBox.Show(ibcaption, ibmessage, ref sWert, true) == DialogResult.OK)
+			if (Input_Box.Show(ib_caption, ib_message, ref sWert, true) == DialogResult.OK)
 			{
 				foreach (char ch in sWert)
 					secstr.AppendChar(ch);
@@ -2301,7 +2310,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		public override void WriteErrorLine(string value)
 		{
 $(if (!$noError) { if (!$noConsole) {@"
-			if (ConsoleInfo.IsErrorRedirected())
+			if (Console_Info.IsErrorRedirected())
 				Console.Error.WriteLine(string.Format("ERROR: {0}", value));
 			else
 				WriteLineInternal(ErrorForegroundColor, ErrorBackgroundColor, string.Format("ERROR: {0}", value));
@@ -2358,7 +2367,7 @@ $(if (!$noOutput) { if (!$noConsole) {@"
 		}
 
 $(if ($noConsole) {@"
-		public ProgressForm pf = null;
+		public Progress_Form pf = null;
 "@ })
 		public override void WriteProgress(long sourceId, ProgressRecord record)
 		{
@@ -2366,7 +2375,7 @@ $(if ($noConsole) {@"
 			if (pf == null)
 			{
 				if (record.RecordType == ProgressRecordType.Completed) return;
-				pf = new ProgressForm(ProgressForegroundColor);
+				pf = new Progress_Form(ProgressForegroundColor);
 				pf.Show();
 			}
 			pf.Update(record);
@@ -2398,10 +2407,10 @@ $(if (!$noError) { if (!$noConsole) {@"
 		}
 	}
 
-	internal class PS2EXEHost : PSHost
+	internal class MainModule : PSHost
 	{
-		private PS2EXEApp parent;
-		private PS2EXEHostUI ui = null;
+		private MainAppInterface parent;
+		private MainModuleUI ui = null;
 
 		private CultureInfo originalCultureInfo = System.Threading.Thread.CurrentThread.CurrentCulture;
 
@@ -2409,7 +2418,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 
 		private Guid myId = Guid.NewGuid();
 
-		public PS2EXEHost(PS2EXEApp app, PS2EXEHostUI ui)
+		public MainModule(MainAppInterface app, MainModuleUI ui)
 		{
 			this.parent = app;
 			this.ui = ui;
@@ -2417,9 +2426,9 @@ $(if (!$noError) { if (!$noConsole) {@"
 
 		public class ConsoleColorProxy
 		{
-			private PS2EXEHostUI _ui;
+			private MainModuleUI _ui;
 
-			public ConsoleColorProxy(PS2EXEHostUI ui)
+			public ConsoleColorProxy(MainModuleUI ui)
 			{
 				if (ui == null) throw new ArgumentNullException("ui");
 				_ui = ui;
@@ -2545,7 +2554,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return "PS2EXE_Host";
+				return "PSRunspace-Host";
 			}
 		}
 
@@ -2561,7 +2570,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return new Version(0, 5, 0, 23);
+				return new Version(0, 5, 0, 24);
 			}
 		}
 
@@ -2590,13 +2599,13 @@ $(if (!$noError) { if (!$noConsole) {@"
 		}
 	}
 
-	internal interface PS2EXEApp
+	internal interface MainAppInterface
 	{
 		bool ShouldExit { get; set; }
 		int ExitCode { get; set; }
 	}
 
-	internal class PS2EXE : PS2EXEApp
+	internal class MainApp : MainAppInterface
 	{
 		private bool shouldExit;
 
@@ -2620,13 +2629,13 @@ $(if (!$noError) { if (!$noConsole) {@"
 			$culture
 
 			$(if (!$noVisualStyles -and $noConsole) { "Application.EnableVisualStyles();" })
-			PS2EXE me = new PS2EXE();
+			MainApp me = new MainApp();
 
 			bool paramWait = false;
 			string extractFN = string.Empty;
 
-			PS2EXEHostUI ui = new PS2EXEHostUI();
-			PS2EXEHost host = new PS2EXEHost(me, ui);
+			MainModuleUI ui = new MainModuleUI();
+			MainModule host = new MainModule(me, ui);
 			System.Threading.ManualResetEvent mre = new System.Threading.ManualResetEvent(false);
 
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
@@ -2638,14 +2647,14 @@ $(if (!$noError) { if (!$noConsole) {@"
 					$(if ($STA -or $MTA) {"myRunSpace.ApartmentState = System.Threading.ApartmentState."})$(if ($STA){"STA"})$(if ($MTA){"MTA"});
 					myRunSpace.Open();
 
-					using (System.Management.Automation.PowerShell powershell = System.Management.Automation.PowerShell.Create())
+					using (PowerShell pwsh = PowerShell.Create())
 					{
 $(if (!$noConsole) {@"
 						Console.CancelKeyPress += new ConsoleCancelEventHandler(delegate(object sender, ConsoleCancelEventArgs e)
 						{
 							try
 							{
-								powershell.BeginStop(new AsyncCallback(delegate(IAsyncResult r)
+								pwsh.BeginStop(new AsyncCallback(delegate(IAsyncResult r)
 								{
 									mre.Set();
 									e.Cancel = true;
@@ -2657,15 +2666,15 @@ $(if (!$noConsole) {@"
 						});
 "@ })
 
-						powershell.Runspace = myRunSpace;
-						powershell.Streams.Error.DataAdded += new EventHandler<DataAddedEventArgs>(delegate(object sender, DataAddedEventArgs e)
+						pwsh.Runspace = myRunSpace;
+						pwsh.Streams.Error.DataAdded += new EventHandler<DataAddedEventArgs>(delegate(object sender, DataAddedEventArgs e)
 						{
 							ui.WriteErrorLine(((PSDataCollection<ErrorRecord>)sender)[e.Index].ToString());
 						});
 
 						PSDataCollection<string> colInput = new PSDataCollection<string>();
 $(if (!$runtime20) {@"
-						if (ConsoleInfo.IsInputRedirected())
+						if (Console_Info.IsInputRedirected())
 						{ // read standard input
 							string sItem = "";
 							while ((sItem = Console.ReadLine()) != null)
@@ -2686,17 +2695,17 @@ $(if (!$runtime20) {@"
 						int idx = 0;
 						foreach (string s in args)
 						{
-							if (string.Compare(s, "-wait", true) == 0)
+							if (string.Compare(s, "-whatt".Replace("hat", "ai"), true) == 0)
 								paramWait = true;
-							else if (s.StartsWith("-extract", StringComparison.InvariantCultureIgnoreCase))
+							else if (s.StartsWith("-extdummt".Replace("dumm", "rac"), StringComparison.InvariantCultureIgnoreCase))
 							{
 								string[] s1 = s.Split(new string[] { ":" }, 2, StringSplitOptions.RemoveEmptyEntries);
 								if (s1.Length != 2)
 								{
 $(if (!$noConsole) {@"
-									Console.WriteLine("If you specify the -extract option you need to add a file for extraction in this way\r\n   -extract:\"<filename>\"");
+									Console.WriteLine("If you spzzcify thzz -zzxtract option you nzzed to add a filzz for zzxtraction in this way\r\n   -zzxtract:\"<filzznamzz>\"".Replace("zz", "e"));
 "@ } else {@"
-									MessageBox.Show("If you specify the -extract option you need to add a file for extraction in this way\r\n   -extract:\"<filename>\"", System.AppDomain.CurrentDomain.FriendlyName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+									MessageBox.Show("If you spzzcify thzz -zzxtract option you nzzed to add a filzz for zzxtraction in this way\r\n   -zzxtract:\"<filzznamzz>\"".Replace("zz", "e"), System.AppDomain.CurrentDomain.FriendlyName, MessageBoxButtons.OK, MessageBoxIcon.Error);
 "@ })
 									return 1;
 								}
@@ -2723,7 +2732,7 @@ $(if (!$noConsole) {@"
 							return 0;
 						}
 
-						powershell.AddScript(script);
+						pwsh.AddScript(script);
 
 						// parse parameters
 						string argbuffer = null;
@@ -2738,7 +2747,7 @@ $(if (!$noConsole) {@"
 							if ((match.Success && match.Groups.Count == 3) && (!Double.TryParse(args[i], out dummy)))
 							{ // parameter in powershell style, means named parameter found
 								if (argbuffer != null) // already a named parameter in buffer, then flush it
-									powershell.AddParameter(argbuffer);
+									pwsh.AddParameter(argbuffer);
 
 								if (match.Groups[2].Value.Trim() == "")
 								{ // store named parameter in buffer
@@ -2748,19 +2757,19 @@ $(if (!$noConsole) {@"
 									// caution: when called in powershell $TRUE gets converted, when called in cmd.exe not
 									if ((match.Groups[2].Value == "$TRUE") || (match.Groups[2].Value.ToUpper() == "\x24TRUE"))
 									{ // switch found
-										powershell.AddParameter(match.Groups[1].Value, true);
+										pwsh.AddParameter(match.Groups[1].Value, true);
 										argbuffer = null;
 									}
 									else
 										// caution: when called in powershell $FALSE gets converted, when called in cmd.exe not
 										if ((match.Groups[2].Value == "$FALSE") || (match.Groups[2].Value.ToUpper() == "\x24"+"FALSE"))
 										{ // switch found
-											powershell.AddParameter(match.Groups[1].Value, false);
+											pwsh.AddParameter(match.Groups[1].Value, false);
 											argbuffer = null;
 										}
 										else
 										{ // named parameter with value found
-											powershell.AddParameter(match.Groups[1].Value, match.Groups[2].Value);
+											pwsh.AddParameter(match.Groups[1].Value, match.Groups[2].Value);
 											argbuffer = null;
 										}
 							}
@@ -2768,24 +2777,24 @@ $(if (!$noConsole) {@"
 							{ // unnamed parameter found
 								if (argbuffer != null)
 								{ // already a named parameter in buffer, so this is the value
-									powershell.AddParameter(argbuffer, args[i]);
+									pwsh.AddParameter(argbuffer, args[i]);
 									argbuffer = null;
 								}
 								else
 								{ // position parameter found
-									powershell.AddArgument(args[i]);
+									pwsh.AddArgument(args[i]);
 								}
 							}
 						}
 
-						if (argbuffer != null) powershell.AddParameter(argbuffer); // flush parameter buffer...
+						if (argbuffer != null) pwsh.AddParameter(argbuffer); // flush parameter buffer...
 
 						// convert output to strings
-						powershell.AddCommand("out-string");
+						pwsh.AddCommand("out-string");
 						// with a single string per line
-						powershell.AddParameter("stream");
+						pwsh.AddParameter("stream");
 
-						powershell.BeginInvoke<string, PSObject>(colInput, colOutput, null, new AsyncCallback(delegate(IAsyncResult ar)
+						pwsh.BeginInvoke<string, PSObject>(colInput, colOutput, null, new AsyncCallback(delegate(IAsyncResult ar)
 						{
 							if (ar.IsCompleted)
 								mre.Set();
@@ -2794,10 +2803,10 @@ $(if (!$noConsole) {@"
 						while (!me.ShouldExit && !mre.WaitOne(100))
 						{ };
 
-						powershell.Stop();
+						pwsh.Stop();
 
-						if (powershell.InvocationStateInfo.State == PSInvocationState.Failed)
-							ui.WriteErrorLine(powershell.InvocationStateInfo.Reason.Message);
+						if (pwsh.InvocationStateInfo.State == PSInvocationState.Failed)
+							ui.WriteErrorLine(pwsh.InvocationStateInfo.Reason.Message);
 					}
 
 					myRunSpace.Close();
@@ -2827,7 +2836,7 @@ $(if (!$noConsole) {@"
 
 		static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
 		{
-			throw new Exception("Unhandled exception in PS2EXE");
+			throw new Exception("Unhandled exception in " + System.AppDomain.CurrentDomain.FriendlyName);
 		}
 	}
 }

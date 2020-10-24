@@ -1,3 +1,16 @@
+PS2EXE-GUI v0.5.0.24
+Changes:
+- refactored
+
+List of changes  (line numbers are from PS2EXE-GUI v0.5.0.23):
+lines 89 to 90 - adjusted version number and date
+line 104 - adjusted version number
+line 116 - adjusted version number
+... several refactoring changes ...
+line 2564 - adjusted version number
+
+
+
 PS2EXE-GUI v0.5.0.23
 Changes:
 - bug fix for simultanous progress bars in one pipeline
