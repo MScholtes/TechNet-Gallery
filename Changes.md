@@ -1,5 +1,8 @@
 # Changes
 
+### Version 1.0.7 / 2020/10/24
+- PS2EXE 0.5.0.24: refactored
+
 ### Version 1.0.6 / 2020/10/14
 - ExportImportFirewallRules V1.0.3: default file name for JSON data has extension json now
 
