@@ -11,6 +11,9 @@ desktops from scripts.
 
 Now with support for desktop names introduced with Windows 10 2004!
 
+Update 2.6:
+compatible to Powershell Core 7.0 (but not 7.1)
+parameter -PassThru for Set-DesktopName (by sirAndros)
 Update 2.5:
 support for desktop names introduced with Win 10 2004
 new functions Get-DesktopList, Get-DesktopName and Set-DesktopName
@@ -105,8 +108,8 @@ Get index number (0 to count-1) of virtual desktop. Returns integer or -1 if not
 Get-DesktopName -Desktop desktop
 Get name of virtual desktop. Returns string.
 
-Set-DesktopName -Desktop desktop -Name name
-Set name of virtual desktop to name. Works only on Windows 10 2004 or up.
+Set-DesktopName -Desktop desktop -Name name -PassThru
+Set name of virtual desktop to name. Works only on Windows 10 2004 or up and not with Powershell Core 7.1!
 
 Get-DesktopFromWindow -Hwnd hwnd
 Get virtual desktop of window (whose window handle is passed). Returns desktop object.

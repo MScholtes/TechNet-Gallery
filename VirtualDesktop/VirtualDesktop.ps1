@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.5 - support for naming virtual desktops, 2020/06/27
+# Version 2.6 - compatible to Powershell Core 7.0, 2020/11/28
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -410,6 +410,18 @@ Console.WriteLine("Name of desktop: " + desktopName);
 
 	public class Desktop
 	{
+		// open registry key
+		[DllImport("advapi32.dll", CharSet=CharSet.Auto)]
+		public static extern int RegOpenKeyEx(UIntPtr hKey, string subKey, int ulOptions, int samDesired, out UIntPtr hkResult);
+
+		// read registry value
+		[DllImport("advapi32.dll", SetLastError=true)]
+		public static extern uint RegQueryValueEx(UIntPtr hKey, string lpValueName, int lpReserved, ref int lpType, IntPtr lpData, ref int lpcbData);
+
+		// close registry key
+		[DllImport("advapi32.dll", SetLastError=true)]
+		public static extern int RegCloseKey(UIntPtr hKey);
+
 		// get window handle of current console window (even if powershell started in cmd)
 		[DllImport("Kernel32.dll")]
 		public static extern IntPtr GetConsoleWindow();
@@ -417,6 +429,42 @@ Console.WriteLine("Name of desktop: " + desktopName);
 		// get handle of active window
 		[DllImport("user32.dll")]
 		public static extern IntPtr GetForegroundWindow();
+
+		private static UIntPtr HKEY_CURRENT_USER = new UIntPtr(0x80000001u);
+		private const int KEY_READ = 0x20019;
+
+		private static string GetRegistryString(string registryPath, string valName)
+		{ // reads string value out of user registry
+			UIntPtr hKey = UIntPtr.Zero;
+			IntPtr pResult = IntPtr.Zero;
+			string Result = null;
+
+			try
+			{
+				if (RegOpenKeyEx(HKEY_CURRENT_USER, registryPath, 0, KEY_READ, out hKey) == 0)
+				{
+					int size = 0;
+					int type = 1; // REG_SZ
+
+					uint retVal = RegQueryValueEx(hKey, valName, 0, ref type, IntPtr.Zero, ref size);
+					if (size != 0)
+					{
+						pResult = Marshal.AllocHGlobal(size);
+
+						retVal = RegQueryValueEx(hKey, valName, 0, ref type, pResult, ref size);
+						if (retVal == 0) { Result = Marshal.PtrToStringAnsi(pResult); }
+					}
+				}
+			}
+			catch { }
+			finally
+			{
+				if (hKey != UIntPtr.Zero) { RegCloseKey(hKey); }
+				if (pResult != IntPtr.Zero) { Marshal.FreeHGlobal(pResult); }
+			}
+
+			return Result;
+		}
 
 		private IVirtualDesktop ivd;
 		private Desktop(IVirtualDesktop desktop) { this.ivd = desktop; }
@@ -466,7 +514,7 @@ Console.WriteLine("Name of desktop: " + desktopName);
 			// read desktop name in registry
 			string desktopName = null;
 			try {
-				desktopName = (string)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VirtualDesktops\\Desktops\\{" + guid.ToString() + "}", "Name", null);
+				desktopName = GetRegistryString("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VirtualDesktops\\Desktops\\{" + guid.ToString() + "}", "Name");
 			}
 			catch { }
 
@@ -485,7 +533,7 @@ Console.WriteLine("Name of desktop: " + desktopName);
 			// read desktop name in registry
 			string desktopName = null;
 			try {
-				desktopName = (string)Microsoft.Win32.Registry.GetValue("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VirtualDesktops\\Desktops\\{" + guid.ToString() + "}", "Name", null);
+				desktopName = GetRegistryString("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VirtualDesktops\\Desktops\\{" + guid.ToString() + "}", "Name");
 			}
 			catch { }
 
@@ -1289,10 +1337,12 @@ Set name of virtual desktop
 Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .PARAMETER Name
 Name of desktop. If omitted or empty or $NULL, a name will be removed from the desktop.
+.PARAMETER PassThru
+Return virtual desktop
 .INPUTS
 Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
 .OUTPUTS
-None
+None or [VirtualDesktop.Desktop]
 .EXAMPLE
 Set-DesktopName 0 "The first desktop"
 
@@ -1306,9 +1356,9 @@ Remove name of virtual desktop $Desktop
 
 Set name of first virtual desktop whose name contains "desktop"
 .EXAMPLE
-New-Desktop | Set-DesktopName -Name "The new one"
+New-Desktop | Set-DesktopName -Name "The new one" -PassThru | Get-DesktopName
 
-Create virtual desktop and set its name
+Create virtual desktop, set its name and return the new name
 .LINK
 https://github.com/MScholtes/PSVirtualDesktop
 .LINK
@@ -1318,9 +1368,10 @@ https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79c
 .NOTES
 Author: Markus Scholtes
 Created: 2020/06/27
+Updated: 2020/11/28
 #>
 	[Cmdletbinding()]
-	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop, [Parameter(ValueFromPipeline = $FALSE)] $Name)
+	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop, [Parameter(ValueFromPipeline = $FALSE)] $Name, [SWITCH]$PassThru)
 
 	if ($NULL -eq $Name) { $Name = "" }
 
@@ -1331,19 +1382,20 @@ Created: 2020/06/27
 		else
 		{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')" }
 		$Desktop.SetName($Name)
+		$ActiveDesktop = $Desktop
 	}
 	else
 	{
 		if ($Desktop -is [ValueType])
 		{
-			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
-			if ($TempDesktop)
+			$ActiveDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+			if ($ActiveDesktop)
 			{
 				if ($Name -ne "")
-				{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))') to '$Name'" }
+				{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))') to '$Name'" }
 				else
-				{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')" }
-				$TempDesktop.SetName($Name)
+				{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))')" }
+				$ActiveDesktop.SetName($Name)
 			}
 		}
 		else
@@ -1353,11 +1405,12 @@ Created: 2020/06/27
 				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
 				if ($TempIndex -ge 0)
 				{
+					$ActiveDesktop = [VirtualDesktop.Desktop]::FromIndex($TempIndex)
 					if ($Name -ne "")
-					{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))') to '$Name'" }
+					{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))') to '$Name'" }
 					else
-					{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')" }
-					([VirtualDesktop.Desktop]::FromIndex($TempIndex)).Setname($Name)
+					{ Write-Verbose "Remove name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))')" }
+					$ActiveDesktop.SetName($Name)
 				}
 				else
 				{
@@ -1369,6 +1422,10 @@ Created: 2020/06/27
 				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
 			}
 		}
+	}
+	if ($PassThru)
+	{
+		return $ActiveDesktop
 	}
 }
 

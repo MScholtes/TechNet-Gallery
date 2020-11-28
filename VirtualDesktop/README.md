@@ -17,7 +17,11 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
-Update 2.5:
+### Update 2.6:
+compatible to Powershell Core 7.0 (but not 7.1)
+parameter -PassThru for Set-DesktopName (by sirAndros)
+
+### Update 2.5:
 support for desktop names introduced with Win 10 2004
 
 new functions Get-DesktopList, Get-DesktopName and Set-DesktopName
@@ -26,20 +30,20 @@ desktop name as parameter for many functions
 
 support for verbose output
 
-Update 2.4: new function Find-WindowHandle
+### Update 2.4: new function Find-WindowHandle
 
-Minor Update 2.3.1: fixed examples
+### Minor Update 2.3.1: fixed examples
 
-Update 2.3: fixed COM interface error with Pin-Application
+### Update 2.3: fixed COM interface error with Pin-Application
 
-Update 2.2: new commands Move-ActiveWindow and Get-ActiveWindowHandle
+### Update 2.2: new commands Move-ActiveWindow and Get-ActiveWindowHandle
 
-Minor Update 2.1.1: support for ISE (Get-ConsoleHandle) and RunSpaces (Windows
+### Minor Update 2.1.1: support for ISE (Get-ConsoleHandle) and RunSpaces (Windows
 version checking)
 
-Update 2.1: support for Windows 10 1809
+### Update 2.1: support for Windows 10 1809
 
-Update 2.0: support for Windows 10 1803
+### Update 2.0: support for Windows 10 1803
 
 ## Sample session:
 * Load commands (assumes VirtualDesktop.ps1 is in the current path)
@@ -147,9 +151,9 @@ Get-DesktopName -Desktop desktop
 Get name of virtual desktop. Returns string.
 
 ```powershell
-Set-DesktopName -Desktop desktop -Name name
+Set-DesktopName -Desktop desktop -Name name -PassThru
 ```
-Set name of virtual desktop to name. Works only on Windows 10 2004 or up.
+Set name of virtual desktop to name. Works only on Windows 10 2004 or up and not with Powershell Core 7.1!
 
 ```powershell
 Get-DesktopIndex -Desktop desktop
