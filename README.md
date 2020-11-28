@@ -10,8 +10,8 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because Technet Gallery will be closed soon.
 
-### Version 1.0.7 / 2020/10/24
-- PS2EXE 0.5.0.24: refactored
+### Version 1.0.8 / 2020/11/28
+- VirtualDesktop 2.6: compatible to Powershell Core 7.0 (but not 7.1), parameter -PassThru for Set-DesktopName (by sirAndros)
 
 For a complete list of changes see here: [Changes](Changes.md)
 

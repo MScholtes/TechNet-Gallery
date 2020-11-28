@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.8 / 2020/11/28
+VirtualDesktop 2.6: 
+- compatible to Powershell Core 7.0 (but not 7.1)
+- parameter -PassThru for Set-DesktopName (by sirAndros)
+
 ### Version 1.0.7 / 2020/10/24
 - PS2EXE 0.5.0.24: refactored
 
