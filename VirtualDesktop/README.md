@@ -19,6 +19,7 @@ Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 ## Versions
 ### Update 2.6:
 compatible to Powershell Core 7.0 (but not 7.1)
+
 parameter -PassThru for Set-DesktopName (by sirAndros)
 
 ### Update 2.5:
