@@ -28,7 +28,7 @@ Requires Windows 8.1 / Server 2012 R2 or above.
 
 ## List of scripts:
 ```powershell
-Export-FirewallRules.ps1 [[-Name] <Object>] [[-CSVFile] <Object>] [-JSON] [-Inbound] [-Outbound] [-Enabled] [-Disabled] [-Allow] [-Block]
+Export-FirewallRules.ps1 [[-Name] <Object>] [[-CSVFile] <Object>] [-JSON] [-PolicyStore <String>] [-Inbound] [-Outbound] [-Enabled] [-Disabled] [-Allow] [-Block]
 ```
 Exports firewall rules to a CSV or JSON file.
 ```
@@ -38,12 +38,15 @@ Display name of the rules to be processed. Wildcard character * is allowed. Defa
 Output file. Default: .\Firewall.csv
 -JSON
 Output in JSON instead of CSV format. Default: $FALSE
+-PolicyStore
+Store from which the rules are retrieved (default: ActiveStore).
+Allowed values are PersistentStore, ActiveStore (the resultant rule set of all sources), localhost, a computer name, <domain.fqdn.com>\<GPO_Friendly_Name>, RSOP and others depending on the environment.
 -Inbound -Outbound -Enabled -Disabled -Allow -Block
 Filter which rules to export
 ```
 
 ```powershell
-Import-FirewallRules.ps1 [[-CSVFile] <Object>] [-JSON]
+Import-FirewallRules.ps1 [[-CSVFile] <Object>] [-JSON] [-PolicyStore <String>]
 ```
 Imports firewall rules from a CSV or JSON file.
 ```
@@ -51,10 +54,13 @@ Imports firewall rules from a CSV or JSON file.
 Input file. Default: .\Firewall.csv
 -JSON
 Input in JSON instead of CSV format. Default: $FALSE
+-PolicyStore
+Store to which the rules are written (default: PersistentStore).
+Allowed values are PersistentStore, ActiveStore (the resultant rule set of all sources), localhost, a computer name, <domain.fqdn.com>\<GPO_Friendly_Name> and others depending on the environment.
 ```
 
 ```powershell
-Remove-FirewallRules.ps1 [[-CSVFile] <Object>] [-JSON]
+Remove-FirewallRules.ps1 [[-CSVFile] <Object>] [-JSON] [-PolicyStore <String>]
 ```
 Remove firewall rules according to the list in a CSV or JSON file.
 ```
@@ -62,6 +68,9 @@ Remove firewall rules according to the list in a CSV or JSON file.
 Input file. Default: .\Firewall.csv
 -JSON
 Input in JSON instead of CSV format. Default: $FALSE
+-PolicyStore
+Store from which rules are removed (default: PersistentStore).
+Allowed values are PersistentStore, ActiveStore (the resultant rule set of all sources), localhost, a computer name, <domain.fqdn.com>\<GPO_Friendly_Name> and others depending on the environment.
 ```
 
 ## Examples
