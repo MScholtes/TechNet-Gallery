@@ -10,8 +10,8 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because Technet Gallery will be closed soon.
 
-### Version 1.0.8 / 2020/11/28
-- VirtualDesktop 2.6: compatible to Powershell Core 7.0 (but not 7.1), parameter -PassThru for Set-DesktopName (by sirAndros)
+### Version 1.0.9 / 2020/12/12
+ExportImportFirewallRules 1.1.0: new parameter -Policystore
 
 For a complete list of changes see here: [Changes](Changes.md)
 

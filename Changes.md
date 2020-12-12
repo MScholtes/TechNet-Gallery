@@ -1,5 +1,8 @@
 # Changes
 
+### Version 1.0.9 / 2020/12/12
+- ExportImportFirewallRules 1.1.0: new parameter -Policystore
+
 ### Version 1.0.8 / 2020/11/28
 VirtualDesktop 2.6: 
 - compatible to Powershell Core 7.0 (but not 7.1)
