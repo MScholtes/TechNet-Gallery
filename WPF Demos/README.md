@@ -3,7 +3,7 @@ Have you been already annoyed that you need Visual Studio or MSBuild to create W
 
 Here is a small - and not really honest - tutorial of C# WPF programs that can be compiled without Visual Studio or MSBuild.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Tutorial: Graphical WPF programs in C# with just one source file](https://gallery.technet.microsoft.com/Fun-Tutorial-Graphical-WPF-1f9047e4).
 
