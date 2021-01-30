@@ -1,7 +1,7 @@
 # Script to manually import RDP certificates
 Script to import the registry keys and certificate thumbnails for unknown RDP connections. No RDP trust warnings will appear for the remote machine after running the script.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Script to manually import RDP certificates](https://gallery.technet.microsoft.com/Script-to-manually-load-31a1e76d).
 
