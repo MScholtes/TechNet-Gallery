@@ -1,7 +1,7 @@
 # Create or close tabs in Internet Explorer
 With the COM interface and DOM you can control the browser Internet Explorer. I made a - for me - useful script to start a new Internet Explorer tab from powershell or close an existing tab.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Create or close tabs in Internet Explorer](https://gallery.technet.microsoft.com/scriptcenter/Create-or-close-tabs-in-cc6a4e39).
 
