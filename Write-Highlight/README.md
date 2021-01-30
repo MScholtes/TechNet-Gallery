@@ -1,7 +1,7 @@
 # Write-Highlight: Highlighting of multiple search patterns in different colors
 Powershell script that highlights multiple search patterns in the output. You can give an array of regular expressions, every expression is marked in its own color.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Write-Highlight: Highlighting of multiple search patterns in different colors](https://gallery.technet.microsoft.com/Write-Highlight-Highlightin-4884d23b).
 
