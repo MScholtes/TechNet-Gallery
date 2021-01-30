@@ -1,6 +1,6 @@
 # Powershell functions to extract and insert binary data from and to files
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 Now also on Powershell Gallery as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
 ```powershell
