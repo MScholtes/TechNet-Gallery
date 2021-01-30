@@ -1,7 +1,7 @@
 # Convert short Powershell scripts to batches
 Script to convert short powershell scripts to batches. Generated batches run on double click and ignore execution policies.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Convert short Powershell scripts to batches](https://gallery.technet.microsoft.com/scriptcenter/Convert-short-Powershell-e9b4e81d).
 
