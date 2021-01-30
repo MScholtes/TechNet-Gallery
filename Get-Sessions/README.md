@@ -1,7 +1,7 @@
 # Get-Sessions: Powershell script for information on interactive logins (incl RDP)
 Useful when the order displayed in a GridView (with Out-GridView) or in a CSV fileGet-Sessions: Powershell script to get information about interactive logins (including RDP sessions) including logon, connect, disconnect and logoff times. Session ID and remote host for RDP can be requested per parameter.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Get-Sessions: Powershell script for information on interactive logins (incl RDP)](https://gallery.technet.microsoft.com/Get-Sessions-Powershell-1dcf779d).
 
