@@ -1,6 +1,6 @@
 # Powershell functions to split and join binary files fast
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell functions to split and join binary files fast](https://gallery.technet.microsoft.com/scriptcenter/Powershell-functions-to-cb6bb05a).
 
