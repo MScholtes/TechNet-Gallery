@@ -1,7 +1,7 @@
 # Powershell Module CredentialLocker
 Module to manage the Credential Locker, also known as Password Vault, which provides a way for you to store user credentials (username, password) in a secure fashion for web pages or your app. With this module you can manage stored credentials of Internet Explorer and Edge too.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell Module CredentialLocker](https://gallery.technet.microsoft.com/scriptcenter/Powershell-Module-f0f91920).
 
