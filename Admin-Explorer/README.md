@@ -1,7 +1,7 @@
 # "File Open" Dialog As Replacement for An Adminstrative Windows Explorer
 Since Windows Explorer cannot be started with administrative privileges starting with Windows 7, this script starts an administrative "File Open" dialog as a replacement.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: ["File Open" Dialog As Replacement for An Adminstrative Windows Explorer](https://gallery.technet.microsoft.com/scriptcenter/File-Open-Dialog-As-51b7854b).
 
