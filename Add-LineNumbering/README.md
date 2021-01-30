@@ -3,7 +3,7 @@ Some fun powershell scripts to add additional information to your output or obje
 
 Add-LineNumbering adds line numbering, Add-LineColoring adds alternating line colors and Add-SizeToDir adds file count and length.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell: add line numbering, line coloring, directory size to output/pipeline](https://gallery.technet.microsoft.com/scriptcenter/Powershell-add-line-cd0e4acf).
 
