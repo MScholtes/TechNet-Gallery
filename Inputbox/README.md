@@ -1,7 +1,7 @@
 # Inputbox for Powershell
 With [System.Windows.Forms.MessageBox]::Show(...) you can display a messagebox in every powershell script, but a function to display an inputbox is missing. So I wrote this small c# class InputBox for it.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Inputbox for Powershell](https://gallery.technet.microsoft.com/Inputbox-for-Powershell-6ac0741d).
 
