@@ -1,7 +1,7 @@
 # Retrieve latest reboot time(s)
 Short script to retrieve the latest reboot time(s) of a computer
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Retrieve latest reboot time(s)](https://gallery.technet.microsoft.com/scriptcenter/Retrieve-latest-reboot-97ab5270).
 
