@@ -1,7 +1,7 @@
 # Powershell scripts to export and import firewall rules
 Powershell scripts to export and import firewall rules in CSV or JSON format.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell scripts to export and import firewall rules](https://gallery.technet.microsoft.com/scriptcenter/Powershell-to-export-and-23287694).
 
