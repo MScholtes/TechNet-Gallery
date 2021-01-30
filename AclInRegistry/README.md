@@ -1,7 +1,7 @@
 # Powershell: Permissions for administrative shares (like ADMIN$) / registry ACLs
 Powershell scripts to get or set permissions for administrative shares and other registry stored ACLs like permissions for the server service, for shares, for Remote Desktop connections and for the access to services or DCOM applications.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell: Permissions for administrative shares (like ADMIN$) / registry ACLs](https://gallery.technet.microsoft.com/scriptcenter/Powershell-permissions-for-53d0c8ce).
 
