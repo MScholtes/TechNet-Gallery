@@ -8,7 +8,7 @@
 **Thank you for your support**
 
 # TechNet-Gallery
-You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because Technet Gallery will be closed soon.
+You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 ### Version 1.0.9 / 2020/12/12
 ExportImportFirewallRules 1.1.0: new parameter -Policystore
