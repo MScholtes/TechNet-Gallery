@@ -1,7 +1,7 @@
 # Replace-InFile.ps1: Replace text in files while preserving the encoding
 Replace-InFile.ps1 is a Powershell script I made to replace text in files programmatically without getting a mess with the text encodings.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Replace-InFile.ps1: Replace text in files while preserving the encoding](https://gallery.technet.microsoft.com/Replace-InFileps1-Replace-1e0be31a).
 
@@ -25,13 +25,13 @@ Replaces "Mister" with "Lady" in the content of the file "Test.txt" and writes t
 Replace-InFile.ps1 -Pattern "Mister" -Replacement "Lady" -Path Test.txt -Quiet > result.txt
 ```
 
-Replaces the expression "sp‰t" with "sp‰ter" in all files of the current directory and all subdirectories.
+Replaces the expression "sp√§t" with "sp√§ter" in all files of the current directory and all subdirectories.
 
 The search is case-sensitive. ASCII files are interpreted as OEM files.
 
 The result is not written back to the files, but is output to the pipeline:
 ```powershell
-gci | Replace-InFile.ps1 -Pattern "sp‰t" -Replacement "sp‰ter" -CaseSensitive -Recurse -OEM
+gci | Replace-InFile.ps1 -Pattern "sp√§t" -Replacement "sp√§ter" -CaseSensitive -Recurse -OEM
 ```
 
 Replaces t at the end of the line with T in all txt files of the current directory.
