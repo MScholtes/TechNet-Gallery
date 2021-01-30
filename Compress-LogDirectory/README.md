@@ -1,7 +1,7 @@
 # Powershell script to compress log files (and IIS logs)
 This script compresses log files older than the current month to Zip archives in a given directory or in the IIS log directories and deletes the archived files.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell script to compress log files (and IIS logs)](https://gallery.technet.microsoft.com/scriptcenter/Powershell-script-to-47f83931).
 
