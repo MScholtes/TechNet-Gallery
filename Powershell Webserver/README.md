@@ -1,7 +1,7 @@
 # Powershell Webserver
 Powershell script that starts a webserver (without IIS). Powershell command execution, script execution, upload, download and other functions are implemented.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell Webserver](https://gallery.technet.microsoft.com/Powershell-Webserver-74dcf466).
 
@@ -22,7 +22,7 @@ Project page on github is [here](https://github.com/MScholtes/WebServer).
 Install-Module SysAdminsFriends
 ```
 
-Project page on github is [here](https://github.com/MScholtes/SysAdminsFriends))
+Project page on github is [here](https://github.com/MScholtes/SysAdminsFriends).
 
 ## Description
 
