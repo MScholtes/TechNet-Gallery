@@ -1,7 +1,7 @@
 # Powershell MineSweeper
 Powershell game of MineSweeper with WinForms graphics. Based on the game of /\/\o\/\/.
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery is closed, now here.
 
 See Script Center version: [Powershell MineSweeper](https://gallery.technet.microsoft.com/Powershell-MineSweeper-f755188f).
 
