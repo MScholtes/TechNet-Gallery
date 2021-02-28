@@ -29,7 +29,7 @@ Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 - changed parameter debug to prepareDebug
 - finally dared to use advanced parameters
 
-Full list of changes and fixes in (Changes.txt).
+Full list of changes and fixes in [Changes.txt](Changes.txt).
 
 
 ### Includes Win-PS2EXE, a small graphical front end for PS2EXE.
