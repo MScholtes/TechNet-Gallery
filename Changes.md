@@ -1,16 +1,19 @@
 # Changes
 
 ### Version 1.0.10 / 2021-02-28
-PS2EXE 0.5.0.25: 
+PS2EXE 0.5.0.25:
 - new parameter UNICODEEncoding to output as UNICODE
 - changed parameter debug to prepareDebug
 - finally dared to use advanced parameters
+
+VirtualDesktop 2.7:
+- fixes for Get-DesktopIndex
 
 ### Version 1.0.9 / 2020-12-12
 - ExportImportFirewallRules 1.1.0: new parameter -Policystore
 
 ### Version 1.0.8 / 2020-11-28
-VirtualDesktop 2.6: 
+VirtualDesktop 2.6:
 - compatible to Powershell Core 7.0 (but not 7.1)
 - parameter -PassThru for Set-DesktopName (by sirAndros)
 

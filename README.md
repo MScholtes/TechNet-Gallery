@@ -13,6 +13,8 @@ You find copies of my *'Script Center'* and *'Technet Gallery'* publications her
 ### Version 1.0.10 / 2021-02-28
 PS2EXE 0.5.0.25:  new parameter UNICODEEncoding to output as UNICODE / changed parameter debug to prepareDebug / finally dared to use advanced parameters
 
+VirtualDesktop 2.7: fixes for Get-DesktopIndex
+
 For a complete list of changes see here: [Changes](Changes.md)
 
 ##
