@@ -10,8 +10,8 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.9 / 2020/12/12
-ExportImportFirewallRules 1.1.0: new parameter -Policystore
+### Version 1.0.10 / 2021-02-28
+PS2EXE 0.5.0.25:  new parameter UNICODEEncoding to output as UNICODE / changed parameter debug to prepareDebug / finally dared to use advanced parameters
 
 For a complete list of changes see here: [Changes](Changes.md)
 
