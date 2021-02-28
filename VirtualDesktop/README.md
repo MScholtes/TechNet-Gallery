@@ -5,7 +5,7 @@ Now with support for desktop names introduced with Windows 10 2004!
 
 Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 2004!
 
-Since Technet Gallery is closed, now here.
+Since Technet Gallery will be closed, now here.
 
 See Script Center version: [Powershell commands to manage virtual desktops of Windows 10](https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5).
 
@@ -17,6 +17,9 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.7:
+fixes for Get-DesktopIndex
+
 ### Update 2.6:
 compatible to Powershell Core 7.0 (but not 7.1)
 

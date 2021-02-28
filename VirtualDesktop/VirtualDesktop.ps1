@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.6 - compatible to Powershell Core 7.0, 2020/11/28
+# Version 2.7 - fixes for Get-DesktopIndex, 2021/02/28
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -1203,7 +1203,7 @@ https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79c
 .NOTES
 Author: Markus Scholtes
 Created: 2017/05/08
-Updated: 2020/06/27
+Updated: 2021/02/28
 #>
 	[OutputType([INT32])]
 	[Cmdletbinding()]
@@ -1211,7 +1211,7 @@ Updated: 2020/06/27
 
 	if ($NULL -eq $Desktop)
 	{
-		$Desktop = [VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::Current))
+		$Desktop = [VirtualDesktop.Desktop]::Current
 	}
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
@@ -1226,8 +1226,8 @@ Updated: 2020/06/27
 			$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
 			if ($TempIndex -ge 0)
 			{
-				Write-Verbose "Desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
-				return [VirtualDesktop.Desktop]::FromIndex($TempIndex)
+				Write-Verbose "Desktop number $TempIndex ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+				return $TempIndex
 			}
 			else
 			{
@@ -1282,9 +1282,15 @@ https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79c
 .NOTES
 Author: Markus Scholtes
 Created: 2020/06/27
+Updated: 2021/02/28
 #>
 	[Cmdletbinding()]
 	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
+
+	if ($NULL -eq $Desktop)
+	{
+		$Desktop = [VirtualDesktop.Desktop]::Current
+	}
 
 	if ($Desktop -is [VirtualDesktop.Desktop])
 	{

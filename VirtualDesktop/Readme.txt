@@ -1,4 +1,4 @@
-Virtualdesktop.ps1		by Markus Scholtes, 2020
+Virtualdesktop.ps1		by Markus Scholtes, 2021
 
 Powershell commands to manage virtual desktops of Windows 10
 
@@ -11,6 +11,8 @@ desktops from scripts.
 
 Now with support for desktop names introduced with Windows 10 2004!
 
+Update 2.7:
+fixes for Get-DesktopIndex
 Update 2.6:
 compatible to Powershell Core 7.0 (but not 7.1)
 parameter -PassThru for Set-DesktopName (by sirAndros)
