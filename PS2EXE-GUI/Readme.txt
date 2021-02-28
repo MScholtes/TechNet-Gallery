@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.24
-Release: 2020-10-24
+PS2EXE-GUI v0.5.0.25
+Release: 2021-02-28
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -20,8 +20,10 @@ Module based version available now on Powershell Gallery, see here (https://www.
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
 
-Update v0.5.0.24 - 2020-10-24
-- refactored
+Update v0.5.0.25 - 2021-02-28
+- new parameter UNICODEEncoding to output as UNICODE
+- changed parameter debug to prepareDebug
+- finally dared to use advanced parameters
 
 Full list of changes and fixes in Changes.txt.
 
@@ -58,7 +60,7 @@ Parameter processing:
 Compiled scripts process parameters like the original script does. One restriction comes from the Windows environment: for all executables all parameters have the type STRING, if there is no implicit conversion for your parameter type you have to convert explicitly in your script. You can even pipe content to the executable with the same restriction (all piped values have the type STRING).
 
 A generated executable has the following reserved parameters:
--debug Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Break()".
+-debug Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Launch()".
 -extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME. The script will not be executed.
 -wait At the end of the script execution it writes "Hit any key to exit..." and waits for a key to be pressed.
 -end All following options will be passed to the script inside the executable. All preceding options are used by the executable itself.

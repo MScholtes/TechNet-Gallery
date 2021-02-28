@@ -1,8 +1,32 @@
+PS2EXE-GUI v0.5.0.25
+Changes:
+- new parameter UNICODEEncoding to output as UNICODE
+- changed parameter debug to prepareDebug
+- finally dared to use advanced parameters
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.24):
+lines 13,24,46 - changed help text
+lines 89 to 90 - adjusted version number and date
+line 93 - changed help text
+lines 96 to 97 - changed parameters
+line 104 - adjusted version number
+line 116 - adjusted version number
+lines 133,134,141,149 - changed help text
+lines 342,343,351 - changed parameters
+lines 525 and 527 - changed $debug to $prepareDebug
+line 539 - allow to compile itself
+line 2573 - adjusted version number
+line 2629 - inserted UNICODE output
+line 2862 - removed $verbose (not necessary anymore)
+line 2870 - changed $debug to $prepareDebug
+
+
+
 PS2EXE-GUI v0.5.0.24
 Changes:
 - refactored
 
-List of changes  (line numbers are from PS2EXE-GUI v0.5.0.23):
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.23):
 lines 89 to 90 - adjusted version number and date
 line 104 - adjusted version number
 line 116 - adjusted version number

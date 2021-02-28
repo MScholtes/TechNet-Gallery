@@ -7,9 +7,9 @@ See Script Center version: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE File
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.24
+### Version: v0.5.0.25
 
-### Date: 2020-10-24
+### Date: 2021-02-28
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you can download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -24,10 +24,12 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.24 - 2020-10-24
-- refactored
+### Update v0.5.0.25 - 2021-02-28
+- new parameter UNICODEEncoding to output as UNICODE
+- changed parameter debug to prepareDebug
+- finally dared to use advanced parameters
 
-Full list of changes and fixes in Changes.txt.
+Full list of changes and fixes in (Changes.txt).
 
 
 ### Includes Win-PS2EXE, a small graphical front end for PS2EXE.
@@ -75,7 +77,7 @@ Compiled scripts process parameters like the original script does. One restricti
 
 A generated executable has the following reserved parameters:
 ```
--debug Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Break()".
+-debug Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Launch()".
 -extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME. The script will not be executed.
 -wait At the end of the script execution it writes "Hit any key to exit..." and waits for a key to be pressed.
 -end All following options will be passed to the script inside the executable. All preceding options are used by the executable itself.
