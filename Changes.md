@@ -1,5 +1,8 @@
 # Changes
 
+### Version 1.0.11 / 2021-04-10
+- PS2EXE 0.5.0.26: parameter outputFile now accepts a target folder (without filename)
+
 ### Version 1.0.10 / 2021-02-28
 PS2EXE 0.5.0.25:
 - new parameter UNICODEEncoding to output as UNICODE
