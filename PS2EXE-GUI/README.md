@@ -24,7 +24,7 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.26 - 2021-04-1ß
+### Update v0.5.0.26 - 2021-04-10
 - parameter outputFile now accepts a target folder (without filename)
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
