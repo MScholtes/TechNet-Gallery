@@ -7,9 +7,9 @@ See Script Center version: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE File
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.25
+### Version: v0.5.0.26
 
-### Date: 2021-02-28
+### Date: 2021-04-10
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you can download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -24,10 +24,8 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.25 - 2021-02-28
-- new parameter UNICODEEncoding to output as UNICODE
-- changed parameter debug to prepareDebug
-- finally dared to use advanced parameters
+### Update v0.5.0.26 - 2021-04-1ß
+- parameter outputFile now accepts a target folder (without filename)
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 
