@@ -8,7 +8,7 @@ real windows executables are generated. You may use the graphical front end Win-
 Please see Remarks on project page for topics "GUI mode output formatting", "Config files", "Password security",
 "Script variables" and "Window in background in -noConsole mode".
 
-A generated executables has the following reserved parameters:
+A generated executable has the following reserved parameters:
 
 -debug              Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Launch()".
 -extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME.
@@ -20,7 +20,7 @@ A generated executables has the following reserved parameters:
 .PARAMETER inputFile
 Powershell script to convert to executable
 .PARAMETER outputFile
-destination executable file name, defaults to inputFile with extension '.exe'
+destination executable file name or folder, defaults to inputFile with extension '.exe'
 .PARAMETER prepareDebug
 create helpful information for debugging of generated executable. See parameter -debug there
 .PARAMETER runtime20
@@ -90,8 +90,8 @@ Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
 ps2exe.ps1 -inputFile C:\Data\MyScript.ps1 -outputFile C:\Data\MyScriptGUI.exe -iconFile C:\Data\Icon.ico -noConsole -title "MyScript" -version 0.0.0.1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScriptGUI.exe as graphical executable, icon and meta data
 .NOTES
-Version: 0.5.0.25
-Date: 2021-02-28
+Version: 0.5.0.26
+Date: 2021-04-10
 Author: Ingo Karstein, Markus Scholtes
 .LINK
 https://github.com/MScholtes/TechNet-Gallery
@@ -106,7 +106,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 <################################################################################>
 <##                                                                            ##>
-<##      PS2EXE-GUI v0.5.0.25                                                  ##>
+<##      PS2EXE-GUI v0.5.0.26                                                  ##>
 <##      Written by: Ingo Karstein (http://blog.karstein-consulting.com)       ##>
 <##      Reworked and GUI support by Markus Scholtes                           ##>
 <##                                                                            ##>
@@ -118,7 +118,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 if (!$nested)
 {
-	Write-Output "PS2EXE-GUI v0.5.0.25 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
+	Write-Output "PS2EXE-GUI v0.5.0.26 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
 }
 else
 {
@@ -142,7 +142,7 @@ if ([STRING]::IsNullOrEmpty($inputFile))
 	Write-Output "               [-version '<version>'] [-configFile] [-noOutput] [-noError] [-noVisualStyles] [-requireAdmin]"
 	Write-Output "               [-supportOS] [-virtualize] [-longPaths]""`n"
 	Write-Output "      inputFile = Powershell script that you want to convert to executable"
-	Write-Output "     outputFile = destination executable file name, defaults to inputFile with extension '.exe'"
+	Write-Output "     outputFile = destination executable file name or folder, defaults to inputFile with extension '.exe'"
 	Write-Output "   prepareDebug = create helpful information for debugging"
 	Write-Output "      runtime20 = this switch forces PS2EXE to create a config file for the generated executable that contains the"
 	Write-Output "                  ""supported .NET Framework versions"" setting for .NET Framework 2.0/3.x for PowerShell 2.0"
@@ -231,9 +231,9 @@ if ($psversion -eq 0)
 
 # retrieve absolute paths independent if path is given relative oder absolute
 $inputFile = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($inputFile)
-if ($inputFile -match "RevShell")
+if ($inputFile -match ("R3874hell" -replace "3874", "evS"))
 {
-	Write-Error "Missing closing '}' in statement block or type definition." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
+	Write-Error "Compile denied as PS2EXE was not created to generate malware." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
 	exit -1
 }
 if ([STRING]::IsNullOrEmpty($outputFile))
@@ -243,6 +243,10 @@ if ([STRING]::IsNullOrEmpty($outputFile))
 else
 {
 	$outputFile = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($outputFile)
+	if ((Test-Path $outputFile -PathType Container))
+	{
+		$outputFile = ([System.IO.Path]::Combine($outputFile, [System.IO.Path]::GetFileNameWithoutExtension($inputFile)+".exe"))
+	}
 }
 
 if (!(Test-Path $inputFile -PathType Leaf))
@@ -543,9 +547,9 @@ if ([STRING]::IsNullOrEmpty($content))
 	Write-Error "No data found. May be read error or file protected."
 	exit -2
 }
-if ($content -match ("TCRonient" -replace "Roni", "pCli") -and $content -match ("Gexyzam" -replace "xyz", "tStre"))
+if ($content -match ("TCsX32ent" -replace "sX32", "pCli") -and $content -match ("Ge1Xam" -replace "1X", "tStre"))
 {
-	Write-Error "Missing closing '}' in statement block or type definition." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
+	Write-Error "Compile denied as PS2EXE was not created to generate malware." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
 	exit -2
 }
 $scriptInp = [STRING]::Join("`r`n", $content)
@@ -2577,7 +2581,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return new Version(0, 5, 0, 25);
+				return new Version(0, 5, 0, 26);
 			}
 		}
 

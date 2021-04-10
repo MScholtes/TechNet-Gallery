@@ -20,7 +20,7 @@ Usage:
                [-supportOS] [-virtualize] [-longPaths]
 
       inputFile = Powershell script that you want to convert to executable
-     outputFile = destination executable file name, defaults to inputFile with extension '.exe'
+     outputFile = destination executable file name or folder, defaults to inputFile with extension '.exe'
    prepareDebug = create helpful information for debugging    
       runtime20 = this switch forces PS2EXE to create a config file for the generated executable that contains the
                   "supported .NET Framework versions" setting for .NET Framework 2.0/3.x for PowerShell 2.0

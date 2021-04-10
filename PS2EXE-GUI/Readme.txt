@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.25
-Release: 2021-02-28
+PS2EXE-GUI v0.5.0.26
+Release: 2021-04-10
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -19,11 +19,8 @@ Module based version available now on Powershell Gallery, see here (https://www.
 
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
-
-Update v0.5.0.25 - 2021-02-28
-- new parameter UNICODEEncoding to output as UNICODE
-- changed parameter debug to prepareDebug
-- finally dared to use advanced parameters
+Update v0.5.0.26 - 2021-04-10
+- parameter outputFile now accepts a target folder (without filename)
 
 Full list of changes and fixes in Changes.txt.
 

@@ -1,3 +1,21 @@
+Update v0.5.0.26
+Changes:
+- parameter outputFile now accepts a target folder (without filename)
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.25):
+line 11 - corrected typo
+line 23 - changed help text
+lines 93 to 94 - adjusted version number and date
+line 109 - adjusted version number
+line 121 - adjusted version number
+line 145 - changed help text
+lines 234 to 236 - new error check and error text
+line 246 - inserted handling of a folder as $outputFile
+lines 546 to 548 - new error check and error text
+line 2580 - adjusted version number
+
+
+
 PS2EXE-GUI v0.5.0.25
 Changes:
 - new parameter UNICODEEncoding to output as UNICODE
