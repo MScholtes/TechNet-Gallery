@@ -61,6 +61,9 @@ Every script will be compiled to a console and a GUI version (-NoConsole).
 
 ## Remarks:
 
+### List of cmdlets not implemented:
+The basic input/output commands had to be rewritten in C# for PS2EXE. Not implemented are *Write-Progress* in console mode (too much work) and *Start-Transcript*/*Stop-Transcript* (no proper reference implementation by Microsoft).
+
 ### GUI mode output formatting:
 
 Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
