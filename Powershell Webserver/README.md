@@ -1,23 +1,17 @@
 # Powershell Webserver
 Powershell script that starts a webserver (without IIS). Powershell command execution, script execution, upload, download and other functions are implemented.
 
-Since Technet Gallery is closed, now here.
+Since Technet Gallery will be closed, now here.
 
 See Script Center version: [Powershell Webserver](https://gallery.technet.microsoft.com/Powershell-Webserver-74dcf466).
 
 ### Author: Markus Scholtes
 
-### Version: 1.2
+### Version: 1.2.1
 
-### Date: 2019-08-30
+### Date: 2021-07-04
 
-Now also on Powershell Gallery as WebServer module, see [here](https://www.powershellgallery.com/packages/WebServer/) or install with 
-```powershell
-Install-Module Webserver
-```
-Project page on github is [here](https://github.com/MScholtes/WebServer).
-
-(also on Powershell Gallery as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
+Now also on Powershell Gallery as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
 ```powershell
 Install-Module SysAdminsFriends
 ```
@@ -48,6 +42,8 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+Update 1.2.1 - 2021-07-04: Updated list of mime types
+
 Update 1.2 - 2019-08-30
 * serves directory listings for directories under the base path if no index.htm[l] or default.htm[l] is present
 * if no base directory is passed as parameter, the current directory is used as base path
@@ -101,9 +97,6 @@ After stopping the webserver you should remove the rule, e.g.:
 ```powershell
 netsh advfirewall firewall delete rule name="Powershell Webserver"
 ```
-
-### How to enable https encryption
-You can also let the **Powershell Webserver** deliver encrypted traffic. For a description look [here](https://github.com/MScholtes/WebServer/blob/master/https.md).
 
 ### Security
 There is no security!!! Once started the webserver can be accessed by everyone and everyone can do on the webserver system what you can do.
