@@ -1,15 +1,13 @@
 # Powershell commands to manage virtual desktops of Windows 10
 Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts.
 
-Now with support for desktop names introduced with Windows 10 2004!
+**Now with support for Windows 11 and Windows 10 21H2!**
 
-Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 2004!
+**Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 21H2 and Windows 11!**
 
 Since Technet Gallery will be closed, now here.
 
-See Script Center version: [Powershell commands to manage virtual desktops of Windows 10](https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5).
-
-Now also on Powershell Gallery as part of the **VirtualDesktop** module, see [here](https://www.powershellgallery.com/packages/VirtualDesktop/) or install with
+Also on Powershell Gallery as **VirtualDesktop** module, see [here](https://www.powershellgallery.com/packages/VirtualDesktop/) or install with
 ```powershell
 Install-Module VirtualDesktop
 ```
@@ -17,11 +15,18 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.9:
+support for Windows 10 21H2 and Windows 11
+Set-DesktopName works on current virtual desktop if parameter -desktop is missing
+
+### Update 2.8:
+integrating fixes from VirtualDesktop.cs
+
 ### Update 2.7:
 fixes for Get-DesktopIndex
 
 ### Update 2.6:
-compatible to Powershell Core 7.0 (but not 7.1)
+compatible to Powershell Core 7.0 (but not 7.1 or up)
 
 parameter -PassThru for Set-DesktopName (by sirAndros)
 
@@ -140,6 +145,11 @@ Windows on the desktop to be removed are moved to the virtual desktop to the lef
 If no parameter is supplied, the last desktop is removed.
 
 ```powershell
+Remove-AllDesktops
+```
+Remove all virtual desktops but visible. Works only on Windows 10 21H2 and Windows 11.
+
+```powershell
 Get-CurrentDesktop
 ```
 Get current virtual desktop as desktop object.
@@ -157,7 +167,17 @@ Get name of virtual desktop. Returns string.
 ```powershell
 Set-DesktopName -Desktop desktop -Name name -PassThru
 ```
-Set name of virtual desktop to name. Works only on Windows 10 2004 or up and not with Powershell Core 7.1!
+Set name of virtual desktop to name. Works only on Windows 10 2004 or up and not with Powershell Core 7.1 or up!
+
+```powershell
+Set-DesktopWallpaper -Desktop desktop -Path path -PassThru
+```
+Set wallpaper of virtual desktop to path. Works only on Windows 10 21H2 and Windows 11.
+
+```powershell
+Set-AllDesktopWallpapers -Path path
+```
+Set wallpaper of all virtual desktops to path. Works only on Windows 10 21H2 and Windows 11.
 
 ```powershell
 Get-DesktopIndex -Desktop desktop
@@ -187,6 +207,11 @@ Get-RightDesktop -Desktop desktop
 Get the desktop object on the "right" side.If there is no desktop on the "right" side $NULL is returned.
 
 Returns desktop "right" to current desktop if parameter desktop is omitted.
+
+```powershell
+Move-Desktop -Desktop desktop
+```
+Move current desktop to other virtual desktop. Works only on Windows 10 21H2 and Windows 11.
 
 ```powershell
 Move-Window -Desktop desktop -Hwnd hwnd

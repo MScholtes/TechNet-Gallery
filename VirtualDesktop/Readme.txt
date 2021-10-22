@@ -11,10 +11,14 @@ desktops from scripts.
 
 Now with support for desktop names introduced with Windows 10 2004!
 
+Update 2.9:
+support for Windows 10 21H2 and Windows 11
+Update 2.8:
+integrating fixes from VirtualDesktop.cs
 Update 2.7:
 fixes for Get-DesktopIndex
 Update 2.6:
-compatible to Powershell Core 7.0 (but not 7.1)
+compatible to Powershell Core 7.0 (but not 7.1 or up)
 parameter -PassThru for Set-DesktopName (by sirAndros)
 Update 2.5:
 support for desktop names introduced with Win 10 2004
@@ -98,6 +102,9 @@ Windows on the desktop to be removed are moved to the virtual desktop to the lef
 second desktop is used instead. If the current desktop is removed, this fallback desktop is activated too.
 If no parameter is supplied, the last desktop is removed.
 
+Remove-AllDesktops
+Remove all virtual desktops but visible. Works only on Windows 10 21H2 and Windows 11.
+
 Get-CurrentDesktop
 Get current virtual desktop as desktop object.
 
@@ -111,7 +118,13 @@ Get-DesktopName -Desktop desktop
 Get name of virtual desktop. Returns string.
 
 Set-DesktopName -Desktop desktop -Name name -PassThru
-Set name of virtual desktop to name. Works only on Windows 10 2004 or up and not with Powershell Core 7.1!
+Set name of virtual desktop to name. Works only on Windows 10 2004 or up and not with Powershell Core 7.1 or up!
+
+Set-DesktopWallpaper -Desktop desktop -Path path -PassThru
+Set wallpaper of virtual desktop to path. Works only on Windows 10 21H2 and Windows 11.
+
+Set-AllDesktopWallpapers -Path path
+Set wallpaper of all virtual desktops to path. Works only on Windows 10 21H2 and Windows 11.
 
 Get-DesktopFromWindow -Hwnd hwnd
 Get virtual desktop of window (whose window handle is passed). Returns desktop object.
@@ -126,6 +139,9 @@ Returns desktop "left" to current desktop if parameter desktop is omitted.
 Get-RightDesktop -Desktop desktop
 Get the desktop object on the "right" side.If there is no desktop on the "right" side $NULL is returned.
 Returns desktop "right" to current desktop if parameter desktop is omitted.
+
+Move-Desktop -Desktop desktop
+Move current desktop to other virtual desktop. Works only on Windows 10 21H2 and Windows 11.
 
 Move-Window -Desktop desktop -Hwnd hwnd
 Move window whose handle is passed to virtual desktop.

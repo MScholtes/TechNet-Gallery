@@ -92,3 +92,6 @@ function Request-NamedDesktop {
 
 "Create virtual desktop 'Games' if it does not already exist"
 Request-NamedDesktop "Games"
+
+"Show virtual desktops"
+Get-DesktopList | Out-String
