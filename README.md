@@ -10,8 +10,10 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.11 / 2021-04-10
-PS2EXE 0.5.0.26: parameter outputFile now accepts a target folder (without filename)
+### Version 1.0.13 / 2021-10-22
+VirtualDesktop 2.9:
+- support for Windows 10 21H2 and Windows 11
+- Set-DesktopName works on current virtual desktop if parameter -desktop is missing
 
 For a complete list of changes see here: [Changes](Changes.md)
 
