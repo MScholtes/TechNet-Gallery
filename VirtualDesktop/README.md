@@ -17,6 +17,7 @@ Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 ## Versions
 ### Update 2.9:
 support for Windows 10 21H2 and Windows 11
+
 Set-DesktopName works on current virtual desktop if parameter -desktop is missing
 
 ### Update 2.8:
