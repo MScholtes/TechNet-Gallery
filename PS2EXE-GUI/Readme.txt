@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.26
-Release: 2021-04-10
+PS2EXE-GUI v0.5.0.27
+Release: 2021-11-21
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -19,8 +19,10 @@ Module based version available now on Powershell Gallery, see here (https://www.
 
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
-Update v0.5.0.26 - 2021-04-10
-- parameter outputFile now accepts a target folder (without filename)
+Update v0.5.0.27 - 2021-11-21
+- fixed password longer than 24 characters error
+- new parameter -DPIAware to support scaling in noConsole mode
+- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
 
 Full list of changes and fixes in Changes.txt.
 
@@ -46,6 +48,9 @@ Every script will be compiled to a console and a GUI version (-NoConsole).
 
 
 Remarks:
+
+List of cmdlets not implemented:
+The basic input/output commands had to be rewritten in C# for PS2EXE. Not implemented are Write-Progress in console mode (too much work) and Start-Transcript/Stop-Transcript (no proper reference implementation by Microsoft).
 
 GUI mode output formatting:
 Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).

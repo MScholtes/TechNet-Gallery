@@ -3,15 +3,15 @@ Overworking of the great script of Ingo Karstein with GUI support. The GUI outpu
 
 Since Technet Gallery is closed, now here.
 
-See Script Center version: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI](https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5).
+Script Center version was here: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI](https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5).
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.26
+### Version: v0.5.0.27
 
-### Date: 2021-04-10
+### Date: 2021-11-21
 
-All of you know the fabulous script PS2EXE by Ingo Karstein you can download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
+All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
 Unfortunately Ingo seems to have stopped working on his script so I overworked his script with some error fixes, improvements and output support for non-console WinForms scripts (parameter -noConsole to ps2exe.ps1).
 
@@ -24,8 +24,10 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.26 - 2021-04-10
-- parameter outputFile now accepts a target folder (without filename)
+### Update v0.5.0.27 - 2021-11-21
+- fixed password longer than 24 characters error
+- new parameter -DPIAware to support scaling in noConsole mode
+- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 

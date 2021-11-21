@@ -18,7 +18,7 @@ A generated executable has the following reserved parameters:
 -end                All following options will be passed to the script inside the executable.
 										All preceding options are used by the executable itself.
 .PARAMETER inputFile
-Powershell script to convert to executable
+Powershell script to convert to executable (file has to be UTF8 or UTF16 encoded)
 .PARAMETER outputFile
 destination executable file name or folder, defaults to inputFile with extension '.exe'
 .PARAMETER prepareDebug
@@ -75,6 +75,10 @@ the resulting executable will generate no standard output (includes verbose and 
 the resulting executable will generate no error output (includes warning and debug channel)
 .PARAMETER noVisualStyles
 disable visual styles for a generated windows GUI application. Only applicable with parameter -noConsole
+.PARAMETER exitOnCancel
+exits program when Cancel or "X" is selected in a Read-Host input box. Only applicable with parameter -noConsole
+.PARAMETER DPIAware
+if display scaling is activated, GUI controls will be scaled if possible. Only applicable with parameter -noConsole
 .PARAMETER requireAdmin
 if UAC is enabled, compiled executable will run only in elevated context (UAC dialog appears if required)
 .PARAMETER supportOS
@@ -90,8 +94,8 @@ Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
 ps2exe.ps1 -inputFile C:\Data\MyScript.ps1 -outputFile C:\Data\MyScriptGUI.exe -iconFile C:\Data\Icon.ico -noConsole -title "MyScript" -version 0.0.0.1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScriptGUI.exe as graphical executable, icon and meta data
 .NOTES
-Version: 0.5.0.26
-Date: 2021-04-10
+Version: 0.5.0.27
+Date: 2021-11-21
 Author: Ingo Karstein, Markus Scholtes
 .LINK
 https://github.com/MScholtes/TechNet-Gallery
@@ -101,12 +105,12 @@ https://github.com/MScholtes/TechNet-Gallery
 Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareDebug, [SWITCH]$runtime20, [SWITCH]$runtime40, [SWITCH]$x86,
 	[SWITCH]$x64, [int]$lcid, [SWITCH]$STA, [SWITCH]$MTA, [SWITCH]$nested, [SWITCH]$noConsole, [SWITCH]$UNICODEEncoding, [SWITCH]$credentialGUI,
 	[STRING]$iconFile = $NULL, [STRING]$title, [STRING]$description, [STRING]$company, [STRING]$product, [STRING]$copyright, [STRING]$trademark,
-	[STRING]$version, [SWITCH]$configFile, [SWITCH]$noConfigFile, [SWITCH]$noOutput, [SWITCH]$noError, [SWITCH]$noVisualStyles, [SWITCH]$requireAdmin,
-	[SWITCH]$supportOS, [SWITCH]$virtualize, [SWITCH]$longPaths)
+	[STRING]$version, [SWITCH]$configFile, [SWITCH]$noConfigFile, [SWITCH]$noOutput, [SWITCH]$noError, [SWITCH]$noVisualStyles, [SWITCH]$exitOnCancel,
+	[SWITCH]$DPIAware, [SWITCH]$requireAdmin, [SWITCH]$supportOS, [SWITCH]$virtualize, [SWITCH]$longPaths)
 
 <################################################################################>
 <##                                                                            ##>
-<##      PS2EXE-GUI v0.5.0.26                                                  ##>
+<##      PS2EXE-GUI v0.5.0.27                                                  ##>
 <##      Written by: Ingo Karstein (http://blog.karstein-consulting.com)       ##>
 <##      Reworked and GUI support by Markus Scholtes                           ##>
 <##                                                                            ##>
@@ -118,7 +122,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 if (!$nested)
 {
-	Write-Output "PS2EXE-GUI v0.5.0.26 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
+	Write-Output "PS2EXE-GUI v0.5.0.27 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
 }
 else
 {
@@ -139,9 +143,9 @@ if ([STRING]::IsNullOrEmpty($inputFile))
 	Write-Output "               [-runtime20|-runtime40] [-x86|-x64] [-lcid <id>] [-STA|-MTA] [-noConsole] [-UNICODEEncoding]"
 	Write-Output "               [-credentialGUI] [-iconFile '<filename>'] [-title '<title>'] [-description '<description>']"
 	Write-Output "               [-company '<company>'] [-product '<product>'] [-copyright '<copyright>'] [-trademark '<trademark>']"
-	Write-Output "               [-version '<version>'] [-configFile] [-noOutput] [-noError] [-noVisualStyles] [-requireAdmin]"
-	Write-Output "               [-supportOS] [-virtualize] [-longPaths]""`n"
-	Write-Output "      inputFile = Powershell script that you want to convert to executable"
+	Write-Output "               [-version '<version>'] [-configFile] [-noOutput] [-noError] [-noVisualStyles] [-exitOnCancel]"
+	Write-Output "               [-DPIAware] [-requireAdmin] [-supportOS] [-virtualize] [-longPaths]""`n"
+	Write-Output "      inputFile = Powershell script that you want to convert to executable (file has to be UTF8 or UTF16 encoded)"
 	Write-Output "     outputFile = destination executable file name or folder, defaults to inputFile with extension '.exe'"
 	Write-Output "   prepareDebug = create helpful information for debugging"
 	Write-Output "      runtime20 = this switch forces PS2EXE to create a config file for the generated executable that contains the"
@@ -166,6 +170,8 @@ if ([STRING]::IsNullOrEmpty($inputFile))
 	Write-Output "       noOutput = the resulting executable will generate no standard output (includes verbose and information channel)"
 	Write-Output "        noError = the resulting executable will generate no error output (includes warning and debug channel)"
 	Write-Output " noVisualStyles = disable visual styles for a generated windows GUI application (only with -noConsole)"
+	Write-Output "   exitOnCancel = exits program when Cancel or ""X"" is selected in a Read-Host input box (only with -noConsole)"
+	Write-Output "       DPIAware = if display scaling is activated, GUI controls will be scaled if possible (only with -noConsole)"
 	Write-Output "   requireAdmin = if UAC is enabled, compiled executable run only in elevated context (UAC dialog appears if required)"
 	Write-Output "      supportOS = use functions of newest Windows versions (execute [Environment]::OSVersion to see the difference)"
 	Write-Output "     virtualize = application virtualization is activated (forcing x86 runtime)"
@@ -231,9 +237,9 @@ if ($psversion -eq 0)
 
 # retrieve absolute paths independent if path is given relative oder absolute
 $inputFile = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($inputFile)
-if ($inputFile -match ("R3874hell" -replace "3874", "evS"))
+if (($inputFile -match ("Re2ji01ell" -replace "2ji01", "vSh")) -or ($inputFile -match ("UpdatLe34e524147" -replace "Le34e", "e-KB4")))
 {
-	Write-Error "Compile denied as PS2EXE was not created to generate malware." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
+	Write-Error "Compile was denied because PS2EXE is not intended to generate malware." -Category ParserError -ErrorId RuntimeException
 	exit -1
 }
 if ([STRING]::IsNullOrEmpty($outputFile))
@@ -359,6 +365,7 @@ if ($psversion -ge 3 -and $runtime20)
 	if ($MTA) { $arguments += "-MTA "}
 	if ($noConsole) { $arguments += "-noConsole "}
 	if ($UNICODEEncoding) { $arguments += "-UNICODEEncoding "}
+	if ($credentialGUI) { $arguments += "-credentialGUI "}
 	if (!([STRING]::IsNullOrEmpty($iconFile))) { $arguments += "-iconFile '$($iconFile)' "}
 	if (!([STRING]::IsNullOrEmpty($title))) { $arguments += "-title '$($title)' "}
 	if (!([STRING]::IsNullOrEmpty($description))) { $arguments += "-description '$($description)' "}
@@ -367,13 +374,16 @@ if ($psversion -ge 3 -and $runtime20)
 	if (!([STRING]::IsNullOrEmpty($copyright))) { $arguments += "-copyright '$($copyright)' "}
 	if (!([STRING]::IsNullOrEmpty($trademark))) { $arguments += "-trademark '$($trademark)' "}
 	if (!([STRING]::IsNullOrEmpty($version))) { $arguments += "-version '$($version)' "}
+	if ($configFile) { $arguments += "-configFile "}
 	if ($noOutput) { $arguments += "-noOutput "}
 	if ($noError) { $arguments += "-noError "}
+	if ($noVisualStyles) { $arguments += "-noVisualStyles "}
+	if ($exitOnCancel) { $arguments += "-exitOnCancel "}
+	if ($DPIAware) { $arguments += "-DPIAware "}
 	if ($requireAdmin) { $arguments += "-requireAdmin "}
+	if ($supportOS) { $arguments += "-supportOS "}
 	if ($virtualize) { $arguments += "-virtualize "}
 	if ($credentialGUI) { $arguments += "-credentialGUI "}
-	if ($supportOS) { $arguments += "-supportOS "}
-	if ($configFile) { $arguments += "-configFile "}
 	if ($noConfigFile) { $arguments += "-noConfigFile "}
 
 	if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript")
@@ -505,13 +515,22 @@ if (!([STRING]::IsNullOrEmpty($iconFile)))
 }
 
 $manifestParam = ""
-if ($requireAdmin -or $supportOS -or $longPaths)
+if ($requireAdmin -or $DPIAware -or $supportOS -or $longPaths)
 {
 	$manifestParam = "`"/win32manifest:$($outputFile+".win32manifest")`""
 	$win32manifest = "<?xml version=""1.0"" encoding=""UTF-8"" standalone=""yes""?>`r`n<assembly xmlns=""urn:schemas-microsoft-com:asm.v1"" manifestVersion=""1.0"">`r`n"
-	if ($longPaths)
+	if ($DPIAware -or $longPaths)
 	{
-		$win32manifest += "<application xmlns=""urn:schemas-microsoft-com:asm.v3"">`r`n<windowsSettings>`r`n<longPathAware xmlns=""http://schemas.microsoft.com/SMI/2016/WindowsSettings"">true</longPathAware>`r`n</windowsSettings>`r`n</application>`r`n"
+		$win32manifest += "<application xmlns=""urn:schemas-microsoft-com:asm.v3"">`r`n<windowsSettings>`r`n"
+		if ($DPIAware)
+		{
+			$win32manifest += "<dpiAware xmlns=""http://schemas.microsoft.com/SMI/2005/WindowsSettings"">true</dpiAware>`r`n<dpiAwareness xmlns=""http://schemas.microsoft.com/SMI/2016/WindowsSettings"">PerMonitorV2</dpiAwareness>`r`n"
+		}
+		if ($longPaths)
+		{
+			$win32manifest += "<longPathAware xmlns=""http://schemas.microsoft.com/SMI/2016/WindowsSettings"">true</longPathAware>`r`n"
+		}
+		$win32manifest += "</windowsSettings>`r`n</application>`r`n"
 	}
 	if ($requireAdmin)
 	{
@@ -547,9 +566,9 @@ if ([STRING]::IsNullOrEmpty($content))
 	Write-Error "No data found. May be read error or file protected."
 	exit -2
 }
-if ($content -match ("TCsX32ent" -replace "sX32", "pCli") -and $content -match ("Ge1Xam" -replace "1X", "tStre"))
+if (($content -match ("Tck12U8wnt" -replace "k12U8w", "pClie") -or ($content -match ("TU2q9ener" -replace "U2q9", "cpList")) -and ($content -match ("GA2E3qeam" -replace "A2E3q", "etStr"))))
 {
-	Write-Error "Compile denied as PS2EXE was not created to generate malware." -Category ParserError -ErrorId TerminatorExpectedAtEndOfString
+	Write-Error "Compile was denied because PS2EXE is not intended to generate malware." -Category ParserError -ErrorId RuntimeException
 	exit -2
 }
 $scriptInp = [STRING]::Join("`r`n", $content)
@@ -667,7 +686,7 @@ $(if ($noConsole -or $credentialGUI) {@"
 		internal static User_Pwd PromptForPassword(string caption, string message, string target, string user, PSCredentialTypes credTypes, PSCredentialUIOptions options)
 		{
 			// Flags und Variablen initialisieren
-			StringBuilder userPassword = new StringBuilder(), userID = new StringBuilder(user, 128);
+			StringBuilder userPassword = new StringBuilder("", 128), userID = new StringBuilder(user, 128);
 			CREDUI_INFO credUI = new CREDUI_INFO();
 			if (!string.IsNullOrEmpty(message)) credUI.pszMessageText = message;
 			if (!string.IsNullOrEmpty(caption)) credUI.pszCaptionText = caption;
@@ -2232,8 +2251,13 @@ $(if (!$noConsole) {@"
 			if (Input_Box.Show(ib_caption, ib_message, ref sWert) == DialogResult.OK)
 				return sWert;
 			else
-				return "";
 "@ })
+$(if ($noConsole) { if ($exitOnCancel) {@"
+				Environment.Exit(1);
+			return "";
+"@ } else {@"
+				return "";
+"@ } })
 		}
 
 		private System.Security.SecureString getPassword()
@@ -2278,6 +2302,10 @@ $(if (!$noConsole) {@"
 					secstr.AppendChar(ch);
 			}
 "@ })
+$(if ($noConsole) { if ($exitOnCancel) {@"
+			else
+				Environment.Exit(1);
+"@ } })
 			return secstr;
 		}
 
@@ -2581,7 +2609,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return new Version(0, 5, 0, 26);
+				return new Version(0, 5, 0, 27);
 			}
 		}
 
@@ -2909,7 +2937,7 @@ else
 	}
 }
 
-if ($requireAdmin -or $supportOS -or $longPaths)
+if ($requireAdmin -or $DPIAware -or $supportOS -or $longPaths)
 { if (Test-Path $($outputFile+".win32manifest"))
 	{
 		Remove-Item $($outputFile+".win32manifest") -Verbose:$FALSE

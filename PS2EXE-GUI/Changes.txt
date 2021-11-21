@@ -1,4 +1,36 @@
-Update v0.5.0.26
+PS2EXE-GUI v0.5.0.27
+Changes:
+- fixed password longer than 24 characters error
+- new parameter -DPIAware to support scaling in noConsole mode
+- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
+
+List of changes (line numbers are from PS2EXE-GUI v0.5.0.26):
+line 21 - changed help text
+line 78 - inserted new help text
+lines 93 to 94 - adjusted version number and date
+lines 104 to 105 - added new parameters
+line 109 - adjusted version number
+line 121 - adjusted version number
+lines 142 to 145 - changed help text
+line 169 - inserted new help text
+lines 234 to 236 - new error check and error text
+line 362 - inserted parameter computation
+line 370 - inserted parameter computation
+line 372 - inserted parameter computations
+line 373 - inserted parameter computation
+lines 375 to 376 - removed
+line 508 - added new parameter DPIAware
+line 512 - inserted new parameter DPIAware
+line 514 - added new parameter DPIAware
+lines 550 to 552 - new error check and error text
+line 670 - fixed password longer than 24 characters error
+lines 2235 to 2236 - added new parameter exitOnCancel
+line 2281 - inserted new parameter exitOnCancel
+line 2584 - adjusted version number
+line 2912 - added new parameter DPIAware
+
+
+PS2EXE-GUI v0.5.0.26
 Changes:
 - parameter outputFile now accepts a target folder (without filename)
 

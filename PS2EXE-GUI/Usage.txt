@@ -16,10 +16,10 @@ Usage:
                [-runtime20|-runtime40] [-lcid <id>] [-x86|-x64] [-STA|-MTA] [-noConsole] [-UNICODEEncoding]
                [-credentialGUI] [-iconFile '<filename>'] [-title '<title>'] [-description '<description>']
                [-company '<company>'] [-product '<product>'] [-copyright '<copyright>'] [-trademark '<trademark>']
-               [-version '<version>'] [-configFile] [-noOutput] [-noError] [-noVisualStyles] [-requireAdmin]
-               [-supportOS] [-virtualize] [-longPaths]
+               [-version '<version>'] [-configFile] [-noOutput] [-noError] [-noVisualStyles] [-exitOnCancel]
+               [-DPIAware] [-requireAdmin] [-supportOS] [-virtualize] [-longPaths]
 
-      inputFile = Powershell script that you want to convert to executable
+      inputFile = Powershell script that you want to convert to executable (file has to be UTF8 or UTF16 encoded)
      outputFile = destination executable file name or folder, defaults to inputFile with extension '.exe'
    prepareDebug = create helpful information for debugging    
       runtime20 = this switch forces PS2EXE to create a config file for the generated executable that contains the
@@ -44,6 +44,8 @@ UNICODEEncoding = encode output as UNICODE in console mode
        noOutput = the resulting executable will generate no standard output (includes verbose and information channel)
         noError = the resulting executable will generate no error output (includes warning and debug channel)
  noVisualStyles = disable visual styles for a generated windows GUI application (only with -noConsole)
+   exitOnCancel = exits program when Cancel or ""X"" is selected in a Read-Host input box (only with -noConsole)
+       DPIAware = if display scaling is activated, GUI controls will be scaled if possible (only with -noConsole)
    requireAdmin = if UAC is enabled, compiled executable run only in elevated context (UAC dialog appears if required)
       supportOS = use functions of newest Windows versions (execute [Environment]::OSVersion to see the difference)
      virtualize = application virtualization is activated (forcing x86 runtime)
