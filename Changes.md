@@ -1,5 +1,11 @@
 # Changes
 
+### Version 1.0.14 / 2021-11-21
+PS2EXE-GUI v0.5.0.27:
+- fixed password longer than 24 characters error
+- new parameter -DPIAware to support scaling in noConsole mode
+- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
+
 ### Version 1.0.13 / 2021-10-22
 VirtualDesktop 2.9:
 - support for Windows 10 21H2 and Windows 11

@@ -1,5 +1,5 @@
 # Attention: Incorrect virus detection of PS2EXE
-**Some stupid idiot seems to have abused PS2EXE to compile his computer virus script. As a result, a rapidly growing number of virus scanners recognize programs created with PS2EXE as malicious programs and delete them.**
+**Some stupid idiots seem to have abused PS2EXE to compile their computer virus script. As a result, a rapidly growing number of virus scanners recognize programs created with PS2EXE as malicious programs and delete them.**
 
 **There is only one hope to save the PS2EXE project: Please send your (harmless) programs created with PS2EXE via the web forms from the virus scanners' vendors for reporting false positives (I've already done it with some of them, please use only the false positive page)!**
 
@@ -10,10 +10,11 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.13 / 2021-10-22
-VirtualDesktop 2.9:
-- support for Windows 10 21H2 and Windows 11
-- Set-DesktopName works on current virtual desktop if parameter -desktop is missing
+### Version 1.0.14 / 2021-11-21
+PS2EXE-GUI v0.5.0.27:
+- fixed password longer than 24 characters error
+- new parameter -DPIAware to support scaling in noConsole mode
+- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
 
 For a complete list of changes see here: [Changes](Changes.md)
 
