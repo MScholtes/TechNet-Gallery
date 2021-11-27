@@ -10,11 +10,9 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.14 / 2021-11-21
-PS2EXE-GUI v0.5.0.27:
-- fixed password longer than 24 characters error
-- new parameter -DPIAware to support scaling in noConsole mode
-- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
+### Version 1.0.15 / 2021-11-27
+VirtualDesktop 2.10:
+- support for Windows 11 Insider build 22449 and up
 
 For a complete list of changes see here: [Changes](Changes.md)
 

@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.15 / 2021-11-27
+VirtualDesktop 2.10:
+- support for Windows 11 Insider build 22449 and up
+
 ### Version 1.0.14 / 2021-11-21
 PS2EXE-GUI v0.5.0.27:
 - fixed password longer than 24 characters error
