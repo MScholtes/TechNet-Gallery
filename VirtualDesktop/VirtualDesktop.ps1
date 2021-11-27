@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.9 - support for Windows 10 21H2 and Windows 11, 2021/10/18
+# Version 2.10 - support for Windows 11 incl. Insider, 2021/11/27
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -29,7 +29,8 @@ if ($OSBuild -lt 14393)
 $Windows1607 = $TRUE
 $Windows1803 = $FALSE
 $Windows1809 = $FALSE
-$Windows21H2 = $FALSE
+$Windows11 = $FALSE
+$Windows22449 = $FALSE
 if ($OSBuild -ge 17134)
 {
 	$Windows1607 = $FALSE
@@ -42,12 +43,16 @@ if ($OSBuild -ge 17661)
 	$Windows1809 = $TRUE
 }
 
-if ($OSBuild -ge 19044)
+if ($OSBuild -ge 22000)
 {
 	$Windows1607 = $FALSE
 	$Windows1803 = $FALSE
 	$Windows1809 = $FALSE
-	$Windows21H2 = $TRUE
+	$Windows11 = $TRUE
+}
+if ($OSBuild -ge 22449)
+{
+	$Windows22449 = $TRUE
 }
 
 Add-Type -Language CSharp -TypeDefinition @"
@@ -114,8 +119,8 @@ $(if ($Windows1803) {@"
 	[InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
 	[Guid("871F602A-2B58-42B4-8C4B-6C43D642C06F")]
 "@ })
-$(if ($Windows1809 -or $Windows21H2) {@"
-// Windows 10 1809 and 21H2:
+$(if ($Windows1809 -or $Windows11) {@"
+// Windows 10 1809 or up and Windows 11:
 	[InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
 	[Guid("372E1D3B-38D3-42E4-A15B-8AB2B178F513")]
 "@ })
@@ -174,7 +179,7 @@ $(if ($Windows1803) {@"
 		int Unknown3(out int unknown);
 		int Unknown4(out int unknown);
 "@ })
-$(if ($Windows1809 -or $Windows21H2) {@"
+$(if ($Windows1809 -or $Windows11) {@"
 		int Unknown1(out int unknown);
 		int Unknown2(out int unknown);
 		int Unknown3(out int unknown);
@@ -200,8 +205,8 @@ $(if ($Windows1803) {@"
 // Windows 10 1803:
 	[Guid("2C08ADF0-A386-4B35-9250-0FE183476FCC")]
 "@ })
-$(if ($Windows1809 -or $Windows21H2) {@"
-// Windows 10 1809 and 21H2:
+$(if ($Windows1809 -or $Windows11) {@"
+// Windows 10 1809 or up and Windows 11:
 	[Guid("1841C6D7-4F9D-42C0-AF41-8747538F10E5")]
 "@ })
 	internal interface IApplicationViewCollection
@@ -213,8 +218,8 @@ $(if ($Windows1809 -or $Windows21H2) {@"
 		int GetViewForApplication(object application, out IApplicationView view);
 		int GetViewForAppUserModelId(string id, out IApplicationView view);
 		int GetViewInFocus(out IntPtr view);
-$(if ($Windows1803 -or $Windows1809 -or $Windows21H2) {@"
-// Windows 10 1803 and 1809 and 21H2:
+$(if ($Windows1803 -or $Windows1809 -or $Windows11) {@"
+// Windows 10 1803 or up and Windows 11:
 		int Unknown1(out IntPtr view);
 "@ })
 		void RefreshCollection();
@@ -232,18 +237,18 @@ $(if ($Windows1803) {@"
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($Windows21H2) {@"
-// Windows 10 21H2:
+$(if ($Windows11) {@"
+// Windows 11:
 	[Guid("536D3495-B208-4CC9-AE26-DE8111275BF8")]
 "@ } else {@"
-// Windows 10 before 21H2:
+// Windows 10:
 	[Guid("FF72FFDD-BE7E-43FC-9C03-AD81681E88E4")]
 "@ })
 	internal interface IVirtualDesktop
 	{
 		bool IsViewVisible(IApplicationView view);
 		Guid GetId();
-$(if ($Windows21H2) {@"
+$(if ($Windows11) {@"
 		IntPtr Unknown1();
 		[return: MarshalAs(UnmanagedType.HString)]
 		string GetName();
@@ -254,8 +259,8 @@ $(if ($Windows21H2) {@"
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($Windows21H2) {@"
-// Windows 10 21H2:
+$(if ($Windows11) {@"
+// Windows 11:
 	[Guid("B2F925B9-5A0F-4D2E-9F4D-2B1507593C10")]
 	internal interface IVirtualDesktopManagerInternal
 	{
@@ -263,6 +268,12 @@ $(if ($Windows21H2) {@"
 		void MoveViewToDesktop(IApplicationView view, IVirtualDesktop desktop);
 		bool CanViewMoveDesktops(IApplicationView view);
 		IVirtualDesktop GetCurrentDesktop(IntPtr hWndOrMon);
+"@ })
+$(if ($Windows22449) {@"
+// Windows 11 Insider:
+		IObjectArray GetAllCurrentDesktops();
+"@ })
+$(if ($Windows11) {@"
 		void GetDesktops(IntPtr hWndOrMon, out IObjectArray desktops);
 		[PreserveSig]
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
@@ -281,7 +292,7 @@ $(if ($Windows21H2) {@"
 	}
 
 "@ } else {@"
-// Windows 10 before 21H2:
+// Windows 10:
 	[Guid("F31574D6-B682-4CDC-BD56-1827860ABEC6")]
 	internal interface IVirtualDesktopManagerInternal
 	{
@@ -368,8 +379,8 @@ $(if ($Windows21H2) {@"
 		{
 			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell));
 			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal).GUID);
-$(if (-not $Windows21H2) {@"
-// Windows 10 before 21H2:
+$(if (-not $Windows11) {@"
+// Windows 10:
 			try {
 				VirtualDesktopManagerInternal2 = (IVirtualDesktopManagerInternal2)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal2).GUID);
 			}
@@ -383,8 +394,8 @@ $(if (-not $Windows21H2) {@"
 		}
 
 		internal static IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
-$(if (-not $Windows21H2) {@"
-// Windows 10 before 21H2:
+$(if (-not $Windows11) {@"
+// Windows 10:
 		internal static IVirtualDesktopManagerInternal2 VirtualDesktopManagerInternal2;
 "@ })
 		internal static IVirtualDesktopManager VirtualDesktopManager;
@@ -393,14 +404,14 @@ $(if (-not $Windows21H2) {@"
 
 		internal static IVirtualDesktop GetDesktop(int index)
 		{	// get desktop with index
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			int count = VirtualDesktopManagerInternal.GetCount();
 "@ } else {@"
 			int count = VirtualDesktopManagerInternal.GetCount(IntPtr.Zero);
 "@ })
 			if (index < 0 || index >= count) throw new ArgumentOutOfRangeException("index");
 			IObjectArray desktops;
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			VirtualDesktopManagerInternal.GetDesktops(out desktops);
 "@ } else {@"
 			VirtualDesktopManagerInternal.GetDesktops(IntPtr.Zero, out desktops);
@@ -416,13 +427,13 @@ $(if (-not $Windows21H2) {@"
 			int index = -1;
 			Guid IdSearch = desktop.GetId();
 			IObjectArray desktops;
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			VirtualDesktopManagerInternal.GetDesktops(out desktops);
 "@ } else {@"
 			VirtualDesktopManagerInternal.GetDesktops(IntPtr.Zero, out desktops);
 "@ })
 			object objdesktop;
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			for (int i = 0; i < VirtualDesktopManagerInternal.GetCount(); i++)
 "@ } else {@"
 			for (int i = 0; i < VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); i++)
@@ -539,7 +550,7 @@ $(if (-not $Windows21H2) {@"
 
 		public static int Count
 		{ // return the number of desktops
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(); }
 "@ } else {@"
 			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); }
@@ -548,7 +559,7 @@ $(if (-not $Windows21H2) {@"
 
 		public static Desktop Current
 		{ // returns current desktop
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			get { return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 "@ } else {@"
 			get { return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero)); }
@@ -628,7 +639,7 @@ $(if (-not $Windows21H2) {@"
 				return true;
 		}
 
-$(if ($Windows21H2) {@"
+$(if ($Windows11) {@"
 		public static string DesktopWallpaperFromIndex(int index)
 		{ // return name of desktop wallpaper from index (-> index = 0..Count-1)
 
@@ -647,7 +658,7 @@ $(if ($Windows21H2) {@"
 		{ // get index of desktop with partial name, return -1 if no desktop found
 			int index = -1;
 
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(); i++)
 "@ } else {@"
 			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); i++)
@@ -664,7 +675,7 @@ $(if (-not $Windows21H2) {@"
 
 		public static Desktop Create()
 		{ // create a new desktop
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.CreateDesktop());
 "@ } else {@"
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.CreateDesktop(IntPtr.Zero));
@@ -693,7 +704,7 @@ $(if (-not $Windows21H2) {@"
 			DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(ivd, fallbackdesktop);
 		}
 
-$(if ($Windows21H2) {@"
+$(if ($Windows11) {@"
 		public static void RemoveAll()
 		{ // remove all desktops but visible
 			DesktopManager.VirtualDesktopManagerInternal.SetDesktopIsPerMonitor(true);
@@ -732,7 +743,7 @@ $(if ($Windows21H2) {@"
 
 		public bool IsVisible
 		{ // return true if this desktop is the current displayed one
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			get { return object.ReferenceEquals(ivd, DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 "@ } else {@"
 			get { return object.ReferenceEquals(ivd, DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero)); }
@@ -741,7 +752,7 @@ $(if (-not $Windows21H2) {@"
 
 		public void MakeVisible()
 		{ // make this desktop visible
-$(if (-not $Windows21H2) {@"
+$(if (-not $Windows11) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
 "@ } else {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(IntPtr.Zero, ivd);
@@ -926,7 +937,7 @@ $(if (-not $Windows21H2) {@"
 "@
 
 # Clean up variables
-Remove-Variable -Name Windows1607,Windows1803,Windows1809,OSVer,OSBuild
+Remove-Variable -Name Windows1607,Windows1803,Windows1809,Windows22449,OSVer,OSBuild
 
 
 function Get-DesktopCount
@@ -963,7 +974,7 @@ Updated: 2020/06/27
 }
 
 
-if ($Windows21H2)
+if ($Windows11)
 {
 	function Get-DesktopList
 	{
@@ -1255,7 +1266,7 @@ Updated: 2020/06/27
 }
 
 
-if ($Windows21H2)
+if ($Windows11)
 {
 	function Remove-AllDesktops
 	{
@@ -1667,7 +1678,7 @@ Updated: 2021/10/18
 }
 
 
-if ($Windows21H2)
+if ($Windows11)
 {
 	function Set-DesktopWallpaper
 	{
@@ -2121,7 +2132,7 @@ Updated: 2020/06/27
 }
 
 
-if ($Windows21H2)
+if ($Windows11)
 {
 	function Move-Desktop
 	{
@@ -2895,4 +2906,4 @@ Updated: 2020/06/27
 }
 
 # Clean up variable
-Remove-Variable -Name Windows21H2
+Remove-Variable -Name Windows11

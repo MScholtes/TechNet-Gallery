@@ -1,7 +1,7 @@
 # Powershell commands to manage virtual desktops of Windows 10
 Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts.
 
-**Now with support for Windows 11 and Windows 10 21H2!**
+**Now with support for Windows 11 including Insider**
 
 **Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 21H2 and Windows 11!**
 
@@ -15,6 +15,9 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.10
+support for Windows 11 Insider build 22449 and up
+
 ### Update 2.9:
 support for Windows 10 21H2 and Windows 11
 

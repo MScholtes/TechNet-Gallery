@@ -10,7 +10,10 @@ program. This set of powershell commands helps out and lets you control virtual
 desktops from scripts.
 
 Now with support for desktop names introduced with Windows 10 2004!
+Now with support for Windows 11 including Insider!
 
+Update 2.10:
+support for Windows 11 Insider build 22449 and up
 Update 2.9:
 support for Windows 10 21H2 and Windows 11
 Update 2.8:
