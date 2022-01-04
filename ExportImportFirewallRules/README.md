@@ -104,11 +104,11 @@ App packet rules are stored as a SID and usually apply only to user accounts who
 ### 1.1.1 / 2022-01-04
 - export enum values as string instead of int to JSON files
 
-### 1.1.0, 2020-12-12
+### 1.1.0 / 2020-12-12
 - new parameter -Policystore
 
-### 1.0.3, 2020-10-12
+### 1.0.3 / 2020-10-12
 - default file name for JSON data has extension json now
 
-### 1.0.2, 2020-05-07
+### 1.0.2 / 2020-05-07
 - initial release on Github
