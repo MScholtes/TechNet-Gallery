@@ -1,4 +1,4 @@
-Markus Scholtes, 2020/12/12
+Markus Scholtes, 2022/01/04
 
 There is only one possibility to export and import firewall rules: as a blob
 (wfw file) in the firewall console or with a script. If you want to automate

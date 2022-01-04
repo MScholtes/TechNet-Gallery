@@ -16,8 +16,8 @@ Allowed values are PersistentStore, ActiveStore (the resultant rule set of all s
 a computer name, <domain.fqdn.com>\<GPO_Friendly_Name> and others depending on the environment.
 .NOTES
 Author: Markus Scholtes
-Version: 1.1.0
-Build date: 2020/12/12
+Version: 1.1.1
+Build date: 2022/01/04
 .EXAMPLE
 Remove-FirewallRules.ps1
 Removes all firewall rules according to a list in the CSV file FirewallRules.csv in the current directory.

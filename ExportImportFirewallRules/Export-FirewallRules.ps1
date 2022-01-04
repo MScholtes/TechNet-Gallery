@@ -30,8 +30,8 @@ Export allowing rules
 Export blocking rules
 .NOTES
 Author: Markus Scholtes
-Version: 1.1.0
-Build date: 2020/12/12
+Version: 1.1.1
+Build date: 2022/01/04
 .EXAMPLE
 Export-FirewallRules.ps1
 Exports all firewall rules to the CSV file FirewallRules.csv in the current directory.
@@ -112,33 +112,33 @@ ForEach ($Rule In $FirewallRules)
 		DisplayName = $Rule.DisplayName
 		Description = $Rule.Description
 		Group = $Rule.Group
-		Enabled = $Rule.Enabled
-		Profile = $Rule.Profile
+		Enabled = $Rule.Enabled.ToString()
+		Profile = $Rule.Profile.ToString()
 		Platform = StringArrayToList $Rule.Platform
-		Direction = $Rule.Direction
-		Action = $Rule.Action
-		EdgeTraversalPolicy = $Rule.EdgeTraversalPolicy
-		LooseSourceMapping = $Rule.LooseSourceMapping
-		LocalOnlyMapping = $Rule.LocalOnlyMapping
-		Owner = $Rule.Owner
+		Direction = $Rule.Direction.ToString()
+		Action = $Rule.Action.ToString()
+		EdgeTraversalPolicy = $Rule.EdgeTraversalPolicy.ToString()
+		LooseSourceMapping = $Rule.LooseSourceMapping.ToString()
+		LocalOnlyMapping = $Rule.LocalOnlyMapping.ToString()
+		Owner = if ($Rule.Owner) { $Rule.Owner.ToString() } else { "" }
 		LocalAddress = StringArrayToList $AdressFilter.LocalAddress
 		RemoteAddress = StringArrayToList $AdressFilter.RemoteAddress
 		Protocol = $PortFilter.Protocol
 		LocalPort = StringArrayToList $PortFilter.LocalPort
 		RemotePort = StringArrayToList $PortFilter.RemotePort
 		IcmpType = StringArrayToList $PortFilter.IcmpType
-		DynamicTarget = $PortFilter.DynamicTarget
+		DynamicTarget = if ($PortFilter.DynamicTarget) { $PortFilter.DynamicTarget.ToString() } else { "" }
 		Program = $ApplicationFilter.Program -Replace "$($ENV:SystemRoot.Replace("\","\\"))\\", "%SystemRoot%\" -Replace "$(${ENV:ProgramFiles(x86)}.Replace("\","\\").Replace("(","\(").Replace(")","\)"))\\", "%ProgramFiles(x86)%\" -Replace "$($ENV:ProgramFiles.Replace("\","\\"))\\", "%ProgramFiles%\"
-		Package = $ApplicationFilter.Package
+		Package = if ($ApplicationFilter.Package) { $ApplicationFilter.Package.ToString() } else { "" }
 		Service = $ServiceFilter.Service
 		InterfaceAlias = StringArrayToList $InterfaceFilter.InterfaceAlias
-		InterfaceType = $InterfaceTypeFilter.InterfaceType
+		InterfaceType = $InterfaceTypeFilter.InterfaceType.ToString()
 		LocalUser = $SecurityFilter.LocalUser
 		RemoteUser = $SecurityFilter.RemoteUser
 		RemoteMachine = $SecurityFilter.RemoteMachine
-		Authentication = $SecurityFilter.Authentication
-		Encryption = $SecurityFilter.Encryption
-		OverrideBlockRules = $SecurityFilter.OverrideBlockRules
+		Authentication = $SecurityFilter.Authentication.ToString()
+		Encryption = $SecurityFilter.Encryption.ToString()
+		OverrideBlockRules = $SecurityFilter.OverrideBlockRules.ToString()
 	}
 
 	# add to array with rules

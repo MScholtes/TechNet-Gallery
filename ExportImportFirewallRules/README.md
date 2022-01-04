@@ -1,7 +1,7 @@
 # Powershell scripts to export and import firewall rules
 Powershell scripts to export and import firewall rules in CSV or JSON format.
 
-Since Technet Gallery is closed, now here.
+Since Technet Gallery will be closed, now here.
 
 See Script Center version: [Powershell scripts to export and import firewall rules](https://gallery.technet.microsoft.com/scriptcenter/Powershell-to-export-and-23287694).
 
@@ -97,4 +97,18 @@ Imports all firewall rules in the JSON file WmiRules.json:
 ```
 
 ## Remarks
-There might be issues when importing rules for "metro apps" to another computer. App packet rules are stored as a SID and usually apply only to user accounts whose SIDs are stored in the export file. Those rules will not work on another computer since a SID is unique.
+There might be issues when importing rules for "metro apps" to another computer.
+
+App packet rules are stored as a SID and usually apply only to user accounts whose SIDs are stored in the export file. Those rules will not work on another computer since a SID is unique.
+## Versions
+### 1.1.1 / 2022-01-04
+- export enum values as string instead of int to JSON files
+
+### 1.1.0, 2020-12-12
+- new parameter -Policystore
+
+### 1.0.3, 2020-10-12
+- default file name for JSON data has extension json now
+
+### 1.0.2, 2020-05-07
+- initial release on Github
