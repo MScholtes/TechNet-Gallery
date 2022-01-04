@@ -1,5 +1,5 @@
 # Attention: Incorrect virus detection of PS2EXE
-**Some stupid idiots seem to have abused PS2EXE to compile their computer virus script. As a result, a rapidly growing number of virus scanners recognize programs created with PS2EXE as malicious programs and delete them.**
+**Some idiots seem to abuse PS2EXE to compile their computer virus/malware scripts. As a result, a rapidly growing number of virus scanners recognize programs created with PS2EXE as malicious programs and delete them.**
 
 **There is only one hope to save the PS2EXE project: Please send your (harmless) programs created with PS2EXE via the web forms from the virus scanners' vendors for reporting false positives (I've already done it with some of them, please use only the false positive page)!**
 
@@ -10,9 +10,9 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.15 / 2021-11-27
-VirtualDesktop 2.10:
-- support for Windows 11 Insider build 22449 and up
+### Version 1.0.16 / 2022-01-04
+ExportImportFirewallRules 1.1.1:
+- export enum values as string instead of int to JSON files
 
 For a complete list of changes see here: [Changes](Changes.md)
 

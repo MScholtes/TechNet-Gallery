@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.16 / 2022-01-04
+ExportImportFirewallRules 1.1.1:
+- export enum values as string instead of int to JSON files
+
 ### Version 1.0.15 / 2021-11-27
 VirtualDesktop 2.10:
 - support for Windows 11 Insider build 22449 and up
