@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.17 / 2022-01-21
+Powershell Webserver 1.2.2:
+ - Load index file in base dir instead of default page when present
+
 ### Version 1.0.16 / 2022-01-04
 ExportImportFirewallRules 1.1.1:
 - export enum values as string instead of int to JSON files

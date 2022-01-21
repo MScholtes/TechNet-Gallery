@@ -10,9 +10,9 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.16 / 2022-01-04
-ExportImportFirewallRules 1.1.1:
-- export enum values as string instead of int to JSON files
+### Version 1.0.17 / 2022-01-21
+Powershell Webserver 1.2.2:
+ - Load index file in base dir instead of default page when present
 
 For a complete list of changes see here: [Changes](Changes.md)
 
