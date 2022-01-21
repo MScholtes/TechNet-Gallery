@@ -49,7 +49,7 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
-Update 1.0.3 - 2022-01-19: Load index file in base dir instead of default page when present
+Update 1.2.2 - 2022-01-19: Load index file in base dir instead of default page when present
 
 Update 1.2.1 - 2021-07-04: Updated list of mime types
 
