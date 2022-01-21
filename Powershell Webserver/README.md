@@ -7,11 +7,18 @@ See Script Center version: [Powershell Webserver](https://gallery.technet.micros
 
 ### Author: Markus Scholtes
 
-### Version: 1.2.1
+### Version: 1.2.2
 
-### Date: 2021-07-04
+### Date: 2022-01-19
 
-Now also on Powershell Gallery as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
+Now also on Powershell Gallery as **WebServer** module, see [here](https://www.powershellgallery.com/packages/WebServer/) or install with
+```powershell
+Install-Module WebServer
+```
+
+Project page on github is [here](https://github.com/MScholtes/WebServer).
+
+Or as part of the **SysAdminsFriends** module, see [here](https://www.powershellgallery.com/packages/SysAdminsFriends/) or install with
 ```powershell
 Install-Module SysAdminsFriends
 ```
@@ -42,6 +49,8 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+Update 1.0.3 - 2022-01-19: Load index file in base dir instead of default page when present
+
 Update 1.2.1 - 2021-07-04: Updated list of mime types
 
 Update 1.2 - 2019-08-30

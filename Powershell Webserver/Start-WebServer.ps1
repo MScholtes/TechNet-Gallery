@@ -43,7 +43,7 @@ Delete the webserver task with
 	schtasks.exe /Delete /TN "Powershell Webserver"
 Scheduled tasks are running with low priority per default, so some functions might be slow.
 .Notes
-Version 1.2.1, 2021-07-04
+Version 1.2.2, 2022-01-19
 Author: Markus Scholtes
 .LINK
 https://github.com/MScholtes/WebServer
@@ -65,16 +65,28 @@ if ($BASEDIR -eq "")
 # convert to absolute path
 $BASEDIR = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BASEDIR)
 
+$IDXLIST = "\index.htm", "\index.html", "\default.htm", "\default.html"
+$NOIDXFILE = $TRUE
+foreach ($IDXNAME in $IDXLIST)
+{ # index file in base dir?
+	$CHECKFILE = $BASEDIR.TrimEnd("/\") + $IDXNAME
+	if (Test-Path $CHECKFILE -PathType Leaf)
+	{ # index file exists, end loop
+		$NOIDXFILE = $FALSE
+		break
+	}
+}
+
 # MIME hash table for static content
 $MIMEHASH = @{".avi"="video/x-msvideo"; ".crt"="application/x-x509-ca-cert"; ".css"="text/css"; ".der"="application/x-x509-ca-cert"; ".doc"="application/msword"; ".flv"="video/x-flv"; ".gif"="image/gif"; ".htm"="text/html"; ".html"="text/html"; ".ico"="image/x-icon"; ".jar"="application/java-archive"; ".jpeg"="image/jpeg"; ".jpg"="image/jpeg"; ".js"="application/javascript"; ".json"="application/json"; ".mjs"="application/javascript"; ".mov"="video/quicktime"; ".mp3"="audio/mpeg"; ".mp4"="video/mp4"; ".mpeg"="video/mpeg"; ".mpg"="video/mpeg"; ".pdf"="application/pdf"; ".pem"="application/x-x509-ca-cert"; ".pl"="application/x-perl"; ".png"="image/png"; ".rss"="application/rss+xml"; ".shtml"="text/html"; ".txt"="text/plain"; ".war"="application/java-archive"; ".wmv"="video/x-ms-wmv"; ".xml"="application/xml"; ".xsl"="application/xml"}
 
 # HTML answer templates for specific calls, placeholders !RESULT, !FORMFIELD, !PROMPT are allowed
 $HTMLRESPONSECONTENTS = @{
-	'GET /'  =  @"
+	'GET /command'  =  @"
 <!doctype html><html><body>
 	!HEADERLINE
 	<pre>!RESULT</pre>
-	<form method="GET" action="/">
+	<form method="GET" action="/command">
 	<b>!PROMPT&nbsp;</b><input type="text" maxlength=255 size=80 name="command" value='!FORMFIELD'>
 	<input type="submit" name="button" value="Enter">
 	</form>
@@ -131,7 +143,7 @@ $HTMLRESPONSECONTENTS = @{
 }
 
 # Set navigation header line for all web pages
-$HEADERLINE = "<p><a href='/'>Command execution</a> <a href='/script'>Execute script</a> <a href='/download'>Download file</a> <a href='/upload'>Upload file</a> <a href='/log'>Web logs</a> <a href='/starttime'>Webserver start time</a> <a href='/time'>Current time</a> <a href='/beep'>Beep</a> <a href='/quit'>Stop webserver</a></p>"
+$HEADERLINE = "<p><a href='/command'>Command execution</a> <a href='/script'>Execute script</a> <a href='/download'>Download file</a> <a href='/upload'>Upload file</a> <a href='/log'>Web logs</a> <a href='/starttime'>Webserver start time</a> <a href='/time'>Current time</a> <a href='/beep'>Beep</a> <a href='/quit'>Stop webserver</a></p>"
 
 # Starting the powershell webserver
 "$(Get-Date -Format s) Starting powershell webserver..."
@@ -159,13 +171,14 @@ try
 
 		# is there a fixed coding for the request?
 		$RECEIVED = '{0} {1}' -f $REQUEST.httpMethod, $REQUEST.Url.LocalPath
+		if (($RECEIVED -eq "GET /") -and ($NOIDXFILE)) { $RECEIVED = "GET /command" }
 		$HTMLRESPONSE = $HTMLRESPONSECONTENTS[$RECEIVED]
 		$RESULT = ''
 
 		# check for known commands
 		switch ($RECEIVED)
 		{
-			"GET /"
+			"GET /command"
 			{	# execute command
 				# retrieve GET query string
 				$FORMFIELD = ''
@@ -577,14 +590,15 @@ try
 						{ # link to parent directory
 							$PARENTDIR = (Split-Path $REQUEST.Url.LocalPath -Parent) -replace '\\','/'
 							if ($PARENTDIR.IndexOf("/") -ne 0) { $PARENTDIR = "/" + $PARENTDIR }
-							$HTMLRESPONSE += "<pre><a href=""$PARENTDIR"">[To Parent Directory]</a><br><br>"
+							$PARENTDIR = $PARENTDIR.TrimEnd("/\")
+							$HTMLRESPONSE += "<pre><a href=""$PARENTDIR/"">[Parent directory]</a><br><br>"
 						}
 
 						# read in directory listing
 						$ENTRIES = Get-ChildItem -EA SilentlyContinue -Path $CHECKDIR
 
 						# process directories
-						$ENTRIES | Where-Object { $_.PSIsContainer } | ForEach-Object { $HTMLRESPONSE += "$($_.LastWriteTime.ToString())       &lt;dir&gt; <a href=""$(Join-Path $REQUEST.Url.LocalPath $_.Name)"">$($_.Name)</a><br>" }
+						$ENTRIES | Where-Object { $_.PSIsContainer } | ForEach-Object { $HTMLRESPONSE += "$($_.LastWriteTime.ToString())       &lt;dir&gt; <a href=""$(Join-Path $REQUEST.Url.LocalPath $_.Name)/"">$($_.Name)</a><br>" }
 
 						# process files
 						$ENTRIES | Where-Object { !$_.PSIsContainer } | ForEach-Object { $HTMLRESPONSE += "$($_.LastWriteTime.ToString())  $("{0,10}" -f $_.Length) <a href=""$(Join-Path $REQUEST.Url.LocalPath $_.Name)"">$($_.Name)</a><br>" }
@@ -641,7 +655,7 @@ try
 					if (!(Test-Path $CHECKDIR -PathType Container))
 					{
 						$RESPONSE.StatusCode = 404
-						$HTMLRESPONSE = '<!doctype html><html><body>Diese Seite ist nicht vorhanden</body></html>'
+						$HTMLRESPONSE = '<!doctype html><html><body>Page not found</body></html>'
 					}
 				}
 			}
