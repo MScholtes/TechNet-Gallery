@@ -107,6 +107,9 @@ After stopping the webserver you should remove the rule, e.g.:
 netsh advfirewall firewall delete rule name="Powershell Webserver"
 ```
 
+### How to enable https encryption
+You can also let the **Powershell Webserver** deliver encrypted traffic. For a description look [here](https.md).
+
 ### Security
 There is no security!!! Once started the webserver can be accessed by everyone and everyone can do on the webserver system what you can do.
 
