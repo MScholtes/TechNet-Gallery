@@ -1,6 +1,6 @@
-Virtualdesktop.ps1		by Markus Scholtes, 2021
+Virtualdesktop.ps1		by Markus Scholtes, 2022
 
-Powershell commands to manage virtual desktops of Windows 10
+Powershell commands to manage virtual desktops of Windows 10 and Windows 11
 
 
 
@@ -11,7 +11,14 @@ desktops from scripts.
 
 Now with support for desktop names introduced with Windows 10 2004!
 Now with support for Windows 11 including Insider!
+Now with support for Windows Server 2022!
+Now with support for Powershell Core!
+Now with support for Windows Terminal!
 
+Update 2.11:
+support for Powershell Core
+support for Windows Server 2022
+support for Windows Terminal
 Update 2.10:
 support for Windows 11 Insider build 22449 and up
 Update 2.9:
@@ -77,7 +84,7 @@ For a C# implementation look here: https://github.com/MScholtes/VirtualDesktop
 
 The API is not or rarely documented by Microsoft. So there is a risk Microsoft
 changes the API with an os update and this script will then not work anymore
-(Microsoft did so already with anniversary update, with 1803 and 1809).
+(Microsoft did so already with anniversary update, with 1803, 1809, Server 2022, Windows 11 Insider).
 
 
 
@@ -106,7 +113,7 @@ second desktop is used instead. If the current desktop is removed, this fallback
 If no parameter is supplied, the last desktop is removed.
 
 Remove-AllDesktops
-Remove all virtual desktops but visible. Works only on Windows 10 21H2 and Windows 11.
+Remove all virtual desktops but visible. Works only with Windows 11.
 
 Get-CurrentDesktop
 Get current virtual desktop as desktop object.
@@ -121,13 +128,13 @@ Get-DesktopName -Desktop desktop
 Get name of virtual desktop. Returns string.
 
 Set-DesktopName -Desktop desktop -Name name -PassThru
-Set name of virtual desktop to name. Works only on Windows 10 2004 or up and not with Powershell Core 7.1 or up!
+Set name of virtual desktop to name. Works only with Windows 10 2004 or up.
 
 Set-DesktopWallpaper -Desktop desktop -Path path -PassThru
-Set wallpaper of virtual desktop to path. Works only on Windows 10 21H2 and Windows 11.
+Set wallpaper of virtual desktop to path. Works only with Windows 11.
 
 Set-AllDesktopWallpapers -Path path
-Set wallpaper of all virtual desktops to path. Works only on Windows 10 21H2 and Windows 11.
+Set wallpaper of all virtual desktops to path. Works only with Windows 11.
 
 Get-DesktopFromWindow -Hwnd hwnd
 Get virtual desktop of window (whose window handle is passed). Returns desktop object.
@@ -144,7 +151,7 @@ Get the desktop object on the "right" side.If there is no desktop on the "right"
 Returns desktop "right" to current desktop if parameter desktop is omitted.
 
 Move-Desktop -Desktop desktop
-Move current desktop to other virtual desktop. Works only on Windows 10 21H2 and Windows 11.
+Move current desktop to other virtual desktop. Works only with Windows 11.
 
 Move-Window -Desktop desktop -Hwnd hwnd
 Move window whose handle is passed to virtual desktop.

@@ -1,15 +1,15 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.10 - support for Windows 11 incl. Insider, 2021/11/27
+# Version 2.11 - support for Powershell Core, 2022/02/13
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
-if ($PSVersionTable.PSVersion.Major -lt 6)
-{ # Powershell 5.x
+if ($PSEdition -eq "Desktop")
+{ # Windows Powershell
 	$OSVer = $PSVersionTable.BuildVersion.Major
 	$OSBuild = $PSVersionTable.BuildVersion.Build
 }
 else
-{ # Powershell 6.x or up
+{ # Powershell Core
 	$OSVer = [Environment]::OSVersion.Version.Major
 	$OSBuild = [Environment]::OSVersion.Version.Build
 }
@@ -26,35 +26,6 @@ if ($OSBuild -lt 14393)
 	exit -1
 }
 
-$Windows1607 = $TRUE
-$Windows1803 = $FALSE
-$Windows1809 = $FALSE
-$Windows11 = $FALSE
-$Windows22449 = $FALSE
-if ($OSBuild -ge 17134)
-{
-	$Windows1607 = $FALSE
-	$Windows1803 = $TRUE
-}
-if ($OSBuild -ge 17661)
-{
-	$Windows1607 = $FALSE
-	$Windows1803 = $FALSE
-	$Windows1809 = $TRUE
-}
-
-if ($OSBuild -ge 22000)
-{
-	$Windows1607 = $FALSE
-	$Windows1803 = $FALSE
-	$Windows1809 = $FALSE
-	$Windows11 = $TRUE
-}
-if ($OSBuild -ge 22449)
-{
-	$Windows22449 = $TRUE
-}
-
 Add-Type -Language CSharp -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
@@ -66,6 +37,50 @@ using System.Text;
 
 namespace VirtualDesktop
 {
+	#region Type definitions
+	// define HString on .Net 5 / overwrite HString on .Net 4 (Copyright (c) 2021 voed, https://github.com/voed/VirtualDesktop.Net5)
+	[StructLayout(LayoutKind.Sequential)]
+	public struct HString : IDisposable
+	{
+		private readonly IntPtr handle;
+		public static HString FromString(string s)
+		{
+			var h = Marshal.AllocHGlobal(IntPtr.Size);
+			Marshal.ThrowExceptionForHR(WindowsCreateString(s, s.Length, h));
+			return Marshal.PtrToStructure<HString>(h);
+		}
+
+		public void Delete()
+		{
+			WindowsDeleteString(handle);
+		}
+
+		[DllImport("api-ms-win-core-winrt-string-l1-1-0.dll", CallingConvention = CallingConvention.StdCall)]
+		private static extern int WindowsCreateString([MarshalAs(UnmanagedType.LPWStr)] string sourceString, int length, [Out] IntPtr hstring);
+
+		[DllImport("api-ms-win-core-winrt-string-l1-1-0.dll", CallingConvention = CallingConvention.StdCall, ExactSpelling = true)]
+		private static extern int WindowsDeleteString(IntPtr hstring);
+
+		[DllImport("api-ms-win-core-winrt-string-l1-1-0.dll", CallingConvention = CallingConvention.StdCall, ExactSpelling = true, CharSet = CharSet.Unicode)]
+		private static extern IntPtr WindowsGetStringRawBuffer(HString hString, IntPtr length);
+
+		public void Dispose()
+		{
+			Delete();
+		}
+
+		public static implicit operator string(HString hString)
+		{
+			var str = Marshal.PtrToStringUni(WindowsGetStringRawBuffer(hString, IntPtr.Zero));
+			hString.Delete();
+			if (null != str)
+				return str;
+			else
+				return string.Empty;
+		}
+	}
+	#endregion
+
 	#region COM API
 	internal static class Guids
 	{
@@ -108,20 +123,23 @@ namespace VirtualDesktop
 	}
 
 	[ComImport]
-// https://github.com/mzomparelli/zVirtualDesktop/wiki: Updated interfaces in Windows 10 build 17134, 17661, and 17666
-$(if ($Windows1607) {@"
-// Windows 10 1607 and Server 2016:
+$(if (($PSEdition -eq "Core") -Or ($OSBuild -lt 17134)) {@"
+// Windows 10 1607 and Server 2016 or Powershell Core:
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+"@ } else {@"
+// Windows 10 1803, up and Windows Powershell:
+	[InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
+"@ })
+$(if ($OSBuild -lt 17134) {@"
+// Windows 10 1607 and Server 2016:
 	[Guid("9AC0B5C8-1484-4C5B-9533-4134A0F97CEA")]
 "@ })
-$(if ($Windows1803) {@"
+$(if (($OSBuild -ge 17134) -And ($OSBuild -lt 17661)) {@"
 // Windows 10 1803:
-	[InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
 	[Guid("871F602A-2B58-42B4-8C4B-6C43D642C06F")]
 "@ })
-$(if ($Windows1809 -or $Windows11) {@"
+$(if ($OSBuild -ge 17661) {@"
 // Windows 10 1809 or up and Windows 11:
-	[InterfaceType(ComInterfaceType.InterfaceIsIInspectable)]
 	[Guid("372E1D3B-38D3-42E4-A15B-8AB2B178F513")]
 "@ })
 	internal interface IApplicationView
@@ -153,14 +171,14 @@ $(if ($Windows1809 -or $Windows11) {@"
 		int CanReceiveInput(out bool canReceiveInput);
 		int GetCompatibilityPolicyType(out APPLICATION_VIEW_COMPATIBILITY_POLICY flags);
 		int SetCompatibilityPolicyType(APPLICATION_VIEW_COMPATIBILITY_POLICY flags);
-$(if ($Windows1607) {@"
+$(if ($OSBuild -lt 17134) {@"
 		int GetPositionPriority(out IntPtr /* IShellPositionerPriority** */ priority);
 		int SetPositionPriority(IntPtr /* IShellPositionerPriority* */ priority);
 "@ })
 		int GetSizeConstraints(IntPtr /* IImmersiveMonitor* */ monitor, out Size size1, out Size size2);
 		int GetSizeConstraintsForDpi(uint uint1, out Size size1, out Size size2);
 		int SetSizeConstraintsForDpi(ref uint uint1, ref Size size1, ref Size size2);
-$(if ($Windows1607) {@"
+$(if ($OSBuild -lt 17134) {@"
 		int QuerySizeConstraintsFromApp();
 "@ })
 		int OnMinSizePreferencesUpdated(IntPtr hwnd);
@@ -173,13 +191,13 @@ $(if ($Windows1607) {@"
 		int EnumerateOwnershipTree(out IObjectArray ownershipTree);
 		int GetEnterpriseId([MarshalAs(UnmanagedType.LPWStr)] out string enterpriseId);
 		int IsMirrored(out bool isMirrored);
-$(if ($Windows1803) {@"
+$(if (($OSBuild -ge 17134) -And ($OSBuild -lt 17661)) {@"
 		int Unknown1(out int unknown);
 		int Unknown2(out int unknown);
 		int Unknown3(out int unknown);
 		int Unknown4(out int unknown);
 "@ })
-$(if ($Windows1809 -or $Windows11) {@"
+$(if ($OSBuild -ge 17661) {@"
 		int Unknown1(out int unknown);
 		int Unknown2(out int unknown);
 		int Unknown3(out int unknown);
@@ -197,15 +215,15 @@ $(if ($Windows1809 -or $Windows11) {@"
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($Windows1607) {@"
+$(if ($OSBuild -lt 17134) {@"
 // Windows 10 1607 and Server 2016:
 	[Guid("2C08ADF0-A386-4B35-9250-0FE183476FCC")]
 "@ })
-$(if ($Windows1803) {@"
+$(if (($OSBuild -ge 17134) -And ($OSBuild -lt 17661)) {@"
 // Windows 10 1803:
 	[Guid("2C08ADF0-A386-4B35-9250-0FE183476FCC")]
 "@ })
-$(if ($Windows1809 -or $Windows11) {@"
+$(if ($OSBuild -ge 17661) {@"
 // Windows 10 1809 or up and Windows 11:
 	[Guid("1841C6D7-4F9D-42C0-AF41-8747538F10E5")]
 "@ })
@@ -218,18 +236,14 @@ $(if ($Windows1809 -or $Windows11) {@"
 		int GetViewForApplication(object application, out IApplicationView view);
 		int GetViewForAppUserModelId(string id, out IApplicationView view);
 		int GetViewInFocus(out IntPtr view);
-$(if ($Windows1803 -or $Windows1809 -or $Windows11) {@"
+$(if ($OSBuild -ge 17134) {@"
 // Windows 10 1803 or up and Windows 11:
 		int Unknown1(out IntPtr view);
 "@ })
 		void RefreshCollection();
 		int RegisterForApplicationViewChanges(object listener, out int cookie);
-$(if ($Windows1607) {@"
-// Windows 10 1607 and Server 2016:
-		int RegisterForApplicationViewPositionChanges(object listener, out int cookie);
-"@ })
-$(if ($Windows1803) {@"
-// Windows 10 1803:
+$(if ($OSBuild -lt 17661) {@"
+// Windows 10 1607 and Server 2016 and Windows 10 1803:
 		int RegisterForApplicationViewPositionChanges(object listener, out int cookie);
 "@ })
 		int UnregisterForApplicationViewChanges(int cookie);
@@ -237,10 +251,15 @@ $(if ($Windows1803) {@"
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($Windows11) {@"
+$(if ($OSBuild -ge 22000) {@"
 // Windows 11:
 	[Guid("536D3495-B208-4CC9-AE26-DE8111275BF8")]
-"@ } else {@"
+"@ })
+$(if ($OSBuild -eq 20348) {@"
+// Windows Server 2022:
+	[Guid("62fdf88b-11ca-4afb-8bd8-2296dfae49e2")]
+"@ })
+$(if ($OSBuild -lt 20348) {@"
 // Windows 10:
 	[Guid("FF72FFDD-BE7E-43FC-9C03-AD81681E88E4")]
 "@ })
@@ -248,18 +267,20 @@ $(if ($Windows11) {@"
 	{
 		bool IsViewVisible(IApplicationView view);
 		Guid GetId();
-$(if ($Windows11) {@"
+$(if ($OSBuild -ge 20348) {@"
+// Windows Server 2022 and Windows 11:
 		IntPtr Unknown1();
-		[return: MarshalAs(UnmanagedType.HString)]
-		string GetName();
-		[return: MarshalAs(UnmanagedType.HString)]
-		string GetWallpaperPath();
+		HString GetName();
+"@ })
+$(if ($OSBuild -ge 22000) {@"
+// Windows 11:
+		HString GetWallpaperPath();
 "@ })
 	}
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($Windows11) {@"
+$(if ($OSBuild -ge 22000) {@"
 // Windows 11:
 	[Guid("B2F925B9-5A0F-4D2E-9F4D-2B1507593C10")]
 	internal interface IVirtualDesktopManagerInternal
@@ -269,11 +290,11 @@ $(if ($Windows11) {@"
 		bool CanViewMoveDesktops(IApplicationView view);
 		IVirtualDesktop GetCurrentDesktop(IntPtr hWndOrMon);
 "@ })
-$(if ($Windows22449) {@"
+$(if ($OSBuild -ge 22449) {@"
 // Windows 11 Insider:
 		IObjectArray GetAllCurrentDesktops();
 "@ })
-$(if ($Windows11) {@"
+$(if ($OSBuild -ge 22000) {@"
 		void GetDesktops(IntPtr hWndOrMon, out IObjectArray desktops);
 		[PreserveSig]
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
@@ -283,15 +304,37 @@ $(if ($Windows11) {@"
 		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
 		IVirtualDesktop FindDesktop(ref Guid desktopid);
 		void GetDesktopSwitchIncludeExcludeViews(IVirtualDesktop desktop, out IObjectArray unknown1, out IObjectArray unknown2);
-		void SetDesktopName(IVirtualDesktop desktop, [MarshalAs(UnmanagedType.HString)] string name);
-		void SetDesktopWallpaper(IVirtualDesktop desktop, [MarshalAs(UnmanagedType.HString)] string path);
-		void UpdateWallpaperPathForAllDesktops([MarshalAs(UnmanagedType.HString)] string path);
+		void SetDesktopName(IVirtualDesktop desktop, HString name);
+		void SetDesktopWallpaper(IVirtualDesktop desktop, HString path);
+		void UpdateWallpaperPathForAllDesktops(HString path);
 		void CopyDesktopState(IApplicationView pView0, IApplicationView pView1);
 		int GetDesktopIsPerMonitor();
 		void SetDesktopIsPerMonitor(bool state);
 	}
-
-"@ } else {@"
+"@ })
+$(if ($OSBuild -eq 20348) {@"
+// Windows Server 2022:
+	[Guid("094afe11-44f2-4ba0-976f-29a97e263ee0")]
+	internal interface IVirtualDesktopManagerInternal
+	{
+		int GetCount(IntPtr hWndOrMon);
+		void MoveViewToDesktop(IApplicationView view, IVirtualDesktop desktop);
+		bool CanViewMoveDesktops(IApplicationView view);
+		IVirtualDesktop GetCurrentDesktop(IntPtr hWndOrMon);
+		void GetDesktops(IntPtr hWndOrMon, out IObjectArray desktops);
+		[PreserveSig]
+		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
+		void SwitchDesktop(IntPtr hWndOrMon, IVirtualDesktop desktop);
+		IVirtualDesktop CreateDesktop(IntPtr hWndOrMon);
+		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
+		IVirtualDesktop FindDesktop(ref Guid desktopid);
+		void GetDesktopSwitchIncludeExcludeViews(IVirtualDesktop desktop, out IObjectArray unknown1, out IObjectArray unknown2);
+		void SetDesktopName(IVirtualDesktop desktop, HString name);
+		void CopyDesktopState(IApplicationView pView0, IApplicationView pView1);
+		int GetDesktopIsPerMonitor();
+	}
+"@ })
+$(if ($OSBuild -lt 20348) {@"
 // Windows 10:
 	[Guid("F31574D6-B682-4CDC-BD56-1827860ABEC6")]
 	internal interface IVirtualDesktopManagerInternal
@@ -326,7 +369,7 @@ $(if ($Windows11) {@"
 		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
 		IVirtualDesktop FindDesktop(ref Guid desktopid);
 		void Unknown1(IVirtualDesktop desktop, out IntPtr unknown1, out IntPtr unknown2);
-		void SetName(IVirtualDesktop desktop, [MarshalAs(UnmanagedType.HString)] string name);
+		void SetName(IVirtualDesktop desktop, HString name);
 	}
 "@ })
 
@@ -379,7 +422,7 @@ $(if ($Windows11) {@"
 		{
 			var shell = (IServiceProvider10)Activator.CreateInstance(Type.GetTypeFromCLSID(Guids.CLSID_ImmersiveShell));
 			VirtualDesktopManagerInternal = (IVirtualDesktopManagerInternal)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal).GUID);
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 // Windows 10:
 			try {
 				VirtualDesktopManagerInternal2 = (IVirtualDesktopManagerInternal2)shell.QueryService(Guids.CLSID_VirtualDesktopManagerInternal, typeof(IVirtualDesktopManagerInternal2).GUID);
@@ -394,7 +437,7 @@ $(if (-not $Windows11) {@"
 		}
 
 		internal static IVirtualDesktopManagerInternal VirtualDesktopManagerInternal;
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 // Windows 10:
 		internal static IVirtualDesktopManagerInternal2 VirtualDesktopManagerInternal2;
 "@ })
@@ -404,14 +447,14 @@ $(if (-not $Windows11) {@"
 
 		internal static IVirtualDesktop GetDesktop(int index)
 		{	// get desktop with index
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			int count = VirtualDesktopManagerInternal.GetCount();
 "@ } else {@"
 			int count = VirtualDesktopManagerInternal.GetCount(IntPtr.Zero);
 "@ })
 			if (index < 0 || index >= count) throw new ArgumentOutOfRangeException("index");
 			IObjectArray desktops;
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			VirtualDesktopManagerInternal.GetDesktops(out desktops);
 "@ } else {@"
 			VirtualDesktopManagerInternal.GetDesktops(IntPtr.Zero, out desktops);
@@ -427,13 +470,13 @@ $(if (-not $Windows11) {@"
 			int index = -1;
 			Guid IdSearch = desktop.GetId();
 			IObjectArray desktops;
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			VirtualDesktopManagerInternal.GetDesktops(out desktops);
 "@ } else {@"
 			VirtualDesktopManagerInternal.GetDesktops(IntPtr.Zero, out desktops);
 "@ })
 			object objdesktop;
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			for (int i = 0; i < VirtualDesktopManagerInternal.GetCount(); i++)
 "@ } else {@"
 			for (int i = 0; i < VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); i++)
@@ -550,7 +593,7 @@ $(if (-not $Windows11) {@"
 
 		public static int Count
 		{ // return the number of desktops
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(); }
 "@ } else {@"
 			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); }
@@ -559,7 +602,7 @@ $(if (-not $Windows11) {@"
 
 		public static Desktop Current
 		{ // returns current desktop
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			get { return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 "@ } else {@"
 			get { return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero)); }
@@ -639,7 +682,7 @@ $(if (-not $Windows11) {@"
 				return true;
 		}
 
-$(if ($Windows11) {@"
+$(if ($OSBuild -ge 22000) {@"
 		public static string DesktopWallpaperFromIndex(int index)
 		{ // return name of desktop wallpaper from index (-> index = 0..Count-1)
 
@@ -658,7 +701,7 @@ $(if ($Windows11) {@"
 		{ // get index of desktop with partial name, return -1 if no desktop found
 			int index = -1;
 
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(); i++)
 "@ } else {@"
 			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); i++)
@@ -675,7 +718,7 @@ $(if (-not $Windows11) {@"
 
 		public static Desktop Create()
 		{ // create a new desktop
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.CreateDesktop());
 "@ } else {@"
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.CreateDesktop(IntPtr.Zero));
@@ -704,7 +747,27 @@ $(if (-not $Windows11) {@"
 			DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(ivd, fallbackdesktop);
 		}
 
-$(if ($Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
+		public void SetName(string Name)
+		{ // set name for desktop, empty string removes name
+			if (DesktopManager.VirtualDesktopManagerInternal2 != null)
+			{ // only if interface to set name is present
+				HString hstring = HString.FromString(Name);
+				DesktopManager.VirtualDesktopManagerInternal2.SetName(this.ivd, hstring);
+				hstring.Delete();
+			}
+		}
+"@ })
+$(if ($OSBuild -ge 20348) {@"
+		public void SetName(string Name)
+		{ // set name for desktop, empty string removes name
+			HString hstring = HString.FromString(Name);
+			DesktopManager.VirtualDesktopManagerInternal.SetDesktopName(this.ivd, hstring);
+			hstring.Delete();
+		}
+
+"@ })
+$(if ($OSBuild -ge 22000) {@"
 		public static void RemoveAll()
 		{ // remove all desktops but visible
 			DesktopManager.VirtualDesktopManagerInternal.SetDesktopIsPerMonitor(true);
@@ -715,35 +778,26 @@ $(if ($Windows11) {@"
 			DesktopManager.VirtualDesktopManagerInternal.MoveDesktop(ivd, IntPtr.Zero, index);
 		}
 
-		public void SetName(string Name)
-		{ // set name for desktop, empty string removes name
-			DesktopManager.VirtualDesktopManagerInternal.SetDesktopName(this.ivd, Name);
-		}
-
 		public void SetWallpaperPath(string Path)
 		{ // set path for wallpaper, empty string removes path
 			if (string.IsNullOrEmpty(Path)) throw new ArgumentNullException();
-			DesktopManager.VirtualDesktopManagerInternal.SetDesktopWallpaper(this.ivd, Path);
+			HString hstring = HString.FromString(Path);
+			DesktopManager.VirtualDesktopManagerInternal.SetDesktopWallpaper(this.ivd, hstring);
+			hstring.Delete();
 		}
 
 		public static void SetAllWallpaperPaths(string Path)
 		{ // set wallpaper path for all desktops
 			if (string.IsNullOrEmpty(Path)) throw new ArgumentNullException();
-			DesktopManager.VirtualDesktopManagerInternal.UpdateWallpaperPathForAllDesktops(Path);
-		}
-"@ } else {@"
-		public void SetName(string Name)
-		{ // set name for desktop, empty string removes name
-			if (DesktopManager.VirtualDesktopManagerInternal2 != null)
-			{ // only if interface to set name is present
-				DesktopManager.VirtualDesktopManagerInternal2.SetName(this.ivd, Name);
-			}
+			HString hstring = HString.FromString(Path);
+			DesktopManager.VirtualDesktopManagerInternal.UpdateWallpaperPathForAllDesktops(hstring);
+			hstring.Delete();
 		}
 "@ })
 
 		public bool IsVisible
 		{ // return true if this desktop is the current displayed one
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			get { return object.ReferenceEquals(ivd, DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 "@ } else {@"
 			get { return object.ReferenceEquals(ivd, DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero)); }
@@ -752,7 +806,7 @@ $(if (-not $Windows11) {@"
 
 		public void MakeVisible()
 		{ // make this desktop visible
-$(if (-not $Windows11) {@"
+$(if ($OSBuild -lt 20348) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
 "@ } else {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(IntPtr.Zero, ivd);
@@ -936,10 +990,6 @@ $(if (-not $Windows11) {@"
 }
 "@
 
-# Clean up variables
-Remove-Variable -Name Windows1607,Windows1803,Windows1809,Windows22449,OSVer,OSBuild
-
-
 function Get-DesktopCount
 {
 <#
@@ -974,7 +1024,7 @@ Updated: 2020/06/27
 }
 
 
-if ($Windows11)
+if ($OSBuild -ge 22000)
 {
 	function Get-DesktopList
 	{
@@ -1266,7 +1316,7 @@ Updated: 2020/06/27
 }
 
 
-if ($Windows11)
+if ($OSBuild -ge 22000)
 {
 	function Remove-AllDesktops
 	{
@@ -1678,7 +1728,7 @@ Updated: 2021/10/18
 }
 
 
-if ($Windows11)
+if ($OSBuild -ge 22000)
 {
 	function Set-DesktopWallpaper
 	{
@@ -2132,7 +2182,7 @@ Updated: 2020/06/27
 }
 
 
-if ($Windows11)
+if ($OSBuild -ge 22000)
 {
 	function Move-Desktop
 	{
@@ -2797,16 +2847,25 @@ https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79c
 .NOTES
 Author: Markus Scholtes
 Created: 2018/10/22
-Updated: 2020/06/27
+Updated: 2022/02/25
 #>
 	[Cmdletbinding()]
 	Param()
 
 	Write-Verbose "Retrieving console window handle"
-	if ([VirtualDesktop.Desktop]::GetConsoleWindow() -ne 0)
-	{ return [VirtualDesktop.Desktop]::GetConsoleWindow() }
-	else # maybe script is started in ISE
-	{ return (Get-Process -PID $PID).MainWindowHandle }
+	if ($NULL -ne $ENV:wt_session) 
+	{ # seems to be running in Windows Terminal
+		$HANDLE = (Get-Process -PID ((Get-WmiObject -Class win32_process -Filter "processid='$PID'").ParentProcessId)).MainWindowHandle
+	}
+	else
+	{ # Powershell in own console
+		$HANDLE = [VirtualDesktop.Desktop]::GetConsoleWindow()
+		if ($HANDLE -eq 0)
+		{ # maybe script is started in ISE
+			$HANDLE = (Get-Process -PID $PID).MainWindowHandle
+		}
+	}
+	return $HANDLE
 }
 
 
@@ -2905,5 +2964,5 @@ Updated: 2020/06/27
 	}
 }
 
-# Clean up variable
-Remove-Variable -Name Windows11
+# Clean up variables
+Remove-Variable -Name OSVer,OSBuild
