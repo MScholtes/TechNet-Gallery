@@ -84,7 +84,7 @@ For a C# implementation look here: https://github.com/MScholtes/VirtualDesktop
 
 The API is not or rarely documented by Microsoft. So there is a risk Microsoft
 changes the API with an os update and this script will then not work anymore
-(Microsoft did so already with anniversary update, with 1803, 1809, Server 2022, Windows 11 Insider).
+(Microsoft did so already with anniversary update, 1803, 1809, Server 2022 and Windows 11).
 
 
 

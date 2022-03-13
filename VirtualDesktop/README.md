@@ -126,7 +126,7 @@ Pin-Window ((Get-Process "notepad")[0].MainWindowHandle)
 ## Remarks
 For a C# implementation look here:  https://github.com/MScholtes/VirtualDesktop
 
-The API is not or rarely documented by Microsoft. So there is a risk Microsoft changes the API with an os update and this script will then not work anymore (Microsoft did so already with anniversary update, with 1803 and 1809).
+The API is not or rarely documented by Microsoft. So there is a risk Microsoft changes the API with an os update and this script will then not work anymore (Microsoft did so already with anniversary update, 1803, 1809, Server 2022 and Windows 11).
 
 ## List of commands:
 For most of the functions you can hand the parameter as parameter or through the pipeline
