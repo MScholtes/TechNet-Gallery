@@ -10,9 +10,11 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.17 / 2022-01-21
-Powershell Webserver 1.2.2:
- - Load index file in base dir instead of default page when present
+### Version 1.0.18 / 2022-03-13
+VirtualDesktop 2.11:
+- support for Powershell Core
+- support for Windows Server 2022
+- support for Windows Terminal
 
 For a complete list of changes see here: [Changes](Changes.md)
 
