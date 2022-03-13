@@ -2,9 +2,13 @@
 Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts.
 
 **Now with support for Windows 11 including Insider**
+
 **Now with support for Windows Server 2022**
+
 **Now with support for Powershell Core**
+
 **Now with support for Windows Terminal**
+
 
 **Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 21H2, Windows Server 2022 and Windows 11!**
 
