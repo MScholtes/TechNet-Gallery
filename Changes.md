@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.19 / 2022-04-15
+Powershell Webserver 1.3:
+- logs response code
+- scripts (.ps1, .bat and .cmd) in web directory are executed by web server
+
 ### Version 1.0.18 / 2022-03-13
 VirtualDesktop 2.11:
 - support for Powershell Core

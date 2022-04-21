@@ -10,11 +10,10 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.18 / 2022-03-13
-VirtualDesktop 2.11:
-- support for Powershell Core
-- support for Windows Server 2022
-- support for Windows Terminal
+### Version 1.0.19 / 2022-04-15
+Powershell Webserver 1.3:
+- logs response code
+- scripts (.ps1, .bat and .cmd) in web directory are executed by web server
 
 For a complete list of changes see here: [Changes](Changes.md)
 
