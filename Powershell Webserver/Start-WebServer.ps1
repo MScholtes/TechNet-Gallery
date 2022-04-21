@@ -43,7 +43,7 @@ Delete the webserver task with
 	schtasks.exe /Delete /TN "Powershell Webserver"
 Scheduled tasks are running with low priority per default, so some functions might be slow.
 .Notes
-Version 1.2.2, 2022-01-19
+Version 1.3, 2022-04-15
 Author: Markus Scholtes
 .LINK
 https://github.com/MScholtes/WebServer
@@ -164,10 +164,8 @@ try
 		$RESPONSE = $CONTEXT.Response
 		$RESPONSEWRITTEN = $FALSE
 
-		# log to console
-		"$(Get-Date -Format s) $($REQUEST.RemoteEndPoint.Address.ToString()) $($REQUEST.httpMethod) $($REQUEST.Url.PathAndQuery)"
-		# and in log variable
-		$WEBLOG += "$(Get-Date -Format s) $($REQUEST.RemoteEndPoint.Address.ToString()) $($REQUEST.httpMethod) $($REQUEST.Url.PathAndQuery)`n"
+		# start logging
+		$LOGLINE = "$(Get-Date -Format s) $($REQUEST.RemoteEndPoint.Address.ToString())"
 
 		# is there a fixed coding for the request?
 		$RECEIVED = '{0} {1}' -f $REQUEST.httpMethod, $REQUEST.Url.LocalPath
@@ -617,37 +615,83 @@ try
 
 				if ($CHECKFILE -ne "")
 				{ # static content available
-					try {
-						# ... serve static content
-						$BUFFER = [System.IO.File]::ReadAllBytes($CHECKFILE)
-						$RESPONSE.ContentLength64 = $BUFFER.Length
-						$RESPONSE.SendChunked = $FALSE
-						$EXTENSION = [IO.Path]::GetExtension($CHECKFILE)
-						if ($MIMEHASH.ContainsKey($EXTENSION))
-						{ # known mime type for this file's extension available
-							$RESPONSE.ContentType = $MIMEHASH.Item($EXTENSION)
+					$EXTENSION = [IO.Path]::GetExtension($CHECKFILE)
+					if ($EXTENSION -in @(".bat", ".cmd", ".ps1"))
+					{ # ... execute script
+						$PARAMETERS = ''
+						$PARAMETERS = [URI]::UnescapeDataString($REQUEST.Url.Query)
+						if (![STRING]::IsNullOrEmpty($PARAMETERS))
+						{ # remove seperators for query string
+							$PARAMETERS = $PARAMETERS.Substring(1) -replace "\+"," " -replace "&"," "
+						}
+						$HTMLRESPONSE = "<!doctype html><html><body><pre>!RESULT</pre></body></html>"
+						if ($EXTENSION -eq ".ps1")
+						{
+							try {
+								$SCRIPTFILE = [System.IO.File]::ReadAllText($CHECKFILE)
+								$EXECUTE = "function Powershell-WebServer-Func {`n" + $SCRIPTFILE + "`n}`nPowershell-WebServer-Func " + $PARAMETERS
+								$RESULT = Invoke-Expression -EA SilentlyContinue $EXECUTE 2> $NULL | Out-String
+							}
+							catch
+							{
+								# just ignore. Error handling comes afterwards since not every error throws an exception
+							}
+							if ($Error.Count -gt 0)
+							{ # retrieve error message on error
+								$RESULT += "`nFehler beim Ausf&uuml;hren des Skripts '$CHECKFILE'`n`n"
+								$RESULT += $Error[0]
+								$Error.Clear()
+							}
 						}
 						else
-						{ # no, serve as binary download
-							$RESPONSE.ContentType = "application/octet-stream"
-							$FILENAME = Split-Path -Leaf $CHECKFILE
-							$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
+						{
+							try {
+								$RESULT = cmd.exe /c $CHECKFILE $PARAMETERS 2>&1
+							}
+							catch
+							{
+								# just ignore. Error handling comes afterwards since not every error throws an exception
+							}
+							if ($Error.Count -gt 0)
+							{ # retrieve error message on error
+								$RESULT += "`nFehler beim Ausf&uuml;hren des Skripts '$CHECKFILE'`n`n"
+								$RESULT += $Error[0]
+								$Error.Clear()
+							}
 						}
-						$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($CHECKFILE).ToString('r'))
-						$RESPONSE.AddHeader("Server", "Powershell Webserver/1.2 on ")
-						$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
-						# mark response as already given
-						$RESPONSEWRITTEN = $TRUE
 					}
-					catch
-					{
-						# just ignore. Error handling comes afterwards since not every error throws an exception
-					}
-					if ($Error.Count -gt 0)
-					{ # retrieve error message on error
-						$RESULT += "`nError while downloading '$CHECKFILE'`n`n"
-						$RESULT += $Error[0]
-						$Error.Clear()
+					else
+					{ # ... deliver static content
+						try {
+							$BUFFER = [System.IO.File]::ReadAllBytes($CHECKFILE)
+							$RESPONSE.ContentLength64 = $BUFFER.Length
+							$RESPONSE.SendChunked = $FALSE
+							if ($MIMEHASH.ContainsKey($EXTENSION))
+							{ # known mime type for this file's extension available
+								$RESPONSE.ContentType = $MIMEHASH.Item($EXTENSION)
+							}
+							else
+							{ # no, serve as binary download
+								$RESPONSE.ContentType = "application/octet-stream"
+								$FILENAME = Split-Path -Leaf $CHECKFILE
+								$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
+							}
+							$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($CHECKFILE).ToString('r'))
+							$RESPONSE.AddHeader("Server", "Powershell Webserver/1.2 on ")
+							$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
+							# mark response as already given
+							$RESPONSEWRITTEN = $TRUE
+						}
+						catch
+						{
+							# just ignore. Error handling comes afterwards since not every error throws an exception
+						}
+						if ($Error.Count -gt 0)
+						{ # retrieve error message on error
+							$RESULT += "`nError while downloading '$CHECKFILE'`n`n"
+							$RESULT += $Error[0]
+							$Error.Clear()
+						}
 					}
 				}
 				else
@@ -678,6 +722,13 @@ try
 			$RESPONSE.AddHeader("Server", "Powershell Webserver/1.2 on ")
 			$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 		}
+
+		# logging
+		$LOGLINE += " $($RESPONSE.StatusCode) $($REQUEST.httpMethod) $($REQUEST.Url.PathAndQuery)"
+		# ... to console
+		$LOGLINE
+		# and to log variable
+		$WEBLOG += "$LOGLINE`n"
 
 		# and finish answer to client
 		$RESPONSE.Close()

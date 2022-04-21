@@ -7,9 +7,9 @@ See Script Center version: [Powershell Webserver](https://gallery.technet.micros
 
 ### Author: Markus Scholtes
 
-### Version: 1.2.2
+### Version: 1.3
 
-### Date: 2022-01-19
+### Date: 2022-04-15
 
 Now also on Powershell Gallery as **WebServer** module, see [here](https://www.powershellgallery.com/packages/WebServer/) or install with
 ```powershell
@@ -49,11 +49,15 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+Update 1.3 - 2022-04-15:
+* Logs response code
+* Scripts (.ps1, .bat and .cmd) in web directory are executed by web server
+
 Update 1.2.2 - 2022-01-19: Load index file in base dir instead of default page when present
 
 Update 1.2.1 - 2021-07-04: Updated list of mime types
 
-Update 1.2 - 2019-08-30
+Update 1.2 - 2019-08-30:
 * serves directory listings for directories under the base path if no index.htm[l] or default.htm[l] is present
 * if no base directory is passed as parameter, the current directory is used as base path
 
