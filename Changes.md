@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.20 / 2022-07-29
+VirtualDesktop 2.12:
+- bug fix: desktop for pinned windows and apps are recognized
+
 ### Version 1.0.19 / 2022-04-15
 Powershell Webserver 1.3:
 - logs response code

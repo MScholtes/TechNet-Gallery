@@ -10,10 +10,9 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.19 / 2022-04-15
-Powershell Webserver 1.3:
-- logs response code
-- scripts (.ps1, .bat and .cmd) in web directory are executed by web server
+### Version 1.0.20 / 2022-07-29
+VirtualDesktop 2.12:
+- bug fix: desktop for pinned windows and apps are recognized
 
 For a complete list of changes see here: [Changes](Changes.md)
 
