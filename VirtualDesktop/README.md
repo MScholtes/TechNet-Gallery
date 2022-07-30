@@ -22,6 +22,9 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.12
+bug fix: desktop for pinned windows and apps are recognized
+
 ### Update 2.11
 support for Powershell Core
 

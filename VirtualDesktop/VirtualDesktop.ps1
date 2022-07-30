@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.11 - support for Powershell Core, 2022/02/13
+# Version 2.12 - bug fix: desktop for pinned windows and apps are recognized, 2022/07/29
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -577,6 +577,9 @@ $(if ($OSBuild -lt 20348) {@"
 			return Result;
 		}
 
+		private static readonly Guid AppOnAllDesktops = new Guid("BB64D5B7-4DE3-4AB2-A87C-DB7601AEA7DC");
+		private static readonly Guid WindowOnAllDesktops = new Guid("C2DDEA68-66F2-4CF9-8264-1BFD00FBBBAC");
+
 		private IVirtualDesktop ivd;
 		private Desktop(IVirtualDesktop desktop) { this.ivd = desktop; }
 
@@ -618,7 +621,14 @@ $(if ($OSBuild -lt 20348) {@"
 		{ // return desktop object to desktop on which window <hWnd> is displayed
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			Guid id = DesktopManager.VirtualDesktopManager.GetWindowDesktopId(hWnd);
-			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.FindDesktop(ref id));
+			if ((id.CompareTo(AppOnAllDesktops) == 0) || (id.CompareTo(WindowOnAllDesktops) == 0))
+$(if ($OSBuild -lt 20348) {@"
+				return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
+"@ } else {@"
+				return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero));
+"@ })
+			else
+				return new Desktop(DesktopManager.VirtualDesktopManagerInternal.FindDesktop(ref id));
 		}
 
 		public static int FromDesktop(Desktop desktop)
@@ -881,7 +891,11 @@ $(if ($OSBuild -lt 20348) {@"
 		public bool HasWindow(IntPtr hWnd)
 		{ // return true if window is on this desktop
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
-			return ivd.GetId() == DesktopManager.VirtualDesktopManager.GetWindowDesktopId(hWnd);
+			Guid id = DesktopManager.VirtualDesktopManager.GetWindowDesktopId(hWnd);
+			if ((id.CompareTo(AppOnAllDesktops) == 0) || (id.CompareTo(WindowOnAllDesktops) == 0))
+				return true;
+			else
+				return ivd.GetId() == id;
 		}
 
 		public static bool IsWindowPinned(IntPtr hWnd)

@@ -15,6 +15,8 @@ Now with support for Windows Server 2022!
 Now with support for Powershell Core!
 Now with support for Windows Terminal!
 
+Update 2.12:
+bug fix: desktop for pinned windows and apps are recognized
 Update 2.11:
 support for Powershell Core
 support for Windows Server 2022
