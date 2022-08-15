@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.21 / 2022-08-15
+Powershell Webserver 1.4:
+- introduced PSP files (Powershell Server Pages) for embedded execution
+- updated list of mime types
+
 ### Version 1.0.20 / 2022-07-29
 VirtualDesktop 2.12:
 - bug fix: desktop for pinned windows and apps are recognized

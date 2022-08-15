@@ -10,9 +10,10 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.20 / 2022-07-29
-VirtualDesktop 2.12:
-- bug fix: desktop for pinned windows and apps are recognized
+### Version 1.0.21 / 2022-08-15
+Powershell Webserver 1.4:
+- introduced PSP files (Powershell Server Pages) for embedded execution
+- updated list of mime types
 
 For a complete list of changes see here: [Changes](Changes.md)
 
