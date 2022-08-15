@@ -78,7 +78,7 @@ foreach ($IDXNAME in $IDXLIST)
 }
 
 # MIME hash table for static content
-$MIMEHASH = @{".avi"="video/x-msvideo"; ".crt"="application/x-x509-ca-cert"; ".css"="text/css"; ".der"="application/x-x509-ca-cert"; ".doc"="application/msword"; ".flv"="video/x-flv"; ".gif"="image/gif"; ".htm"="text/html"; ".html"="text/html"; ".ico"="image/x-icon"; ".jar"="application/java-archive"; ".jpeg"="image/jpeg"; ".jpg"="image/jpeg"; ".js"="application/javascript"; ".json"="application/json"; ".mjs"="application/javascript"; ".mov"="video/quicktime"; ".mp3"="audio/mpeg"; ".mp4"="video/mp4"; ".mpeg"="video/mpeg"; ".mpg"="video/mpeg"; ".pdf"="application/pdf"; ".pem"="application/x-x509-ca-cert"; ".pl"="application/x-perl"; ".png"="image/png"; ".rss"="application/rss+xml"; ".shtml"="text/html"; ".txt"="text/plain"; ".war"="application/java-archive"; ".wmv"="video/x-ms-wmv"; ".xml"="application/xml"; ".xsl"="application/xml"}
+$MIMEHASH = @{".avi"="video/x-msvideo"; ".crt"="application/x-x509-ca-cert"; ".css"="text/css"; ".der"="application/x-x509-ca-cert"; ".doc"="application/msword"; ".flv"="video/x-flv"; ".gif"="image/gif"; ".htm"="text/html"; ".html"="text/html"; ".ico"="image/x-icon"; ".jar"="application/java-archive"; ".jpeg"="image/jpeg"; ".jpg"="image/jpeg"; ".js"="application/javascript"; ".json"="application/json"; ".mjs"="application/javascript"; ".mov"="video/quicktime"; ".mp3"="audio/mpeg"; ".mp4"="video/mp4"; ".mpeg"="video/mpeg"; ".mpg"="video/mpeg"; ".pdf"="application/pdf"; ".pem"="application/x-x509-ca-cert"; ".pl"="application/x-perl"; ".png"="image/png"; ".rss"="application/rss+xml"; ".shtml"="text/html"; ".svg"="image/svg+xml"; ".txt"="text/plain"; ".war"="application/java-archive"; ".wmv"="video/x-ms-wmv"; ".xml"="application/xml"; ".xsl"="application/xml"}
 
 # HTML answer templates for specific calls, placeholders !RESULT, !FORMFIELD, !PROMPT are allowed
 $HTMLRESPONSECONTENTS = @{
@@ -368,7 +368,7 @@ try
 							$FILENAME = Split-Path -Leaf $FORMFIELD
 							$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
 							$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($FORMFIELD).ToString('r'))
-							$RESPONSE.AddHeader("Server", "Powershell Webserver/1.2 on ")
+							$RESPONSE.AddHeader("Server", "Powershell Webserver/1.4 on ")
 							$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 							# mark response as already given
 							$RESPONSEWRITTEN = $TRUE
@@ -616,7 +616,7 @@ try
 				if ($CHECKFILE -ne "")
 				{ # static content available
 					$EXTENSION = [IO.Path]::GetExtension($CHECKFILE)
-					if ($EXTENSION -in @(".bat", ".cmd", ".ps1"))
+					if ($EXTENSION -in @(".bat", ".cmd", ".ps1", ".psp"))
 					{ # ... execute script
 						$PARAMETERS = ''
 						$PARAMETERS = [URI]::UnescapeDataString($REQUEST.Url.Query)
@@ -625,38 +625,219 @@ try
 							$PARAMETERS = $PARAMETERS.Substring(1) -replace "\+"," " -replace "&"," "
 						}
 						$HTMLRESPONSE = "<!doctype html><html><body><pre>!RESULT</pre></body></html>"
-						if ($EXTENSION -eq ".ps1")
+
+						switch ($EXTENSION)
 						{
-							try {
-								$SCRIPTFILE = [System.IO.File]::ReadAllText($CHECKFILE)
-								$EXECUTE = "function Powershell-WebServer-Func {`n" + $SCRIPTFILE + "`n}`nPowershell-WebServer-Func " + $PARAMETERS
-								$RESULT = Invoke-Expression -EA SilentlyContinue $EXECUTE 2> $NULL | Out-String
-							}
-							catch
+							".ps1"
 							{
-								# just ignore. Error handling comes afterwards since not every error throws an exception
+								try {
+									$SCRIPTFILE = [System.IO.File]::ReadAllText($CHECKFILE)
+									$EXECUTE = "function Powershell-WebServer-Func {`n" + $SCRIPTFILE + "`n}`nPowershell-WebServer-Func " + $PARAMETERS
+									$RESULT = Invoke-Expression -EA SilentlyContinue $EXECUTE 2> $NULL | Out-String
+								}
+								catch
+								{
+									# just ignore. Error handling comes afterwards since not every error throws an exception
+								}
+								if ($Error.Count -gt 0)
+								{ # retrieve error message on error
+									$RESULT += "`nError while executing script '$CHECKFILE'`n`n"
+									$RESULT += $Error[0]
+									$Error.Clear()
+								}
+								break
 							}
-							if ($Error.Count -gt 0)
-							{ # retrieve error message on error
-								$RESULT += "`nFehler beim Ausf&uuml;hren des Skripts '$CHECKFILE'`n`n"
-								$RESULT += $Error[0]
-								$Error.Clear()
-							}
-						}
-						else
-						{
-							try {
-								$RESULT = cmd.exe /c $CHECKFILE $PARAMETERS 2>&1
-							}
-							catch
+
+							{ $_ -in (".bat",".cmd") }
 							{
-								# just ignore. Error handling comes afterwards since not every error throws an exception
+								try {
+									$RESULT = cmd.exe /c $CHECKFILE $PARAMETERS 2>&1
+								}
+								catch
+								{
+									# just ignore. Error handling comes afterwards since not every error throws an exception
+								}
+								if ($Error.Count -gt 0)
+								{ # retrieve error message on error
+									$RESULT += "`nError while executing script '$CHECKFILE'`n`n"
+									$RESULT += $Error[0]
+									$Error.Clear()
+								}
+								break
 							}
-							if ($Error.Count -gt 0)
-							{ # retrieve error message on error
-								$RESULT += "`nFehler beim Ausf&uuml;hren des Skripts '$CHECKFILE'`n`n"
-								$RESULT += $Error[0]
-								$Error.Clear()
+
+							".psp"
+							{
+								try {
+									$SCRIPTFILE = [System.IO.File]::ReadAllText($CHECKFILE)
+
+									# assume text mode at script start
+									$CURRENTMODE = $TRUE
+									$PARSEDSCRIPT = "@`"`r`n"
+
+									# create array of script lines
+									$TEXTLINES = $SCRIPTFILE.split("`n") -replace "\r$",""
+
+									if ($TEXTLINES[0].TrimStart() -match '<%*')
+									{ # text starts with code
+										$PARSEDSCRIPT = ""
+										$CURRENTMODE = $FALSE
+										$TEXTLINES[0] = $TEXTLINES[0].TrimStart().SubString(2)
+									}
+
+									for ($l = 0; $l -lt $TEXTLINES.Length; $l++)
+									{ # iterate through lines
+
+										if ($TEXTLINES[$l].IndexOf("%") -ge 0)
+										{	$TEXTISEMPTY = $FALSE
+											$STARTCODEINLINE = $FALSE
+											$PARSEDLINE = ""
+											$TEXTPART = $TEXTLINES[$l].split("%")
+
+											for ($i = 0; $i -lt $TEXTPART.Length; $i++)
+											{ # iterate through text block between percent signs
+
+												if ($CURRENTMODE)
+												{ # current mode is text mode
+													if ($TEXTPART[$i][$TEXTPART[$i].Length - 1] -eq "<")
+													{ # '<%' found, switch to code mode
+														$PARSEDLINE += "$($TEXTPART[$i].Substring(0, $TEXTPART[$i].Length - 1))"
+														if ($PARSEDLINE.Length -gt 0)
+														{ # if exist process text before '<%'
+															$PARSEDSCRIPT += $PARSEDLINE -replace '\"@','`"@' -replace '\$','`$'
+															$PARSEDLINE = ""
+														}
+														$CURRENTMODE = $FALSE
+														$STARTCODEINLINE = $TRUE
+													}
+													else
+													{	# '%' without impact found
+														if ($i -eq 0)
+														{
+															$PARSEDLINE += "$($TEXTPART[$i])"
+														} else {
+															$PARSEDLINE += "%$($TEXTPART[$i])"
+														}
+													}
+												}
+												else
+												{ # current mode is code mode
+													if ($TEXTPART[$i][0] -eq ">")
+													{ # '%>' found, switch to text mode
+														$CURRENTMODE = $TRUE
+														if ($PARSEDLINE.Length -gt 0)
+														{ # if exist process code before '%>'
+															if ($STARTCODEINLINE)
+															{ # code block starts and stops in current line
+																if ($PARSEDLINE.TrimStart() -match '=*')
+																{
+																	$PARSEDLINE = $PARSEDLINE.TrimStart().TrimStart('=')
+																}
+																$PARSEDSCRIPT += "`$($PARSEDLINE)"
+																$STARTCODEINLINE = $FALSE
+															} else {
+																if (($TEXTPART[$i].Length -gt 1) -Or ($i -lt $TEXTPART.Length-1) -Or ($l -lt $TEXTLINES.Length-1))
+																{
+																	$PARSEDSCRIPT += "$PARSEDLINE`r`n@`"`r`n"
+																} else { # omit switching to text mode if last command of script
+																	$PARSEDSCRIPT += "$PARSEDLINE`r`n"
+																	$CURRENTMODE = $FALSE
+																}
+															}
+															$PARSEDLINE = ""
+														}
+														else
+														{
+															if (($TEXTPART[$i].Length -gt 1) -Or ($i -lt $TEXTPART.Length-1) -Or ($l -lt $TEXTLINES.Length-1))
+															{
+																$PARSEDSCRIPT += "@`"`r`n"
+															} else { # omit switching to text mode if last command of script
+																$CURRENTMODE = $FALSE
+															}
+														}
+
+														if ($TEXTPART[$i][$TEXTPART[$i].Length - 1] -eq "<")
+														{ # switch to script mode at the end of current block
+															$PARSEDSCRIPT += "$($TEXTPART[$i].Substring(1, $TEXTPART[$i].Length - 2))" -replace '\"@','`"@' -replace '\$','`$'
+															$CURRENTMODE = $FALSE
+															$STARTCODEINLINE = $TRUE
+														}
+														else
+														{ # continue with command mode at the end of current block
+															$PARSEDLINE += "$($TEXTPART[$i].Substring(1, $TEXTPART[$i].Length - 1))"
+															if ($PARSEDLINE.Length -eq 0)
+															{ # avoid empty text manipulations
+																$TEXTISEMPTY = $TRUE
+															}
+														}
+													}
+													else
+													{	# '%' without impact found
+														if (($i -lt $TEXTPART.Length-1) -And ($TEXTPART[$i+1][0] -ne ">"))
+														{
+															$PARSEDLINE += "$($TEXTPART[$i])%"
+														} else {
+															$PARSEDLINE += "$($TEXTPART[$i])"
+														}
+													}
+												}
+											}
+
+											# process remaining text of line
+											if ($STARTCODEINLINE)
+											{ # text started as if inline code, but not ended so in line
+												if ($TEXTLINES[$l] -ne "<%")
+												{
+													$PARSEDSCRIPT += "`r`n"
+												}
+												$PARSEDSCRIPT += "`"@`r`n$PARSEDLINE"
+											}
+											else
+											{ # process text if not empty
+												if (!$TEXTISEMPTY)
+												{
+													if ($CURRENTMODE)
+													{
+														$PARSEDSCRIPT += $PARSEDLINE -replace '\"@','`"@' -replace '\$','`$'
+													} else {
+														$PARSEDSCRIPT += $PARSEDLINE
+													}
+												}
+											}
+											$PARSEDSCRIPT += "`r`n"
+										}
+										else
+										{ # no percent sign found in line
+											if ($CURRENTMODE)
+											{
+												$PARSEDSCRIPT += $TEXTLINES[$l] -replace '\"@','`"@' -replace '\$','`$'
+											} else {
+												$PARSEDSCRIPT += $TEXTLINES[$l]
+											}
+											$PARSEDSCRIPT += "`r`n"
+										}
+									}
+
+									if ($CURRENTMODE)
+									{ # stop text mode at end of script
+										$PARSEDSCRIPT += "`"@`r`n"
+									}
+
+									$EXECUTE = "function Powershell-WebServer-Func {`n" + $PARSEDSCRIPT + "`n}`nPowershell-WebServer-Func " + $PARAMETERS
+									$RESULT = Invoke-Expression -EA SilentlyContinue $EXECUTE 2> $NULL | Out-String
+									$HTMLRESPONSE = "!RESULT"
+								}
+								catch
+								{
+									# just ignore. Error handling comes afterwards since not every error throws an exception
+								}
+								if ($Error.Count -gt 0)
+								{ # retrieve error message on error
+									$RESULT += "`nError while executing file '$CHECKFILE'`n`n"
+									$RESULT += $Error[0]
+									$Error.Clear()
+								}
+								break
 							}
 						}
 					}
@@ -677,7 +858,7 @@ try
 								$RESPONSE.AddHeader("Content-Disposition", "attachment; filename=$FILENAME")
 							}
 							$RESPONSE.AddHeader("Last-Modified", [IO.File]::GetLastWriteTime($CHECKFILE).ToString('r'))
-							$RESPONSE.AddHeader("Server", "Powershell Webserver/1.2 on ")
+							$RESPONSE.AddHeader("Server", "Powershell Webserver/1.4 on ")
 							$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 							# mark response as already given
 							$RESPONSEWRITTEN = $TRUE
@@ -719,7 +900,7 @@ try
 			$BUFFER = [Text.Encoding]::UTF8.GetBytes($HTMLRESPONSE)
 			$RESPONSE.ContentLength64 = $BUFFER.Length
 			$RESPONSE.AddHeader("Last-Modified", [DATETIME]::Now.ToString('r'))
-			$RESPONSE.AddHeader("Server", "Powershell Webserver/1.2 on ")
+			$RESPONSE.AddHeader("Server", "Powershell Webserver/1.4 on ")
 			$RESPONSE.OutputStream.Write($BUFFER, 0, $BUFFER.Length)
 		}
 

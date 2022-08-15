@@ -7,9 +7,9 @@ See Script Center version: [Powershell Webserver](https://gallery.technet.micros
 
 ### Author: Markus Scholtes
 
-### Version: 1.3
+### Version: 1.4
 
-### Date: 2022-04-15
+### Date: 2022-07-31
 
 Now also on Powershell Gallery as **WebServer** module, see [here](https://www.powershellgallery.com/packages/WebServer/) or install with
 ```powershell
@@ -49,6 +49,10 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+Update 1.4 - 2022-07-31:
+* Introduced PSP files (Powershell Server Pages) for embedded execution
+* Updated list of mime types
+
 Update 1.3 - 2022-04-15:
 * Logs response code
 * Scripts (.ps1, .bat and .cmd) in web directory are executed by web server
@@ -97,6 +101,12 @@ schtasks.exe /Delete /TN "Powershell Webserver"
 (Scheduled tasks are always running with low priority, so some functions might be slow)
 
 ![Screen Browser](ScreenVerySmall.jpg)
+
+## Embedded code
+You can embed powershell code in html files with psp files ("Powershell Server Pages"). Psp files are html files in which the switch code <% toggles to powershell code and %> toggles back to html.
+
+![Screen Browser](PSP.jpg)
+
 
 ## Remarks
 
