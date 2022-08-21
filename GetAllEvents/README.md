@@ -1,12 +1,19 @@
 # GetAllEvents: Query all events from all event logs
 Command line tool to query all events from all event logs (about 1200 in Windows 10) and display in GridView or export to text or csv file.
 
-Since Technet Gallery is closed, now here.
+**Version 1.0.1.0, 2022-08-20 by Markus Scholtes**
+- Omit Security log and events of log level LogAlways per default for overview reasons
+
+Since Technet Gallery will be closed, now here.
 
 See Script Center version: [GetAllEvents: Query all events from all event logs](https://gallery.technet.microsoft.com/scriptcenter/GetAllEvents-Query-all-d0a40b20).
 
 ## Description
-Command line tool to query all events from all event logs (about 1200 in Windows 10) and display in GridView or export to text or csv file. A remote computer can be accessed.
+Command line tool to query all events from all event logs (about 1200 in Windows 10) and display in GridView or export to text or csv file.
+
+Security log and events of level LogAlways are omitted per default.
+
+A remote computer can be accessed.
 
 Requires .Net 4.x
 
@@ -28,7 +35,9 @@ GetAllEvents.exe [[-logname:]<LOGNAMES>] [-level:<LEVEL>] [-starttime:<STARTTIME
 ```bat
 Parameters:
 -logname:<LOGNAMES> comma separated list of event log names. Queries all event logs if omitted (can be abbreviated as -log or -l or can be omitted).
--level:<LEVEL> queries up to level <LEVEL>. Queries all events if omitted. Level: Critical - 1, Error - 2, Warning - 3, Informational - 4, Verbose - 5
+-security include Security log (can be abbreviated as -sec).
+-level:<LEVEL> queries up to level <LEVEL>. Queries all events if omitted. Level: Critical - 1, Error - 2, Warning - 3, Informational - 4, Verbose - 5.
+-logalways include events of level LogAlways (level 0).
 -starttime:<STARTTIME> start time of events to query (can be abbreviated as -start or -s). Default is end time minus one hour.
 -endtime:<ENDTIME> end time of events to query (can be abbreviated as -end or -e). Default is now.
 -computername:<COMPUTER> name of computer to query (can be abbreviated as -computer or -c). Default is the local system.
