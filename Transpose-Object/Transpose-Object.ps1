@@ -4,7 +4,9 @@ Transpose properties of objects from columns to rows.
 .DESCRIPTION
 Transpose properties of objects from columns to rows. Useful when the order displayed in a GridView (with
 Out-GridView) or in a CSV file (with Export-Csv) should be rotated.
-It uses the name property as new property names (column headers) if it exists.
+It uses the name property or a given property as new property names (column headers) if it exists.
+.PARAMETER Title
+Name of property whose values are used as titles
 .INPUTS
 Object
 .OUTPUTS
@@ -20,12 +22,12 @@ Creates a CSV file with a column instead of a row for every process
 .NOTES
 Name: Transpose-Object
 Author: Markus Scholtes
-Version: 1.0 - Initial version
-Creation Date: 01/11/2019
+Version: 1.1 - workaround for Out-GridView error, select title property, fixed error detecting doubled titles
+Creation Date: 11/11/2022
 #>
 function Transpose-Object
 { [CmdletBinding()]
-  Param([OBJECT][Parameter(ValueFromPipeline = $TRUE)]$InputObject)
+  Param([OBJECT][Parameter(ValueFromPipeline = $TRUE)]$InputObject, [STRING]$Title = "Name")
 
   BEGIN
   { # initialize variables just to be "clean"
@@ -43,19 +45,20 @@ function Transpose-Object
 			$InputObject.PSObject.Properties | %{ $Props += New-Object -TypeName PSObject -Property @{Property = $_.Name} }
 		}
 
- 		if ($InputObject.Name)
- 		{ # does object have a "Name" property?
- 			$Property = $InputObject.Name
+		if ([BOOL]($InputObject.psobject.Properties | where { $_.Name -eq $Title}))
+ 		{ # does object have a $Title property (default "Name")?
+ 			$Property = $InputObject.$Title
  		} else { # no, take object itself as property name
- 			$Property = $InputObject | Out-String
+ 			$Property = ($InputObject | Out-String).Trim()
 		}
 
  		if ($InstanceNames -contains $Property)
- 		{ # does multiple occurence of name exist?
+ 		{ # does multiple occurence of value of $Title exist?
   		$COUNTER = 0
- 			do { # yes, append a number in brackets to name
+  		$StoredValue = $Property
+ 			do { # yes, append a number in brackets to $Title
  				$COUNTER++
- 				$Property = "$($InputObject.Name) ({0})" -f $COUNTER
+ 				$Property = "$StoredValue ({0})" -f $COUNTER
  			} while ($InstanceNames -contains $Property)
  		}
  		# add current name to name list for next name check

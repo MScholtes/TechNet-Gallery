@@ -1,7 +1,7 @@
 # Transpose-Object: Powershell script to transpose objects from columns to rows
 Useful when the order displayed in a GridView (with Out-GridView) or in a CSV file (with Export-Csv) has to be rotated.
 
-Since Technet Gallery is closed, now here.
+Since Technet Gallery will be closed, now here.
 
 See Script Center version: [Transpose-Object: Powershell script to transpose objects from columns to rows](https://gallery.technet.microsoft.com/Transpose-Object-cf517eb5).
 
@@ -37,3 +37,7 @@ Use and transpose only the default view properties:
 . .\Transpose-Object.ps1
 Get-ChildItem | Select-Object Mode, LastWriteTime, Length, Name | Transpose-Object
 ```
+
+### Version 1.1 - workaround for Out-GridView error, select title property, fixed error detecting doubled titles
+
+### Creation Date 11/11/2022

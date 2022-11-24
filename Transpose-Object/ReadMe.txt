@@ -32,3 +32,8 @@ Use and transpose only the default view properties:
 
 . .\Transpose-Object.ps1
 Get-ChildItem | Select-Object Mode, LastWriteTime, Length, Name | Transpose-Object
+
+
+
+Version: 1.1 - workaround for Out-GridView error, select title property, fixed error detecting doubled titles
+Creation Date: 11/11/2022
