@@ -1,24 +1,17 @@
-# Attention: Incorrect virus detection of PS2EXE
-**Some idiots seem to abuse PS2EXE to compile their computer virus/malware scripts. As a result, a rapidly growing number of virus scanners recognize programs created with PS2EXE as malicious programs and delete them.**
-
-**There is only one hope to save the PS2EXE project: Please send your (harmless) programs created with PS2EXE via the web forms from the virus scanners' vendors for reporting false positives (I've already done it with some of them, please use only the false positive page)!**
-
-**If this is not successful, then I will have to quit PS2EXE as nobody can use it anymore.**
-
-**Thank you for your support**
-
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.22 / 2022-08-21
-GetAllEvents 1.0.1.0:
-- omit Security log and events of log level LogAlways per default for overview reasons
+### Version 1.0.23 / 2022-11-24
+Transpose-Object 1.1:
+- workaround for Out-GridView error, select title property, fixed error detecting doubled titles
 
 For a complete list of changes see here: [Changes](Changes.md)
 
 ##
 ## PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
 Overworking of the great script of Ingo Karstein with GUI support. The GUI output and input is activated with one switch, real windows executables are generated. With Powershell 5.x support and graphical front end.
+
+With PS2EXE compiled script might be detected as malware. Best is to sign the binaries and to create no harmful programs.
 
 #### Project page: [PS2EXE-GUI](https://github.com/MScholtes/TechNet-Gallery/tree/master/PS2EXE-GUI)
 

@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.23 / 2022-11-24
+Transpose-Object 1.1:
+- workaround for Out-GridView error, select title property, fixed error detecting doubled titles
+
 ### Version 1.0.22 / 2022-08-21
 GetAllEvents 1.0.1.0:
 - omit Security log and events of log level LogAlways per default for overview reasons
