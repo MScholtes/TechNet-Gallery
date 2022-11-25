@@ -1,3 +1,7 @@
+**If your compiled script is mistakenly detected as malware, the best way to prevent this is to certify the executable.**
+
+**Please do not use PS2EXE to create harmful programs!**
+
 # PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
 Overworking of the great script of Ingo Karstein with GUI support. The GUI output and input is activated with one switch, real windows executables are generated. With Powershell 5.x support and graphical front end.
 
