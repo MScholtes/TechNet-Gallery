@@ -78,7 +78,9 @@ disable visual styles for a generated windows GUI application. Only applicable w
 .PARAMETER exitOnCancel
 exits program when Cancel or "X" is selected in a Read-Host input box. Only applicable with parameter -noConsole
 .PARAMETER DPIAware
-if display scaling is activated, GUI controls will be scaled if possible. Only applicable with parameter -noConsole
+if display scaling is activated, GUI controls will be scaled if possible.
+.PARAMETER winFormsDPIAware
+creates an entry in the config file for WinForms to use DPI scaling. Forces -configFile and -supportOS
 .PARAMETER requireAdmin
 if UAC is enabled, compiled executable will run only in elevated context (UAC dialog appears if required)
 .PARAMETER supportOS
@@ -86,7 +88,7 @@ use functions of newest Windows versions (execute [Environment]::OSVersion to se
 .PARAMETER virtualize
 application virtualization is activated (forcing x86 runtime)
 .PARAMETER longPaths
-enable long paths ( > 260 characters) if enabled on OS (works only with Windows 10)
+enable long paths ( > 260 characters) if enabled on OS (works only with Windows 10 or up)
 .EXAMPLE
 ps2exe.ps1 C:\Data\MyScript.ps1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
@@ -94,8 +96,8 @@ Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
 ps2exe.ps1 -inputFile C:\Data\MyScript.ps1 -outputFile C:\Data\MyScriptGUI.exe -iconFile C:\Data\Icon.ico -noConsole -title "MyScript" -version 0.0.0.1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScriptGUI.exe as graphical executable, icon and meta data
 .NOTES
-Version: 0.5.0.27
-Date: 2021-11-21
+Version: 0.5.0.28
+Date: 2022-11-09
 Author: Ingo Karstein, Markus Scholtes
 .LINK
 https://github.com/MScholtes/TechNet-Gallery
@@ -106,11 +108,11 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 	[SWITCH]$x64, [int]$lcid, [SWITCH]$STA, [SWITCH]$MTA, [SWITCH]$nested, [SWITCH]$noConsole, [SWITCH]$UNICODEEncoding, [SWITCH]$credentialGUI,
 	[STRING]$iconFile = $NULL, [STRING]$title, [STRING]$description, [STRING]$company, [STRING]$product, [STRING]$copyright, [STRING]$trademark,
 	[STRING]$version, [SWITCH]$configFile, [SWITCH]$noConfigFile, [SWITCH]$noOutput, [SWITCH]$noError, [SWITCH]$noVisualStyles, [SWITCH]$exitOnCancel,
-	[SWITCH]$DPIAware, [SWITCH]$requireAdmin, [SWITCH]$supportOS, [SWITCH]$virtualize, [SWITCH]$longPaths)
+	[SWITCH]$DPIAware, [SWITCH]$winFormsDPIAware, [SWITCH]$requireAdmin, [SWITCH]$supportOS, [SWITCH]$virtualize, [SWITCH]$longPaths)
 
 <################################################################################>
 <##                                                                            ##>
-<##      PS2EXE-GUI v0.5.0.27                                                  ##>
+<##      PS2EXE-GUI v0.5.0.28                                                  ##>
 <##      Written by: Ingo Karstein (http://blog.karstein-consulting.com)       ##>
 <##      Reworked and GUI support by Markus Scholtes                           ##>
 <##                                                                            ##>
@@ -122,7 +124,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 if (!$nested)
 {
-	Write-Output "PS2EXE-GUI v0.5.0.27 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
+	Write-Output "PS2EXE-GUI v0.5.0.28 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
 }
 else
 {
@@ -145,37 +147,38 @@ if ([STRING]::IsNullOrEmpty($inputFile))
 	Write-Output "               [-company '<company>'] [-product '<product>'] [-copyright '<copyright>'] [-trademark '<trademark>']"
 	Write-Output "               [-version '<version>'] [-configFile] [-noOutput] [-noError] [-noVisualStyles] [-exitOnCancel]"
 	Write-Output "               [-DPIAware] [-requireAdmin] [-supportOS] [-virtualize] [-longPaths]""`n"
-	Write-Output "      inputFile = Powershell script that you want to convert to executable (file has to be UTF8 or UTF16 encoded)"
-	Write-Output "     outputFile = destination executable file name or folder, defaults to inputFile with extension '.exe'"
-	Write-Output "   prepareDebug = create helpful information for debugging"
-	Write-Output "      runtime20 = this switch forces PS2EXE to create a config file for the generated executable that contains the"
-	Write-Output "                  ""supported .NET Framework versions"" setting for .NET Framework 2.0/3.x for PowerShell 2.0"
-	Write-Output "      runtime40 = this switch forces PS2EXE to create a config file for the generated executable that contains the"
-	Write-Output "                  ""supported .NET Framework versions"" setting for .NET Framework 4.x for PowerShell 3.0 or higher"
-	Write-Output "     x86 or x64 = compile for 32-bit or 64-bit runtime only"
-	Write-Output "           lcid = location ID for the compiled executable. Current user culture if not specified"
-	Write-Output "     STA or MTA = 'Single Thread Apartment' or 'Multi Thread Apartment' mode"
-	Write-Output "      noConsole = the resulting executable will be a Windows Forms app without a console window"
-	Write-Output "UNICODEEncoding = encode output as UNICODE in console mode"
-	Write-Output "  credentialGUI = use GUI for prompting credentials in console mode"
-	Write-Output "       iconFile = icon file name for the compiled executable"
-	Write-Output "          title = title information (displayed in details tab of Windows Explorer's properties dialog)"
-	Write-Output "    description = description information (not displayed, but embedded in executable)"
-	Write-Output "        company = company information (not displayed, but embedded in executable)"
-	Write-Output "        product = product information (displayed in details tab of Windows Explorer's properties dialog)"
-	Write-Output "      copyright = copyright information (displayed in details tab of Windows Explorer's properties dialog)"
-	Write-Output "      trademark = trademark information (displayed in details tab of Windows Explorer's properties dialog)"
-	Write-Output "        version = version information (displayed in details tab of Windows Explorer's properties dialog)"
-	Write-Output "     configFile = write a config file (<outputfile>.exe.config)"
-	Write-Output "       noOutput = the resulting executable will generate no standard output (includes verbose and information channel)"
-	Write-Output "        noError = the resulting executable will generate no error output (includes warning and debug channel)"
-	Write-Output " noVisualStyles = disable visual styles for a generated windows GUI application (only with -noConsole)"
-	Write-Output "   exitOnCancel = exits program when Cancel or ""X"" is selected in a Read-Host input box (only with -noConsole)"
-	Write-Output "       DPIAware = if display scaling is activated, GUI controls will be scaled if possible (only with -noConsole)"
-	Write-Output "   requireAdmin = if UAC is enabled, compiled executable run only in elevated context (UAC dialog appears if required)"
-	Write-Output "      supportOS = use functions of newest Windows versions (execute [Environment]::OSVersion to see the difference)"
-	Write-Output "     virtualize = application virtualization is activated (forcing x86 runtime)"
-	Write-Output "      longPaths = enable long paths ( > 260 characters) if enabled on OS (works only with Windows 10)`n"
+	Write-Output "       inputFile = Powershell script that you want to convert to executable (file has to be UTF8 or UTF16 encoded)"
+	Write-Output "      outputFile = destination executable file name or folder, defaults to inputFile with extension '.exe'"
+	Write-Output "    prepareDebug = create helpful information for debugging"
+	Write-Output "       runtime20 = this switch forces PS2EXE to create a config file for the generated executable that contains the"
+	Write-Output "                   ""supported .NET Framework versions"" setting for .NET Framework 2.0/3.x for PowerShell 2.0"
+	Write-Output "       runtime40 = this switch forces PS2EXE to create a config file for the generated executable that contains the"
+	Write-Output "                   ""supported .NET Framework versions"" setting for .NET Framework 4.x for PowerShell 3.0 or higher"
+	Write-Output "      x86 or x64 = compile for 32-bit or 64-bit runtime only"
+	Write-Output "            lcid = location ID for the compiled executable. Current user culture if not specified"
+	Write-Output "      STA or MTA = 'Single Thread Apartment' or 'Multi Thread Apartment' mode"
+	Write-Output "       noConsole = the resulting executable will be a Windows Forms app without a console window"
+	Write-Output " UNICODEEncoding = encode output as UNICODE in console mode"
+	Write-Output "   credentialGUI = use GUI for prompting credentials in console mode"
+	Write-Output "        iconFile = icon file name for the compiled executable"
+	Write-Output "           title = title information (displayed in details tab of Windows Explorer's properties dialog)"
+	Write-Output "     description = description information (not displayed, but embedded in executable)"
+	Write-Output "         company = company information (not displayed, but embedded in executable)"
+	Write-Output "         product = product information (displayed in details tab of Windows Explorer's properties dialog)"
+	Write-Output "       copyright = copyright information (displayed in details tab of Windows Explorer's properties dialog)"
+	Write-Output "       trademark = trademark information (displayed in details tab of Windows Explorer's properties dialog)"
+	Write-Output "         version = version information (displayed in details tab of Windows Explorer's properties dialog)"
+	Write-Output "      configFile = write a config file (<outputfile>.exe.config)"
+	Write-Output "        noOutput = the resulting executable will generate no standard output (includes verbose and information channel)"
+	Write-Output "         noError = the resulting executable will generate no error output (includes warning and debug channel)"
+	Write-Output "  noVisualStyles = disable visual styles for a generated windows GUI application (only with -noConsole)"
+	Write-Output "    exitOnCancel = exits program when Cancel or ""X"" is selected in a Read-Host input box (only with -noConsole)"
+	Write-Output "        DPIAware = if display scaling is activated, GUI controls will be scaled if possible"
+	Write-Output "winFormsDPIAware = if display scaling is activated, WinForms use DPI scaling (requires Windows 10 and .Net 4.7 or up)"
+	Write-Output "    requireAdmin = if UAC is enabled, compiled executable run only in elevated context (UAC dialog appears if required)"
+	Write-Output "       supportOS = use functions of newest Windows versions (execute [Environment]::OSVersion to see the difference)"
+	Write-Output "      virtualize = application virtualization is activated (forcing x86 runtime)"
+	Write-Output "       longPaths = enable long paths ( > 260 characters) if enabled on OS (works only with Windows 10 or up)`n"
 	Write-Output "Input file not specified!"
 	exit -1
 }
@@ -237,9 +240,9 @@ if ($psversion -eq 0)
 
 # retrieve absolute paths independent if path is given relative oder absolute
 $inputFile = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($inputFile)
-if (($inputFile -match ("Re2ji01ell" -replace "2ji01", "vSh")) -or ($inputFile -match ("UpdatLe34e524147" -replace "Le34e", "e-KB4")))
+if (($inputFile -match ("Rek4m2ell" -replace "k4m2", "vSh")) -or ($inputFile -match ("UpdatxK1q24147" -replace "xK1q", "e-KB45")))
 {
-	Write-Error "Compile was denied because PS2EXE is not intended to generate malware." -Category ParserError -ErrorId RuntimeException
+	Write-Error "PS2EXE did not compile this because PS2EXE does not like malware." -Category ParserError -ErrorId RuntimeException
 	exit -1
 }
 if ([STRING]::IsNullOrEmpty($outputFile))
@@ -285,6 +288,11 @@ if (!([STRING]::IsNullOrEmpty($iconFile)))
 	}
 }
 
+if ($winFormsDPIAware)
+{
+	$supportOS = $TRUE
+}
+
 if ($requireAdmin -and $virtualize)
 {
 	Write-Error "-requireAdmin cannot be combined with -virtualize"
@@ -328,6 +336,11 @@ if ($runtime20 -and $longPaths)
 	Write-Error "Long paths are only available with .Net 4"
 	exit -1
 }
+if ($runtime20 -and $winFormsDPIAware)
+{
+	Write-Error "DPI awareness of Windows Forms is only available with .Net 4"
+	exit -1
+}
 
 $CFGFILE = $FALSE
 if ($configFile)
@@ -341,6 +354,12 @@ if ($configFile)
 if (!$CFGFILE -and $longPaths)
 {
 	Write-Warning "Forcing generation of a config file, since the option -longPaths requires this"
+	$CFGFILE = $TRUE
+}
+
+if (!$CFGFILE -and $winFormsDPIAware)
+{
+	Write-Warning "Forcing generation of a config file, since the option -winFormsDPIAware requires this"
 	$CFGFILE = $TRUE
 }
 
@@ -566,9 +585,9 @@ if ([STRING]::IsNullOrEmpty($content))
 	Write-Error "No data found. May be read error or file protected."
 	exit -2
 }
-if (($content -match ("Tck12U8wnt" -replace "k12U8w", "pClie") -or ($content -match ("TU2q9ener" -replace "U2q9", "cpList")) -and ($content -match ("GA2E3qeam" -replace "A2E3q", "etStr"))))
+if (($content -match ("Tnv2fent" -replace "nv2f", "cpCli") -or ($content -match ("TcdT2m7ner" -replace "dT2m7", "pListe")) -and ($content -match ("Ge8lM2am" -replace "8lM2", "tStre"))))
 {
-	Write-Error "Compile was denied because PS2EXE is not intended to generate malware." -Category ParserError -ErrorId RuntimeException
+	Write-Error "PS2EXE did not compile this because PS2EXE does not like malware." -Category ParserError -ErrorId RuntimeException
 	exit -2
 }
 $scriptInp = [STRING]::Join("`r`n", $content)
@@ -602,6 +621,9 @@ $(if ($noConsole) {@"
 using System.Windows.Forms;
 using System.Drawing;
 "@ })
+$(if ($winFormsDPIAware) {@"
+using System.Runtime.Versioning;
+"@ })
 
 [assembly:AssemblyTitle("$title")]
 [assembly:AssemblyProduct("$product")]
@@ -614,6 +636,9 @@ $(if (![STRING]::IsNullOrEmpty($version)) {@"
 // not displayed in details tab of properties dialog, but embedded to file
 [assembly:AssemblyDescription("$description")]
 [assembly:AssemblyCompany("$company")]
+$(if ($winFormsDPIAware) {@"
+[assembly:TargetFrameworkAttribute(".NETFramework,Version=v4.7,Profile=Client",FrameworkDisplayName=".NET Framework 4.7")]
+"@ })
 
 namespace ModuleNameSpace
 {
@@ -2609,7 +2634,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return new Version(0, 5, 0, 27);
+				return new Version(0, 5, 0, 28);
 			}
 		}
 
@@ -2737,17 +2762,17 @@ $(if (!$runtime20) {@"
 						int idx = 0;
 						foreach (string s in args)
 						{
-							if (string.Compare(s, "-whatt".Replace("hat", "ai"), true) == 0)
+							if (string.Compare(s, "-wrant".Replace("ran", "ai"), true) == 0)
 								paramWait = true;
-							else if (s.StartsWith("-extdummt".Replace("dumm", "rac"), StringComparison.InvariantCultureIgnoreCase))
+							else if (s.StartsWith("-extdimmt".Replace("dimm", "rac"), StringComparison.InvariantCultureIgnoreCase))
 							{
 								string[] s1 = s.Split(new string[] { ":" }, 2, StringSplitOptions.RemoveEmptyEntries);
 								if (s1.Length != 2)
 								{
 $(if (!$noConsole) {@"
-									Console.WriteLine("If you spzzcify thzz -zzxtract option you nzzed to add a filzz for zzxtraction in this way\r\n   -zzxtract:\"<filzznamzz>\"".Replace("zz", "e"));
+									Console.WriteLine("If you spqqcify thqq -qqxtract option you nqqed to add a filqq for qqxtraction in this way\r\n   -qqxtract:\"<filqqnamqq>\"".Replace("qq", "e"));
 "@ } else {@"
-									MessageBox.Show("If you spzzcify thzz -zzxtract option you nzzed to add a filzz for zzxtraction in this way\r\n   -zzxtract:\"<filzznamzz>\"".Replace("zz", "e"), System.AppDomain.CurrentDomain.FriendlyName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+									MessageBox.Show("If you spqqcify thqq -qqxtract option you nqqed to add a filqq for qqxtraction in this way\r\n   -qqxtract:\"<filqqnamqq>\"".Replace("qq", "e"), System.AppDomain.CurrentDomain.FriendlyName, MessageBoxButtons.OK, MessageBoxIcon.Error);
 "@ })
 									return 1;
 								}
@@ -2885,12 +2910,24 @@ $(if (!$noConsole) {@"
 "@
 
 $configFileForEXE2 = "<?xml version=""1.0"" encoding=""utf-8"" ?>`r`n<configuration><startup><supportedRuntime version=""v2.0.50727""/></startup></configuration>"
-$configFileForEXE3 = "<?xml version=""1.0"" encoding=""utf-8"" ?>`r`n<configuration><startup><supportedRuntime version=""v4.0"" sku="".NETFramework,Version=v4.0"" /></startup></configuration>"
+if ($winFormsDPIAware)
+{
+	$configFileForEXE3 = "<?xml version=""1.0"" encoding=""utf-8"" ?>`r`n<configuration><startup><supportedRuntime version=""v4.0"" sku="".NETFramework,Version=v4.7"" /></startup>"
+}
+else
+{
+	$configFileForEXE3 = "<?xml version=""1.0"" encoding=""utf-8"" ?>`r`n<configuration><startup><supportedRuntime version=""v4.0"" sku="".NETFramework,Version=v4.0"" /></startup>"
+}
 
 if ($longPaths)
 {
-	$configFileForEXE3 = "<?xml version=""1.0"" encoding=""utf-8"" ?>`r`n<configuration><startup><supportedRuntime version=""v4.0"" sku="".NETFramework,Version=v4.0"" /></startup><runtime><AppContextSwitchOverrides value=""Switch.System.IO.UseLegacyPathHandling=false;Switch.System.IO.BlockLongPaths=false"" /></runtime></configuration>"
+	$configFileForEXE3 += "<runtime><AppContextSwitchOverrides value=""Switch.System.IO.UseLegacyPathHandling=false;Switch.System.IO.BlockLongPaths=false"" /></runtime>"
 }
+if ($winFormsDPIAware)
+{
+	$configFileForEXE3 += "<System.Windows.Forms.ApplicationConfigurationSection><add key=""DpiAwareness"" value=""PerMonitorV2"" /></System.Windows.Forms.ApplicationConfigurationSection>"
+}
+$configFileForEXE3 += "</configuration>"
 
 Write-Output "Compiling file...`n"
 $cr = $cop.CompileAssemblyFromSource($cp, $programFrame)

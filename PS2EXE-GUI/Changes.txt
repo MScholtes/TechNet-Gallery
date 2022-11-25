@@ -1,3 +1,8 @@
+PS2EXE-GUI v0.5.0.28
+Changes:
+- new parameter -winFormsDPIAware to support scaling for WinForms in noConsole mode (only Windows 10 or up)
+
+
 PS2EXE-GUI v0.5.0.27
 Changes:
 - fixed password longer than 24 characters error

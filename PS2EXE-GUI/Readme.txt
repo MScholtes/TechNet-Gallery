@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.27
-Release: 2021-11-21
+PS2EXE-GUI v0.5.0.28
+Release: 2022-11-09
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -19,10 +19,8 @@ Module based version available now on Powershell Gallery, see here (https://www.
 
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
-Update v0.5.0.27 - 2021-11-21
-- fixed password longer than 24 characters error
-- new parameter -DPIAware to support scaling in noConsole mode
-- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
+Update v0.5.0.28 - 2022-11-09
+- new parameter -winFormsDPIAware to support scaling for WinForms in noConsole mode (only Windows 10 or up)
 
 Full list of changes and fixes in Changes.txt.
 
@@ -54,9 +52,6 @@ The basic input/output commands had to be rewritten in C# for PS2EXE. Not implem
 
 GUI mode output formatting:
 Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
-
-Config files:
-PS2EXE create config files with the name of the generated executable + ".config". In most cases those config files are not necessary, they are a manifest that tells which .Net Framework version should be used. As you will usually use the actual .Net Framework, try running your excutable without the config file.
 
 Parameter processing:
 Compiled scripts process parameters like the original script does. One restriction comes from the Windows environment: for all executables all parameters have the type STRING, if there is no implicit conversion for your parameter type you have to convert explicitly in your script. You can even pipe content to the executable with the same restriction (all piped values have the type STRING).

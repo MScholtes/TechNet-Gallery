@@ -7,9 +7,9 @@ Script Center version was here: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.27
+### Version: v0.5.0.28
 
-### Date: 2021-11-21
+### Date: 2022-11-09
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -24,10 +24,8 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.27 - 2021-11-21
-- fixed password longer than 24 characters error
-- new parameter -DPIAware to support scaling in noConsole mode
-- new parameter -exitOnCancel to stop program execution on cancel in input boxes (only in noConsole mode)
+### Update v0.5.0.28 - 2022-11-09
+- new parameter -winFormsDPIAware to support scaling for WinForms in noConsole mode (only Windows 10 or up)
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 
@@ -69,10 +67,6 @@ The basic input/output commands had to be rewritten in C# for PS2EXE. Not implem
 ### GUI mode output formatting:
 
 Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
-
-### Config files:
-
-PS2EXE create config files with the name of the generated executable + ".config". In most cases those config files are not necessary, they are a manifest that tells which .Net Framework version should be used. As you will usually use the actual .Net Framework, try running your excutable without the config file.
 
 ### Parameter processing:
 
