@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.24 / 2022-11-25
+PS2EXE-GUI v0.5.0.28:
+- new parameter -winFormsDPIAware to support scaling for WinForms in noConsole mode (only Windows 10 or up)
+
 ### Version 1.0.23 / 2022-11-24
 Transpose-Object 1.1:
 - workaround for Out-GridView error, select title property, fixed error detecting doubled titles
