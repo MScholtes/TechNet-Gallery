@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.25 / 2023-02-19
+VirtualDesktop 2.13:
+- support for Windows 11 Insider 25276+
+
 ### Version 1.0.24 / 2022-11-25
 PS2EXE-GUI v0.5.0.28:
 - new parameter -winFormsDPIAware to support scaling for WinForms in noConsole mode (only Windows 10 or up)
