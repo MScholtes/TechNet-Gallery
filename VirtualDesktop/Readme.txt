@@ -1,4 +1,4 @@
-Virtualdesktop.ps1		by Markus Scholtes, 2022
+Virtualdesktop.ps1		by Markus Scholtes, 2023
 
 Powershell commands to manage virtual desktops of Windows 10 and Windows 11
 
@@ -9,12 +9,13 @@ document a programming interface to manage virtual desktops from a script or
 program. This set of powershell commands helps out and lets you control virtual
 desktops from scripts.
 
-Now with support for desktop names introduced with Windows 10 2004!
 Now with support for Windows 11 including Insider!
 Now with support for Windows Server 2022!
 Now with support for Powershell Core!
 Now with support for Windows Terminal!
 
+Update 2.13:
+support for Windows 11 Insider 25276+
 Update 2.12:
 bug fix: desktop for pinned windows and apps are recognized
 Update 2.11:

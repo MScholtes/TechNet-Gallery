@@ -22,6 +22,9 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.13
+support for Windows 11 Insider 25276+
+
 ### Update 2.12
 bug fix: desktop for pinned windows and apps are recognized
 

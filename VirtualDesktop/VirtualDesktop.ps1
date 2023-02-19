@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.12 - bug fix: desktop for pinned windows and apps are recognized, 2022/07/29
+# Version 2.13 - support for Windows 11 Insider 25276+, 2023/02/19
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -280,9 +280,16 @@ $(if ($OSBuild -ge 22000) {@"
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($OSBuild -ge 22000) {@"
+$(if ($OSBuild -ge 25158) {@"
+// Windows 11 Insider:
+	[Guid("88846798-1611-4D18-946B-4A67BFF58C1B")]
+"@ })
+$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 25158)) {@"
 // Windows 11:
 	[Guid("B2F925B9-5A0F-4D2E-9F4D-2B1507593C10")]
+"@ })
+$(if ($OSBuild -ge 22000) {@"
+// Windows 11:
 	internal interface IVirtualDesktopManagerInternal
 	{
 		int GetCount(IntPtr hWndOrMon);
@@ -295,10 +302,18 @@ $(if ($OSBuild -ge 22449) {@"
 		IObjectArray GetAllCurrentDesktops();
 "@ })
 $(if ($OSBuild -ge 22000) {@"
+// Windows 11:
 		void GetDesktops(IntPtr hWndOrMon, out IObjectArray desktops);
 		[PreserveSig]
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
 		void SwitchDesktop(IntPtr hWndOrMon, IVirtualDesktop desktop);
+"@ })
+$(if ($OSBuild -ge 25158) {@"
+// Windows 11 Insider:
+		void SwitchDesktopAndMoveForegroundView(IntPtr hWndOrMon, IVirtualDesktop desktop);
+"@ })
+$(if ($OSBuild -ge 22000) {@"
+// Windows 11:
 		IVirtualDesktop CreateDesktop(IntPtr hWndOrMon);
 		void MoveDesktop(IVirtualDesktop desktop, IntPtr hWndOrMon, int nIndex);
 		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
