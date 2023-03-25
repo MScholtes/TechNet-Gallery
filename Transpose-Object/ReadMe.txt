@@ -35,5 +35,8 @@ Get-ChildItem | Select-Object Mode, LastWriteTime, Length, Name | Transpose-Obje
 
 
 
+Version: 1.2 - values of 0, $FALSE or "" not longer identified as $NULL
+Creation Date: 20/03/2023
+
 Version: 1.1 - workaround for Out-GridView error, select title property, fixed error detecting doubled titles
 Creation Date: 11/11/2022

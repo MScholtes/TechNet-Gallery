@@ -22,8 +22,8 @@ Creates a CSV file with a column instead of a row for every process
 .NOTES
 Name: Transpose-Object
 Author: Markus Scholtes
-Version: 1.1 - workaround for Out-GridView error, select title property, fixed error detecting doubled titles
-Creation Date: 11/11/2022
+Version: 1.2 - values of 0, $FALSE or "" not longer identified as $NULL
+Creation Date: 20/03/2023
 #>
 function Transpose-Object
 { [CmdletBinding()]
@@ -67,7 +67,7 @@ function Transpose-Object
   	# retrieve property values and add them to the property's PSCustomobject
   	$COUNTER = 0
   	$PropNames | %{
-  		if ($InputObject.($_))
+  		if ($NULL -ne $InputObject.($_))
   		{ # property exists for current object
   			$Props[$COUNTER] | Add-Member -Name $Property -Type NoteProperty -Value $InputObject.($_)
   		} else { # property does not exist for current object, add $NULL value
