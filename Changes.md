@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.26 / 2023-03-25
+Transpose-Object 1.2:
+- values of 0, $FALSE or "" not longer identified as $NULL
+
 ### Version 1.0.25 / 2023-02-19
 VirtualDesktop 2.13:
 - support for Windows 11 Insider 25276+
