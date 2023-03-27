@@ -1,9 +1,10 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.26 / 2023-03-25
-Transpose-Object 1.2:
-- values of 0, $FALSE or "" not longer identified as $NULL
+### Version 1.0.27 / 2023-03-27
+Powershell Webserver 1.5:
+- changed header encoding to Windows 1252 to prevent data loss in cjk encodings
+- fixed bug that cut file names with semicolons in it
 
 For a complete list of changes see here: [Changes](Changes.md)
 
