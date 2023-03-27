@@ -49,7 +49,7 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
-Update 1.5 - 2023-07-26:
+Update 1.5 - 2023-03-26:
 * changed header encoding to Windows 1252 to prevent data loss in cjk encodings
 * fixed bug that cut file names with semicolons in it
 
