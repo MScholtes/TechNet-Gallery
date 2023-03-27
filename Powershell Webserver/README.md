@@ -7,9 +7,9 @@ See Script Center version: [Powershell Webserver](https://gallery.technet.micros
 
 ### Author: Markus Scholtes
 
-### Version: 1.4
+### Version: 1.5
 
-### Date: 2022-07-31
+### Date: 2023-03-26
 
 Now also on Powershell Gallery as **WebServer** module, see [here](https://www.powershellgallery.com/packages/WebServer/) or install with
 ```powershell
@@ -49,6 +49,10 @@ Other functions can be implemented very easily.
 If you give it a try, see remarks below by all means.
 
 ## Versions
+Update 1.5 - 2023-07-26:
+* changed header encoding to Windows 1252 to prevent data loss in cjk encodings
+* fixed bug that cut file names with semicolons in it
+
 Update 1.4 - 2022-07-31:
 * Introduced PSP files (Powershell Server Pages) for embedded execution
 * Updated list of mime types
