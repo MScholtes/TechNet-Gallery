@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.28 / 2023-07-23
+VirtualDesktop 2.14:
+- no flashing icons after switching of desktops
+
 ### Version 1.0.27 / 2023-03-27
 Powershell Webserver 1.5:
 - changed header encoding to Windows 1252 to prevent data loss in cjk encodings

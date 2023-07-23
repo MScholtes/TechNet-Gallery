@@ -1,10 +1,9 @@
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
-### Version 1.0.27 / 2023-03-27
-Powershell Webserver 1.5:
-- changed header encoding to Windows 1252 to prevent data loss in cjk encodings
-- fixed bug that cut file names with semicolons in it
+### Version 1.0.28 / 2023-07-23
+VirtualDesktop 2.14:
+- no flashing icons after switching of desktops
 
 For a complete list of changes see here: [Changes](Changes.md)
 
