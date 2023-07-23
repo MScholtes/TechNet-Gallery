@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.13 - support for Windows 11 Insider 25276+, 2023/02/19
+# Version 2.14 - no flashing icons after switch desktops, 2023/06/11
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -280,11 +280,11 @@ $(if ($OSBuild -ge 22000) {@"
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($OSBuild -ge 25158) {@"
+$(if ($OSBuild -ge 23403) {@"
 // Windows 11 Insider:
 	[Guid("88846798-1611-4D18-946B-4A67BFF58C1B")]
 "@ })
-$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 25158)) {@"
+$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 23403)) {@"
 // Windows 11:
 	[Guid("B2F925B9-5A0F-4D2E-9F4D-2B1507593C10")]
 "@ })
@@ -298,7 +298,7 @@ $(if ($OSBuild -ge 22000) {@"
 		IVirtualDesktop GetCurrentDesktop(IntPtr hWndOrMon);
 "@ })
 $(if ($OSBuild -ge 22449) {@"
-// Windows 11 Insider:
+// Windows 11 22H2:
 		IObjectArray GetAllCurrentDesktops();
 "@ })
 $(if ($OSBuild -ge 22000) {@"
@@ -308,7 +308,7 @@ $(if ($OSBuild -ge 22000) {@"
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
 		void SwitchDesktop(IntPtr hWndOrMon, IVirtualDesktop desktop);
 "@ })
-$(if ($OSBuild -ge 25158) {@"
+$(if ($OSBuild -ge 23403) {@"
 // Windows 11 Insider:
 		void SwitchDesktopAndMoveForegroundView(IntPtr hWndOrMon, IVirtualDesktop desktop);
 "@ })
@@ -548,13 +548,30 @@ $(if ($OSBuild -lt 20348) {@"
 		[DllImport("Kernel32.dll")]
 		public static extern IntPtr GetConsoleWindow();
 
-		// get process id to window handle
+		// get process id of window handle
 		[DllImport("user32.dll")]
-		private static extern int GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+
+		// get thread id of current process
+		[DllImport("kernel32.dll")]
+		static extern uint GetCurrentThreadId();
+
+		// attach input to thread
+		[DllImport("user32.dll")]
+		static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
 
 		// get handle of active window
 		[DllImport("user32.dll")]
 		public static extern IntPtr GetForegroundWindow();
+
+		// try to set foreground window
+		[DllImport("user32.dll")]
+		[return: MarshalAs(UnmanagedType.Bool)]static extern bool SetForegroundWindow(IntPtr hWnd);
+
+		// send message to window
+		[DllImport("user32.dll")]
+		static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+		private const int SW_MINIMIZE = 6;
 
 		private static UIntPtr HKEY_CURRENT_USER = new UIntPtr(0x80000001u);
 		private const int KEY_READ = 0x20019;
@@ -831,11 +848,31 @@ $(if ($OSBuild -lt 20348) {@"
 
 		public void MakeVisible()
 		{ // make this desktop visible
+			WindowInformation wi = FindWindow("Program Manager");
+
+			// activate desktop to prevent flashing icons in taskbar
+			int dummy;
+			uint DesktopThreadId = GetWindowThreadProcessId(new IntPtr(wi.Handle), out dummy);
+			uint ForegroundThreadId = GetWindowThreadProcessId(GetForegroundWindow(), out dummy);
+			uint CurrentThreadId = GetCurrentThreadId();
+
+			if ((DesktopThreadId != 0) && (ForegroundThreadId != 0) && (ForegroundThreadId != CurrentThreadId))
+			{
+				AttachThreadInput(DesktopThreadId, CurrentThreadId, true);
+				AttachThreadInput(ForegroundThreadId, CurrentThreadId, true);
+				SetForegroundWindow(new IntPtr(wi.Handle));
+				AttachThreadInput(ForegroundThreadId, CurrentThreadId, false);
+				AttachThreadInput(DesktopThreadId, CurrentThreadId, false);
+			}
+
 $(if ($OSBuild -lt 20348) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
 "@ } else {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(IntPtr.Zero, ivd);
 "@ })
+
+			// direct desktop to give away focus
+			ShowWindow(new IntPtr(wi.Handle), SW_MINIMIZE);
 		}
 
 		public Desktop Left
@@ -2882,7 +2919,7 @@ Updated: 2022/02/25
 	Param()
 
 	Write-Verbose "Retrieving console window handle"
-	if ($NULL -ne $ENV:wt_session) 
+	if ($NULL -ne $ENV:wt_session)
 	{ # seems to be running in Windows Terminal
 		$HANDLE = (Get-Process -PID ((Get-WmiObject -Class win32_process -Filter "processid='$PID'").ParentProcessId)).MainWindowHandle
 	}

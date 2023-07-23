@@ -10,7 +10,7 @@ Windows 10 introduced a great new feature with virtual desktops. This set of pow
 **Now with support for Windows Terminal**
 
 
-**Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 21H2, Windows Server 2022 and Windows 11!**
+**Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 up to 22H2, Windows Server 2022 and Windows 11!**
 
 Since Technet Gallery will be closed, now here.
 
@@ -22,6 +22,9 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.14
+- no flashing icons after switching of desktops
+
 ### Update 2.13
 support for Windows 11 Insider 25276+
 
