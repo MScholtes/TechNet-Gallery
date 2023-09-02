@@ -2,10 +2,9 @@
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 
-### Version 1.0.29 / 2023-08-29
-VirtualDesktop 2.15:
-- integration of Win 11 22H2 Build 22621.2215 and Insider versions
-- Remove-AllDesktops without function on Win 11 22H2 Build 22621.2215 and Insider versions (will soon be fixed)
+### Version 1.0.30 / 2023-09-02
+VirtualDesktop 2.16:
+- bug fix for Win 11 22H2 Build 22621.2215
 
 For a complete list of changes see here: [Changes](Changes.md)
 
