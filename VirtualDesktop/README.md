@@ -22,6 +22,9 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.16
+- bug fix for Win 11 22H2 Build 22621.2215
+
 ### Update 2.15
 - integration of Win 11 22H2 Build 22621.2215 and Insider versions
 - Remove-AllDesktops without function on Win 11 22H2 Build 22621.2215 and Insider versions (will soon be fixed)

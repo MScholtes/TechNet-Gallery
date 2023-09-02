@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.15 - integration of Win 11 22H2 Build 22621.2215 and Insider versions, 2023/08/27
+# Version 2.16 - bug fix for Win 11 22H2 Build 22621.2215, 2023/09/02
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -45,7 +45,7 @@ using System.Text;
 namespace VirtualDesktop
 {
 	#region Type definitions
-	// define HString on .Net 5 / overwrite HString on .Net 4 (Copyright (c) 2021 voed, https://github.com/voed/VirtualDesktop.Net5)
+	// define HString on .Net 5 / overwrite HString on .Net 4 - https://github.com/dotnet/runtime/issues/39827
 	[StructLayout(LayoutKind.Sequential)]
 	public struct HString : IDisposable
 	{
@@ -311,7 +311,12 @@ $(if ($OSBuild -ge 22622) {@"
 		[PreserveSig]
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
 		void SwitchDesktop(IVirtualDesktop desktop);
+"@ })
+$(if ($OSBuild -gt 22622) {@"
+// not in Windows 11 22H2.2215:
 		void SwitchDesktopAndMoveForegroundView(IVirtualDesktop desktop);
+"@ })
+$(if ($OSBuild -ge 22622) {@"
 		IVirtualDesktop CreateDesktop();
 		void MoveDesktop(IVirtualDesktop desktop, int nIndex);
 		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);

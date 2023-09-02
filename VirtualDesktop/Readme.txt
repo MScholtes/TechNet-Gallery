@@ -14,10 +14,12 @@ Now with support for Windows Server 2022!
 Now with support for Powershell Core!
 Now with support for Windows Terminal!
 
-Update 2.15:
+Update 2.16
+bug fix for Win 11 22H2 Build 22621.2215
+Update 2.15
 integration of Win 11 22H2 Build 22621.2215 and Insider versions
 Remove-AllDesktops without function on Win 11 22H2 Build 22621.2215 and Insider versions (will soon be fixed)
-Update 2.14:
+Update 2.14
 no flashing icons after switch desktops
 Update 2.13:
 support for Windows 11 Insider 25276+
