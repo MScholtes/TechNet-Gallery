@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.31 / 2023-09-21
+VirtualDesktop 2.17:
+- bug fix for Win 11 Insider Canary
+- Remove-AllDesktops for all versions
+
 ### Version 1.0.30 / 2023-09-02
 VirtualDesktop 2.16:
 - bug fix for Win 11 22H2 Build 22621.2215
