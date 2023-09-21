@@ -1,7 +1,7 @@
 # Powershell commands to manage virtual desktops of Windows 10 and Windows 11
 Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts.
 
-**Now with support for Windows 11 including Insider**
+**Now with support for Windows 11 including Insider Canary**
 
 **Now with support for Windows Server 2022**
 
@@ -22,6 +22,10 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.17
+- bug fix for Win 11 Insider Canary
+- Remove-AllDesktops for all versions
+
 ### Update 2.16
 - bug fix for Win 11 22H2 Build 22621.2215
 
@@ -181,7 +185,7 @@ If no parameter is supplied, the last desktop is removed.
 ```powershell
 Remove-AllDesktops
 ```
-Remove all virtual desktops but visible. Works only with Windows 11.
+Remove all virtual desktops but visible.
 
 ```powershell
 Get-CurrentDesktop

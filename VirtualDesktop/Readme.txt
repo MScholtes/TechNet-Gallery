@@ -14,6 +14,9 @@ Now with support for Windows Server 2022!
 Now with support for Powershell Core!
 Now with support for Windows Terminal!
 
+Update 2.17
+bug fix for Win 11 Insider Canary
+Remove-AllDesktops for all versions
 Update 2.16
 bug fix for Win 11 22H2 Build 22621.2215
 Update 2.15
@@ -123,7 +126,7 @@ second desktop is used instead. If the current desktop is removed, this fallback
 If no parameter is supplied, the last desktop is removed.
 
 Remove-AllDesktops
-Remove all virtual desktops but visible. Works only with Windows 11.
+Remove all virtual desktops but visible.
 
 Get-CurrentDesktop
 Get current virtual desktop as desktop object.

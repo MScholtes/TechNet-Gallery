@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.16 - bug fix for Win 11 22H2 Build 22621.2215, 2023/09/02
+# Version 2.17 - bug fix for Win 11 Insider Canary, Remove-AllDesktops for all versions, 2023/09/18
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -312,8 +312,8 @@ $(if ($OSBuild -ge 22622) {@"
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
 		void SwitchDesktop(IVirtualDesktop desktop);
 "@ })
-$(if ($OSBuild -gt 22622) {@"
-// not in Windows 11 22H2.2215:
+$(if ($OSBuild -ge 25314) {@"
+// Windows 11 Insider Canary:
 		void SwitchDesktopAndMoveForegroundView(IVirtualDesktop desktop);
 "@ })
 $(if ($OSBuild -ge 22622) {@"
@@ -829,22 +829,42 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
 		}
 
 $(if ($OSBuild -lt 20348) {@"
-		public void SetName(string Name)
-		{ // set name for desktop, empty string removes name
-			if (DesktopManager.VirtualDesktopManagerInternal2 != null)
-			{ // only if interface to set name is present
-				HString hstring = HString.FromString(Name);
-				DesktopManager.VirtualDesktopManagerInternal2.SetName(this.ivd, hstring);
-				hstring.Delete();
+// Windows 10:
+		public static void RemoveAll()
+		{ // remove all desktops but visible
+			int desktopcount = DesktopManager.VirtualDesktopManagerInternal.GetCount();
+			int desktopcurrent = DesktopManager.GetDesktopIndex(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
+
+			if (desktopcurrent < desktopcount-1)
+			{ // remove all desktops "right" from current
+				for (int i = desktopcount-1; i > desktopcurrent; i--)
+					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(i), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
+			}
+			if (desktopcurrent > 0)
+			{ // remove all desktops "left" from current
+				for (int i = 0; i < desktopcurrent; i++)
+					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(0), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
 			}
 		}
 "@ })
-$(if ($OSBuild -ge 20348) {@"
-		public void SetName(string Name)
-		{ // set name for desktop, empty string removes name
-			HString hstring = HString.FromString(Name);
-			DesktopManager.VirtualDesktopManagerInternal.SetDesktopName(this.ivd, hstring);
-			hstring.Delete();
+
+$(if ($OSBuild -eq 20348) {@"
+// Windows Server 2022:
+		public static void RemoveAll()
+		{ // remove all desktops but visible
+			int desktopcount = DesktopManager.VirtualDesktopManagerInternal.GetCount(IntPtr.Zero);
+			int desktopcurrent = DesktopManager.GetDesktopIndex(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero));
+
+			if (desktopcurrent < desktopcount-1)
+			{ // remove all desktops "right" from current
+				for (int i = desktopcount-1; i > desktopcurrent; i--)
+					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(i), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero));
+			}
+			if (desktopcurrent > 0)
+			{ // remove all desktops "left" from current
+				for (int i = 0; i < desktopcurrent; i++)
+					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(0), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero));
+			}
 		}
 "@ })
 
@@ -863,15 +883,45 @@ $(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22622)) {@"
 $(if ($OSBuild -ge 22622) {@"
 		public static void RemoveAll()
 		{ // remove all desktops but visible
-			// ***** To reimplement  since not supported by API anymore
-			// DesktopManager.VirtualDesktopManagerInternal.SetDesktopIsPerMonitor(true);
+			int desktopcount = DesktopManager.VirtualDesktopManagerInternal.GetCount();
+			int desktopcurrent = DesktopManager.GetDesktopIndex(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
+
+			if (desktopcurrent < desktopcount-1)
+			{ // remove all desktops "right" from current
+				for (int i = desktopcount-1; i > desktopcurrent; i--)
+					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(i), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
+			}
+			if (desktopcurrent > 0)
+			{ // remove all desktops "left" from current
+				for (int i = 0; i < desktopcurrent; i++)
+					DesktopManager.VirtualDesktopManagerInternal.RemoveDesktop(DesktopManager.GetDesktop(0), DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
+			}
 		}
 
 		public void Move(int index)
 		{ // move current desktop to desktop in index (-> index = 0..Count-1)
 			DesktopManager.VirtualDesktopManagerInternal.MoveDesktop(ivd, index);
 		}
+"@ })
 
+$(if ($OSBuild -lt 20348) {@"
+		public void SetName(string Name)
+		{ // set name for desktop, empty string removes name
+			if (DesktopManager.VirtualDesktopManagerInternal2 != null)
+			{ // only if interface to set name is present
+				HString hstring = HString.FromString(Name);
+				DesktopManager.VirtualDesktopManagerInternal2.SetName(this.ivd, hstring);
+				hstring.Delete();
+			}
+		}
+"@ })
+$(if ($OSBuild -ge 20348) {@"
+		public void SetName(string Name)
+		{ // set name for desktop, empty string removes name
+			HString hstring = HString.FromString(Name);
+			DesktopManager.VirtualDesktopManagerInternal.SetDesktopName(this.ivd, hstring);
+			hstring.Delete();
+		}
 "@ })
 
 $(if ($OSBuild -ge 22000) {@"
@@ -1437,34 +1487,32 @@ Updated: 2020/06/27
 }
 
 
-if ($OSBuild -ge 22000)
+function Remove-AllDesktops
 {
-	function Remove-AllDesktops
-	{
-	<#
-	.SYNOPSIS
-	Remove all virtual desktops but visible
-	.DESCRIPTION
-	Remove all virtual desktops but visible
-	.INPUTS
-	None
-	.OUTPUTS
-	None
-	.EXAMPLE
-	Remove-AllDesktops
+<#
+.SYNOPSIS
+Remove all virtual desktops but visible
+.DESCRIPTION
+Remove all virtual desktops but visible
+.INPUTS
+None
+.OUTPUTS
+None
+.EXAMPLE
+Remove-AllDesktops
 
-	Remove all virtual desktops but visible
-	.LINK
-	https://github.com/MScholtes/PSVirtualDesktop
-	.LINK
-	https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
-	.NOTES
-	Author: Markus Scholtes
-	Created: 2021/10/17
-	#>
-		[VirtualDesktop.Desktop]::RemoveAll()
-	}
+Remove all virtual desktops but visible
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.NOTES
+Author: Markus Scholtes
+Created: 2021/10/17
+#>
+	[VirtualDesktop.Desktop]::RemoveAll()
 }
+
 
 function Get-CurrentDesktop
 {
