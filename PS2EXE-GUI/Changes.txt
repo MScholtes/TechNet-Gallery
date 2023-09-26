@@ -1,3 +1,10 @@
+PS2EXE-GUI v0.5.0.29
+Changes:
+- now [ and ] are supported in directory name of script
+- source file might be larger than 16 MB (for whoever that needs)
+- new addtional parameter text field in Win-PS2EXE
+
+
 PS2EXE-GUI v0.5.0.28
 Changes:
 - new parameter -winFormsDPIAware to support scaling for WinForms in noConsole mode (only Windows 10 or up)

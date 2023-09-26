@@ -11,9 +11,9 @@ Script Center version was here: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.28
+### Version: v0.5.0.29
 
-### Date: 2022-11-09
+### Date: 2023-09-26
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -28,8 +28,10 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.28 - 2022-11-09
-- new parameter -winFormsDPIAware to support scaling for WinForms in noConsole mode (only Windows 10 or up)
+### Update v0.5.0.29 - 2023-09-26
+- now [ and ] are supported in directory name of script
+- source file might be larger than 16 MB (for whoever that needs)
+- new addtional parameter text field in Win-PS2EXE
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 

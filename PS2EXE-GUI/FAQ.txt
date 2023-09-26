@@ -686,6 +686,98 @@ Rainer
 
 
 
+Mouse wheel scrolling in console
+9 Posts | Letzter Beitrag Juni 07, 2019
+
+Geschrieben Juni 02, 2019
+Romeo Montague
+Hello,
+
+is there any way to enable mouse wheel scrolling in console mode?
+
+Thanks in advance.
+
+Geschrieben Juni 02, 2019
+Markus Scholtes
+Hello Romeo Montague,
+
+I tested it. Mouse wheel scrolling works fine for me in console mode. Can you tell more about the script and situation where scrolling does not work?
+
+Greetings
+
+Markus
+
+Geschrieben Juni 02, 2019
+Romeo Montague
+Hello Markus Scholtes,
+
+I have tried the following code with v0.5.0.15 using the BuildExamples:
+
+for ($i=1; $i -le 350; $i++) {$i,"`n"}
+$input = [System.Console]::ReadKey("NoEcho")
+
+I am using Windows 7, PS version is 5.1
+
+Geschrieben Juni 03, 2019
+Markus Scholtes
+Hello Romeo Montague,
+
+I guess it has nothing to do with PS2EXE but with the buffer settings of your command prompt (cmd.exe).
+To check this start a command prompt, open the menu (maybe with a right click on the title bar) and select "Defaults". Go to the tab "Layout" and check if the value for "Height" in the section "Screen Buffer size" is high enough to allow scrolling.
+
+Greetings
+
+Markus
+
+Geschrieben Juni 03, 2019
+Romeo Montague
+Hello,
+
+in the defaults the buffer size height is 300, in properties it is 3000.
+When running the above code in cmd scrolling works, but not in compiled exe.
+Scrolling in exe works when I enable the quick edit mode in options tab.
+Would it be possible to enable this option through the script somehow?
+
+
+
+
+Geschrieben Juni 04, 2019
+Markus Scholtes
+Hello Romeo Montague,
+
+this is quite confusing. I guess the reason is that cmd.exe tries to determine whether scrolling has to be enabled or not (see here: https://superuser.com/questions/1404238/enable-scroll-wheel-to-scroll-command-prompt-while-its-running-applications) and is guessing wrong here.
+
+I do not know a way to change the "quick edit" setting in a script for the running shell.
+
+Greetings
+
+Markus
+
+Geschrieben Juni 05, 2019
+Romeo Montague
+Hello Markus Scholtes,
+
+apparently the scrolling of unfocused window (mentioned in the link) is Windows 10 feature, see here https://stackoverflow.com/questions/44735362/control-mousewheel-event
+
+Geschrieben Juni 06, 2019
+Romeo Montague
+Hello Markus Scholtes,
+
+thanks for your support!
+I found how to enable the "quick edit" mode from the script, see first answer here: https://stackoverflow.com/questions/30872345/script-commands-to-disable-quick-edit-mode
+And modifying the above with the information from the answer here: https://stackoverflow.com/questions/23666035/how-to-make-readconsoleinput-notice-mouse-events-when-program-is-running-from
+allows to enable mouse wheel scrolling without quick edit mode.
+
+Geschrieben Juni 07, 2019
+Markus Scholtes
+Hello Romeo Montague,
+
+it's a good thing you found a solution. Unfortunately I can't help with PS2EXE in this situation.
+
+Greetings
+
+Markus
+
 Doesn't seem to work for me, don't know why
 9 Posts | Letzter Beitrag Mai 12, 2019
 
