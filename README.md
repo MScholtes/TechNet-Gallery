@@ -2,10 +2,11 @@
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 
-### Version 1.0.31 / 2023-09-21
-VirtualDesktop 2.17:
-- bug fix for Win 11 Insider Canary
-- Remove-AllDesktops for all versions
+### Version 1.0.32 / 2023-09-26
+PS2EXE v0.5.0.29:
+- now [ and ] are supported in directory name of script
+- source file might be larger than 16 MB (for whoever that needs)
+- new addtional parameter text field in Win-PS2EXE
 
 For a complete list of changes see here: [Changes](Changes.md)
 
