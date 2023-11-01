@@ -71,11 +71,12 @@ Every script will be compiled to a console and a GUI version (-NoConsole).
 The basic input/output commands had to be rewritten in C# for PS2EXE. Not implemented are *Write-Progress* in console mode (too much work) and *Start-Transcript*/*Stop-Transcript* (no proper reference implementation by Microsoft).
 
 ### GUI mode output formatting:
-
 Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
 
-### Parameter processing:
+### Config files:
+PS2EXE can create config files with the name of the generated executable + ".config". In most cases those config files are not necessary, they are a manifest that tells which .Net Framework version should be used. As you will usually use the actual .Net Framework, try running your excutable without the config file.
 
+### Parameter processing:
 Compiled scripts process parameters like the original script does. One restriction comes from the Windows environment: for all executables all parameters have the type STRING, if there is no implicit conversion for your parameter type you have to convert explicitly in your script. You can even pipe content to the executable with the same restriction (all piped values have the type STRING).
 
 A generated executable has the following reserved parameters:
@@ -94,7 +95,6 @@ Output.exe -extract:C:\Output.ps1
 will decompile the script stored in Output.exe.
 
 ### Script variables:
-
 Since PS2EXE converts a script to an executable, script related variables are not available anymore. Especially the variable $PSScriptRoot is empty.
 
 The variable $MyInvocation is set to other values than in a script.
@@ -103,13 +103,13 @@ You can retrieve the script/executable path independant of compiled/not compiled
 
 ```powershell
 if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript")
-{ $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition }
-else
-{ $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0]) }
+ { $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition }
+ else
+ { $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0]) 
+     if (!$ScriptPath){ $ScriptPath = "." } }
 ```
 
 ### Window in background in -noConsole mode:
-
 When an external window is opened in a script with -noConsole mode (i.e. for Get-Credential or for a command that needs a cmd.exe shell) the next window is opened in the background.
 
 The reason for this is that on closing the external window windows tries to activate the parent window. Since the compiled script has no window, the parent window of the compiled script is activated instead, normally the window of Explorer or Powershell.
