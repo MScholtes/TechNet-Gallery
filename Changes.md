@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.33 / 2024-02-03
+Powershell Webserver 1.6:
+ - parameters can be handed to PSP files per POST method too
+ - added wasm extension to mime list
+
 ### Version 1.0.32 / 2023-09-26
 PS2EXE v0.5.0.29:
 - now [ and ] are supported in directory name of script
