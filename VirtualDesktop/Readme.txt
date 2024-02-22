@@ -1,4 +1,4 @@
-Virtualdesktop.ps1		by Markus Scholtes, 2023
+Virtualdesktop.ps1		by Markus Scholtes, 2024
 
 Powershell commands to manage virtual desktops of Windows 10 and Windows 11
 
@@ -14,15 +14,17 @@ Now with support for Windows Server 2022!
 Now with support for Powershell Core!
 Now with support for Windows Terminal!
 
-Update 2.17
+Update 2.18:
+changes for Win 11 3085 and up
+Update 2.17:
 bug fix for Win 11 Insider Canary
 Remove-AllDesktops for all versions
-Update 2.16
+Update 2.16:
 bug fix for Win 11 22H2 Build 22621.2215
-Update 2.15
+Update 2.15:
 integration of Win 11 22H2 Build 22621.2215 and Insider versions
 Remove-AllDesktops without function on Win 11 22H2 Build 22621.2215 and Insider versions (will soon be fixed)
-Update 2.14
+Update 2.14:
 no flashing icons after switch desktops
 Update 2.13:
 support for Windows 11 Insider 25276+

@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.17 - bug fix for Win 11 Insider Canary, Remove-AllDesktops for all versions, 2023/09/18
+# Version 2.18 - changes for Win 11 3085 and up, 2024/02/15
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -24,14 +24,6 @@ if ($OSBuild -lt 14393)
 {
 	Write-Error "Windows 10 1607 or above is required to run this script"
 	exit -1
-}
-
-if ($OSBuild -eq 22621)
-{ # Win 11 22H2
-	if ((Get-ItemPropertyValue -Path "HKLM:\Software\Microsoft\Windows NT\CurrentVersion" -Name "UBR") -ge 2215)
-	{ # Windows 11 after KB5029351 has a changed API, give it a invented build number to distinguish
-		$OSBuild = 22622
-	}
 }
 
 
@@ -258,12 +250,12 @@ $(if ($OSBuild -lt 17661) {@"
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($OSBuild -ge 22622) {@"
-// Windows 11 22H2.2215 and up:
+$(if ($OSBuild -ge 22621) {@"
+// Windows 11 22H2 and up:
 	[Guid("3F07F4BE-B107-441A-AF0F-39D82529072C")]
 "@ })
-$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22622)) {@"
-// Windows 11 up to 22H2.2134:
+$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22621)) {@"
+// Windows 11 up to 21H2:
 	[Guid("536D3495-B208-4CC9-AE26-DE8111275BF8")]
 "@ })
 $(if ($OSBuild -eq 20348) {@"
@@ -278,8 +270,8 @@ $(if ($OSBuild -lt 20348) {@"
 	{
 		bool IsViewVisible(IApplicationView view);
 		Guid GetId();
-$(if (($OSBuild -ge 20348) -And ($OSBuild -lt 22622)) {@"
-// Windows Server 2022 and Windows 11 up to 22H2.2134
+$(if (($OSBuild -ge 20348) -And ($OSBuild -lt 22621)) {@"
+// Windows Server 2022 and Windows 11 up to 21H2
 		IntPtr Unknown1();
 "@ })
 $(if ($OSBuild -ge 20348) {@"
@@ -290,17 +282,17 @@ $(if ($OSBuild -ge 22000) {@"
 // Windows 11:
 		HString GetWallpaperPath();
 "@ })
-$(if ($OSBuild -ge 22622) {@"
-// Windows 11 22H2.2215 and up:
+$(if ($OSBuild -ge 22621) {@"
+// Windows 11 22H2 and up:
 		bool IsRemote();
 "@ })
 	}
 
 	[ComImport]
 	[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-$(if ($OSBuild -ge 22622) {@"
-// Windows 11 22H2.2215:
-	[Guid("A3175F2D-239C-4BD2-8AA0-EEBA8B0B138E")]
+$(if ($OSBuild -ge 22621) {@"
+// Windows 11 22H2 and up:
+	[Guid("53F5CA0B-158F-4124-900C-057158060B27")]
 	internal interface IVirtualDesktopManagerInternal
 	{
 		int GetCount();
@@ -311,12 +303,6 @@ $(if ($OSBuild -ge 22622) {@"
 		[PreserveSig]
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
 		void SwitchDesktop(IVirtualDesktop desktop);
-"@ })
-$(if ($OSBuild -ge 25314) {@"
-// Windows 11 Insider Canary:
-		void SwitchDesktopAndMoveForegroundView(IVirtualDesktop desktop);
-"@ })
-$(if ($OSBuild -ge 22622) {@"
 		IVirtualDesktop CreateDesktop();
 		void MoveDesktop(IVirtualDesktop desktop, int nIndex);
 		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
@@ -327,14 +313,14 @@ $(if ($OSBuild -ge 22622) {@"
 		void UpdateWallpaperPathForAllDesktops(HString path);
 		void CopyDesktopState(IApplicationView pView0, IApplicationView pView1);
 		void CreateRemoteDesktop(HString path, out IVirtualDesktop desktop);
-		void SwitchRemoteDesktop(IVirtualDesktop desktop);
+		void SwitchRemoteDesktop(IVirtualDesktop desktop, IntPtr switchtype);
 		void SwitchDesktopWithAnimation(IVirtualDesktop desktop);
 		void GetLastActiveDesktop(out IVirtualDesktop desktop);
 		void WaitForAnimationToComplete();
 	}
 "@ })
-$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22622)) {@"
-// Windows 11 up to 22H2.2134:
+$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22621)) {@"
+// Windows 11 up to 21H2:
 	[Guid("B2F925B9-5A0F-4D2E-9F4D-2B1507593C10")]
 	internal interface IVirtualDesktopManagerInternal
 	{
@@ -343,12 +329,9 @@ $(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22622)) {@"
 		bool CanViewMoveDesktops(IApplicationView view);
 		IVirtualDesktop GetCurrentDesktop(IntPtr hWndOrMon);
 "@ })
-$(if (($OSBuild -ge 22449) -And ($OSBuild -lt 22622)) {@"
-// Windows 11 22H2:
+$(if (($OSBuild -ge 22449) -And ($OSBuild -lt 22621)) {@"
+// Windows 11 up to 21H2:
 		IObjectArray GetAllCurrentDesktops();
-"@ })
-$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22622)) {@"
-// Windows 11 up to 22H2.2134:
 		void GetDesktops(IntPtr hWndOrMon, out IObjectArray desktops);
 		[PreserveSig]
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
@@ -501,14 +484,14 @@ $(if ($OSBuild -lt 20348) {@"
 
 		internal static IVirtualDesktop GetDesktop(int index)
 		{	// get desktop with index
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			int count = VirtualDesktopManagerInternal.GetCount();
 "@ } else {@"
 			int count = VirtualDesktopManagerInternal.GetCount(IntPtr.Zero);
 "@ })
 			if (index < 0 || index >= count) throw new ArgumentOutOfRangeException("index");
 			IObjectArray desktops;
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			VirtualDesktopManagerInternal.GetDesktops(out desktops);
 "@ } else {@"
 			VirtualDesktopManagerInternal.GetDesktops(IntPtr.Zero, out desktops);
@@ -524,13 +507,13 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
 			int index = -1;
 			Guid IdSearch = desktop.GetId();
 			IObjectArray desktops;
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			VirtualDesktopManagerInternal.GetDesktops(out desktops);
 "@ } else {@"
 			VirtualDesktopManagerInternal.GetDesktops(IntPtr.Zero, out desktops);
 "@ })
 			object objdesktop;
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			for (int i = 0; i < VirtualDesktopManagerInternal.GetCount(); i++)
 "@ } else {@"
 			for (int i = 0; i < VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); i++)
@@ -667,7 +650,7 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
 
 		public static int Count
 		{ // return the number of desktops
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(); }
 "@ } else {@"
 			get { return DesktopManager.VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); }
@@ -676,7 +659,7 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
 
 		public static Desktop Current
 		{ // returns current desktop
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			get { return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 "@ } else {@"
 			get { return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero)); }
@@ -693,7 +676,7 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
 			Guid id = DesktopManager.VirtualDesktopManager.GetWindowDesktopId(hWnd);
 			if ((id.CompareTo(AppOnAllDesktops) == 0) || (id.CompareTo(WindowOnAllDesktops) == 0))
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 				return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop());
 "@ } else {@"
 				return new Desktop(DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero));
@@ -782,7 +765,7 @@ $(if ($OSBuild -ge 22000) {@"
 		{ // get index of desktop with partial name, return -1 if no desktop found
 			int index = -1;
 
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(); i++)
 "@ } else {@"
 			for (int i = 0; i < DesktopManager.VirtualDesktopManagerInternal.GetCount(IntPtr.Zero); i++)
@@ -799,7 +782,7 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
 
 		public static Desktop Create()
 		{ // create a new desktop
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.CreateDesktop());
 "@ } else {@"
 			return new Desktop(DesktopManager.VirtualDesktopManagerInternal.CreateDesktop(IntPtr.Zero));
@@ -868,7 +851,7 @@ $(if ($OSBuild -eq 20348) {@"
 		}
 "@ })
 
-$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22622)) {@"
+$(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22621)) {@"
 		public static void RemoveAll()
 		{ // remove all desktops but visible
 			DesktopManager.VirtualDesktopManagerInternal.SetDesktopIsPerMonitor(true);
@@ -880,7 +863,7 @@ $(if (($OSBuild -ge 22000) -And ($OSBuild -lt 22622)) {@"
 		}
 "@ })
 
-$(if ($OSBuild -ge 22622) {@"
+$(if ($OSBuild -ge 22621) {@"
 		public static void RemoveAll()
 		{ // remove all desktops but visible
 			int desktopcount = DesktopManager.VirtualDesktopManagerInternal.GetCount();
@@ -944,7 +927,7 @@ $(if ($OSBuild -ge 22000) {@"
 
 		public bool IsVisible
 		{ // return true if this desktop is the current displayed one
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			get { return object.ReferenceEquals(ivd, DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop()); }
 "@ } else {@"
 			get { return object.ReferenceEquals(ivd, DesktopManager.VirtualDesktopManagerInternal.GetCurrentDesktop(IntPtr.Zero)); }
@@ -970,7 +953,7 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
 				AttachThreadInput(DesktopThreadId, CurrentThreadId, false);
 			}
 
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22622)) {@"
+$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
 "@ } else {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(IntPtr.Zero, ivd);
