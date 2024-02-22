@@ -2,10 +2,9 @@
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 
-### Version 1.0.33 / 2024-02-03
-Powershell Webserver 1.6:
- - parameters can be handed to PSP files per POST method too
- - added wasm extension to mime list
+### Version 1.0.34 / 2024-02-22
+VirtualDesktop 2.18:
+- changes for Win 11 3085 and up
 
 For a complete list of changes see here: [Changes](Changes.md)
 

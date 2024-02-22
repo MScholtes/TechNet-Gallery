@@ -1,5 +1,9 @@
 # Changes
 
+### Version 1.0.34 / 2024-02-22
+VirtualDesktop 2.18:
+- changes for Win 11 3085 and up
+
 ### Version 1.0.33 / 2024-02-03
 Powershell Webserver 1.6:
  - parameters can be handed to PSP files per POST method too
