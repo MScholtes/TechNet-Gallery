@@ -1,18 +1,18 @@
 # Powershell commands to manage virtual desktops of Windows 10 and Windows 11
 Windows 10 introduced a great new feature with virtual desktops. This set of powershell commandlets helps out and lets you control virtual desktops from scripts.
 
-**Now with support for Windows 11 including Insider Canary**
+**Now with support for Windows 11 including Insider up to 24H2**
 
 **Now with support for Windows Server 2022**
 
-**Now with support for Powershell Core**
+**Now with support for Powershell Core (pin application commandlets still not work)**
 
 **Now with support for Windows Terminal**
 
 
-**Compatible to Windows 10 1607, Windows Server 2016, Windows 10 1803 and up , Windows Server 2022 and Windows 11!**
+**Compatible to supported versions of Windows Server 2016, Windows 10, Windows Server 2022 and Windows 11!**
 
-Since Technet Gallery will be closed, now here.
+Since Technet Gallery was closed, now here.
 
 Also on Powershell Gallery as **VirtualDesktop** module, see [here](https://www.powershellgallery.com/packages/VirtualDesktop/) or install with
 ```powershell
@@ -22,6 +22,9 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.19
+- changes for Win 11 24H2 and fixing of messages
+
 ### Update 2.18
 - changes for Win 11 3085 and up
 

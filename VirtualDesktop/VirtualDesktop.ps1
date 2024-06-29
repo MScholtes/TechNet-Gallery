@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.18 - changes for Win 11 3085 and up, 2024/02/15
+# Version 2.19 - changes for Win 11 24H2 and fixing of messages, 2024/05/26
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -303,6 +303,13 @@ $(if ($OSBuild -ge 22621) {@"
 		[PreserveSig]
 		int GetAdjacentDesktop(IVirtualDesktop from, int direction, out IVirtualDesktop desktop);
 		void SwitchDesktop(IVirtualDesktop desktop);
+"@ })
+$(if ($OSBuild -ge 26100) {@"
+// Windows 11 24H2 and up:
+		void SwitchDesktopAndMoveForegroundView(IVirtualDesktop desktop);
+"@ })
+$(if ($OSBuild -ge 22621) {@"
+// Windows 11 22H2 and up:
 		IVirtualDesktop CreateDesktop();
 		void MoveDesktop(IVirtualDesktop desktop, int nIndex);
 		void RemoveDesktop(IVirtualDesktop desktop, IVirtualDesktop fallback);
@@ -1949,7 +1956,7 @@ if ($OSBuild -ge 22000)
 					if ([STRING]::IsNullOrEmpty($Path))
 					{ Write-Error "Wallpaper path is missing" }
 					else
-					{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))') to '$Path'"
+					{ Write-Verbose "Set wallpaper of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))') to '$Path'"
 						$ActiveDesktop.SetWallpaperPath($Path)
 					}
 				}
@@ -1965,7 +1972,7 @@ if ($OSBuild -ge 22000)
 						if ([STRING]::IsNullOrEmpty($Path))
 						{ Write-Error "Wallpaper path is missing" }
 						else
-						{ Write-Verbose "Set name of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))') to '$Path'"
+						{ Write-Verbose "Set wallpaper of desktop number $([VirtualDesktop.Desktop]::FromDesktop($ActiveDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($ActiveDesktop))') to '$Path'"
 							$ActiveDesktop.SetWallpaperPath($Path)
 						}
 					}

@@ -9,22 +9,24 @@ document a programming interface to manage virtual desktops from a script or
 program. This set of powershell commands helps out and lets you control virtual
 desktops from scripts.
 
-Now with support for Windows 11 including Insider!
+Now with support for Windows 11 including Insider up to 24H2!
 Now with support for Windows Server 2022!
-Now with support for Powershell Core!
+Now with support for Powershell Core (pin application commandlets still not work)!
 Now with support for Windows Terminal!
 
-Update 2.18:
+Update 2.19
+changes for Win 11 24H2 and fixing of messages
+Update 2.18
 changes for Win 11 3085 and up
-Update 2.17:
+Update 2.17
 bug fix for Win 11 Insider Canary
 Remove-AllDesktops for all versions
-Update 2.16:
+Update 2.16
 bug fix for Win 11 22H2 Build 22621.2215
-Update 2.15:
+Update 2.15
 integration of Win 11 22H2 Build 22621.2215 and Insider versions
 Remove-AllDesktops without function on Win 11 22H2 Build 22621.2215 and Insider versions (will soon be fixed)
-Update 2.14:
+Update 2.14
 no flashing icons after switch desktops
 Update 2.13:
 support for Windows 11 Insider 25276+
