@@ -2,9 +2,9 @@
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 
-### Version 1.0.34 / 2024-02-22
-VirtualDesktop 2.18:
-- changes for Win 11 3085 and up
+### Version 1.0.35 / 2024-06-29
+VirtualDesktop 2.19:
+- changes for Win 11 24H2 and fixing of messages
 
 For a complete list of changes see here: [Changes](Changes.md)
 
