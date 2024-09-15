@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.29
-Release: 2023-09-26
+PS2EXE-GUI v0.5.0.30
+Release: 2024-09-15
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -19,10 +19,10 @@ Module based version available now on Powershell Gallery, see here (https://www.
 
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
-Update v0.5.0.29 - 2023-09-26
-- now [ and ] are supported in directory name of script
-- source file might be larger than 16 MB (for whoever that needs)
-- new addtional parameter text field in Win-PS2EXE
+Update v0.5.0.30 - 2024-09-15
+- new parameter -? for compiled executables to show the help of the original Powershell script
+- in GUI mode window titles are the application title (when set compiling with parameter -title)
+
 
 Full list of changes and fixes in Changes.txt.
 
@@ -55,10 +55,15 @@ The basic input/output commands had to be rewritten in C# for PS2EXE. Not implem
 GUI mode output formatting:
 Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
 
+Config files:
+PS2EXE can create config files with the name of the generated executable + ".config". In most cases those config files are not necessary, they are a manifest that tells which .Net Framework version should be used. As you will usually use the actual .Net Framework, try running your excutable without the config file.
+
 Parameter processing:
 Compiled scripts process parameters like the original script does. One restriction comes from the Windows environment: for all executables all parameters have the type STRING, if there is no implicit conversion for your parameter type you have to convert explicitly in your script. You can even pipe content to the executable with the same restriction (all piped values have the type STRING).
 
 A generated executable has the following reserved parameters:
+-? [<MODIFIER>] Powershell help text of the script inside the executable. The optional parameter combination
+  "-? -detailed", "-? -examples" or "-? -full" can be used to get the appropriate help text.
 -debug Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Launch()".
 -extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME. The script will not be executed.
 -wait At the end of the script execution it writes "Hit any key to exit..." and waits for a key to be pressed.
@@ -76,9 +81,10 @@ The variable $MyInvocation is set to other values than in a script.
 You can retrieve the script/executable path independant of compiled/not compiled with the following code (thanks to JacquesFS):
 
 if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript")
-{ $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition }
-else
-{ $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0]) }
+ { $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition }
+ else
+ { $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
+   if (!$ScriptPath){ $ScriptPath = "." } }
 
 Window in background in -noConsole mode:
 When an external window is opened in a script with -noConsole mode (i.e. for Get-Credential or for a command that needs a cmd.exe shell) the next window is opened in the background.

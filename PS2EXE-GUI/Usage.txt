@@ -21,7 +21,7 @@ Usage:
 
        inputFile = Powershell script that you want to convert to executable (file has to be UTF8 or UTF16 encoded)
       outputFile = destination executable file name or folder, defaults to inputFile with extension '.exe'
-    prepareDebug = create helpful information for debugging    
+    prepareDebug = create helpful information for debugging
        runtime20 = this switch forces PS2EXE to create a config file for the generated executable that contains the
                    "supported .NET Framework versions" setting for .NET Framework 2.0/3.x for PowerShell 2.0
        runtime40 = this switch forces PS2EXE to create a config file for the generated executable that contains the
@@ -55,6 +55,8 @@ winFormsDPIAware = if display scaling is activated, WinForms use DPI scaling (re
 
 A generated executable has the following reserved parameters:
 
+-? [<MODIFIER>]     Powershell help text of the script inside the executable. The optional parameter combination
+                    "-? -detailed", "-? -examples" or "-? -full" can be used to get the appropriate help text.
 -debug              Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Launch()".
 -extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME.
                     The script will not be executed.

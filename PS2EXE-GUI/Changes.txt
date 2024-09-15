@@ -1,3 +1,9 @@
+PS2EXE-GUI v0.5.0.30
+Changes:
+- new parameter -? for compiled executables to show the help of the original Powershell script
+- in GUI mode window titles are the application title (when set compiling with parameter -title)
+
+
 PS2EXE-GUI v0.5.0.29
 Changes:
 - now [ and ] are supported in directory name of script
