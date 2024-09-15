@@ -51,6 +51,6 @@ Some important values for access masks are explained in file "Access masks.txt"
 
 ## Versions
 
-# Version 1.1 2024/07/07 Get-AclInRegistry.ps1 shows extended attributes
+Version 1.1: 2024/07/07 Get-AclInRegistry.ps1 shows extended attributes
 
-# Version 1.0 2018/10/08 Initial version
+Version 1.0: 2018/10/08 Initial version
