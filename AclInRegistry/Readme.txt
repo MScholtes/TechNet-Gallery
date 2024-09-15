@@ -1,4 +1,7 @@
-2018/10/08 Markus Scholtes
+By  Markus Scholtes
+Version 1.0 2018/10/08 Initial version
+Version 1.1 2024/07/07 Get-AclInRegistry.ps1 shows extended attributes
+
 
 Powershell scripts to get or set permissions for administrative shares and other 
 registry stored ACLs like permissions for the server service, for shares, for 

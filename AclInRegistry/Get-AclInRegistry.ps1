@@ -3,7 +3,7 @@
 Shows permissions stored in registry values
 .DESCRIPTION
 Shows permissions stored in registry values, e.g. permissions for the server service, for shares, for
-Remote Desktop connections, for the access to services or DCOM applications.
+Remote Desktop connections, for the access to services, scheduled tasks or DCOM applications.
 .PARAMETER Key
 Registry key
 .PARAMETER Name
@@ -11,8 +11,8 @@ Registry value
 .NOTES
 Author: Markus Scholtes
 Copyright: Markus Scholtes
-Version: 1.0
-Creation date: 2018/10/08
+Version: 1.1
+Creation date: 2024/07/07
 .EXAMPLE
 Get-AclInRegistry.ps1
 Shows permissions for the access to administrative shares.
@@ -26,8 +26,11 @@ Shows permissions for the share "MyShare".
 Get-AclInRegistry.ps1 "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server\WinStations" "DefaultSecurity"
 Shows default permissions for Remote Desktop connections.
 .EXAMPLE
-Get-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\BITS\Security" Security
+Get-AclInRegistry.ps1 -Key "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\BITS\Security" Security
 Shows permissions for the control of the BITS service.
+.EXAMPLE
+Get-AclInRegistry.ps1 "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree" SD
+Shows permissions for the root directory of scheduled tasks.
 .EXAMPLE
 Get-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AppID\{588E10FA-0618-48A1-BE2F-0AD93E899FCC}" "LaunchPermission"
 Shows the launch security of the DCOM application "PrintNotify" of Windows 10.
@@ -60,5 +63,6 @@ try { $GROUP = $SECDESCR.Group.Translate([System.Security.Principal.NTAccount]).
 $SECDESCR.DiscretionaryAcl | % {
 	$ACCOUNT = ""
 	try { $ACCOUNT = $_.SecurityIdentifier.Translate([System.Security.Principal.NTAccount]).Value } catch { }
-	"$($_.Acetype.ToString()): $ACCOUNT ($($_.SecurityIdentifier.Value)) - $("0x{0:x8}" -f $_.AccessMask)"
+	"$($_.Acetype.ToString()): $ACCOUNT ($($_.SecurityIdentifier.Value)) - $("0x{0:x8}" -f $_.AccessMask)  Flags: ($($_.AceFlags))"
+# für Setzen: $(if ($_.IsInherited) { "Inherited" }) oder AceFlags ????
 }

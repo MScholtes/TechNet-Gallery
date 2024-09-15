@@ -1,7 +1,7 @@
 # Powershell: Permissions for administrative shares (like ADMIN$) / registry ACLs
 Powershell scripts to get or set permissions for administrative shares and other registry stored ACLs like permissions for the server service, for shares, for Remote Desktop connections and for the access to services or DCOM applications.
 
-Since Technet Gallery is closed, now here.
+Since Technet Gallery will be closed, now here.
 
 See Script Center version: [Powershell: Permissions for administrative shares (like ADMIN$) / registry ACLs](https://gallery.technet.microsoft.com/scriptcenter/Powershell-permissions-for-53d0c8ce).
 
@@ -48,3 +48,9 @@ For investigating a remote computer REMOTE and the last three reboot times you c
 .\Get-AclInRegistry.ps1 "HKEY_LOCAL_MACHINE\SOFTWARE\Classes\AppID\{588E10FA-0618-48A1-BE2F-0AD93E899FCC}" "LaunchPermission"
 ```
 Some important values for access masks are explained in file "Access masks.txt"
+
+## Versions
+
+# Version 1.1 2024/07/07 Get-AclInRegistry.ps1 shows extended attributes
+
+# Version 1.0 2018/10/08 Initial version
