@@ -79,6 +79,8 @@ Compiled scripts process parameters like the original script does. One restricti
 
 A generated executable has the following reserved parameters:
 ```
+-? [<MODIFIER>] Powershell help text of the script inside the executable. The optional parameter combination "-? -detailed",
+  "-? -examples" or "-? -full" can be used to get the appropriate help text.
 -debug Forces the executable to be debugged. It calls "System.Diagnostics.Debugger.Launch()".
 -extract:<FILENAME> Extracts the powerShell script inside the executable and saves it as FILENAME. The script will not be executed.
 -wait At the end of the script execution it writes "Hit any key to exit..." and waits for a key to be pressed.
