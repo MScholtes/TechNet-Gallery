@@ -3,6 +3,7 @@
 ### Version 1.0.36 / 2024-09-15
 AclInRegistry 1.1:
 - Get-AclInRegistry.ps1 shows extended attributes
+
 PS2EXE-GUI v0.5.0.30:
 - new parameter -? for compiled executables to show the help of the original Powershell script
 - in GUI mode window titles are the application title (when set compiling with parameter -title)
