@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.19 - changes for Win 11 24H2 and fixing of messages, 2024/05/26
+# Version 2.20 - faster API call FindWindow, Windows 11: animated switch to new desktop, 2024/09/01
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -577,6 +577,10 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 		[DllImport("Kernel32.dll")]
 		public static extern IntPtr GetConsoleWindow();
 
+		// get window handle to class and window name
+		[DllImport("User32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
 		// get process id of window handle
 		[DllImport("user32.dll")]
 		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
@@ -943,11 +947,11 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 
 		public void MakeVisible()
 		{ // make this desktop visible
-			WindowInformation wi = FindWindow("Program Manager");
+			IntPtr hWnd = FindWindow("Progman", "Program Manager");
 
 			// activate desktop to prevent flashing icons in taskbar
 			int dummy;
-			uint DesktopThreadId = GetWindowThreadProcessId(new IntPtr(wi.Handle), out dummy);
+			uint DesktopThreadId = GetWindowThreadProcessId(hWnd, out dummy);
 			uint ForegroundThreadId = GetWindowThreadProcessId(GetForegroundWindow(), out dummy);
 			uint CurrentThreadId = GetCurrentThreadId();
 
@@ -955,19 +959,23 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			{
 				AttachThreadInput(DesktopThreadId, CurrentThreadId, true);
 				AttachThreadInput(ForegroundThreadId, CurrentThreadId, true);
-				SetForegroundWindow(new IntPtr(wi.Handle));
+				SetForegroundWindow(hWnd);
 				AttachThreadInput(ForegroundThreadId, CurrentThreadId, false);
 				AttachThreadInput(DesktopThreadId, CurrentThreadId, false);
 			}
 
-$(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
+$(if ($OSBuild -lt 20348) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
-"@ } else {@"
+"@ })
+$(if ($OSBuild -eq 20348) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(IntPtr.Zero, ivd);
+"@ })
+$(if ($OSBuild -ge 22000) {@"
+			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktopWithAnimation(ivd);
 "@ })
 
 			// direct desktop to give away focus
-			ShowWindow(new IntPtr(wi.Handle), SW_MINIMIZE);
+			ShowWindow(hWnd, SW_MINIMIZE);
 		}
 
 		public Desktop Left
@@ -1138,13 +1146,30 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 			return WindowInformationList;
 		}
 
-		// find first window with string in title
-		public static WindowInformation FindWindow(string WindowTitle)
+		// maximum allowed size of window title
+		const int MAXTITLE = 255;
+
+		// search for first window with string in title
+		public static WindowInformation SearchWindow(string WindowTitle)
 		{
-			WindowInformationList = new List<WindowInformation>();
-			EnumWindows(callBackPtr, IntPtr.Zero);
-			WindowInformation result = WindowInformationList.Find(x => x.Title.IndexOf(WindowTitle, StringComparison.OrdinalIgnoreCase) >= 0);
+			StringBuilder windowText = new StringBuilder(MAXTITLE);
+			WindowInformation result = null;
+
+			EnumWindows((hWnd, lParam) =>
+			{
+				if (GetWindowText((IntPtr)hWnd, windowText, MAXTITLE) > 0)
+				{
+					if (windowText.ToString().ToUpper().IndexOf(WindowTitle.ToUpper()) >= 0)
+					{
+						result = new WindowInformation {Handle = hWnd, Title = windowText.ToString()};
+						return false;
+					}
+				}
+				return true;
+			}, IntPtr.Zero);
+
 			return result;
+
 		}
 	}
 	#endregion
@@ -3109,7 +3134,7 @@ Updated: 2020/06/27
 	else
 	{
 		Write-Verbose "Retrieving window handles of first window with '$Title' in title"
-		$RESULT = [VirtualDesktop.Desktop]::FindWindow($Title)
+		$RESULT = [VirtualDesktop.Desktop]::SearchWindow($Title)
 		if ($RESULT)
 		{
 			Write-Verbose "Window '$($RESULT.Title)' found"

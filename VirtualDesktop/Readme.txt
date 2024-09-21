@@ -14,6 +14,9 @@ Now with support for Windows Server 2022!
 Now with support for Powershell Core (pin application commandlets still not work)!
 Now with support for Windows Terminal!
 
+Update 2.20
+faster API call FindWindow instead of EnumWindows
+Windows 11: animated switch to new desktop
 Update 2.19
 changes for Win 11 24H2 and fixing of messages
 Update 2.18

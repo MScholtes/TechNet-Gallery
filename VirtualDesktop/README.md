@@ -22,6 +22,10 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.20
+- faster API call FindWindow instead of EnumWindows
+- Windows 11: animated switch to new desktop
+
 ### Update 2.19
 - changes for Win 11 24H2 and fixing of messages
 
