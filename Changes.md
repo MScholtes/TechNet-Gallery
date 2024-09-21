@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.37 / 2024-09-21
+VirtualDesktop 2.20:
+- faster API call FindWindow instead of EnumWindows
+- Windows 11: animated switch to new desktop
+
 ### Version 1.0.36 / 2024-09-15
 AclInRegistry 1.1:
 - Get-AclInRegistry.ps1 shows extended attributes
