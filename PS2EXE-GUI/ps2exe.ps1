@@ -98,8 +98,8 @@ Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
 ps2exe.ps1 -inputFile C:\Data\MyScript.ps1 -outputFile C:\Data\MyScriptGUI.exe -iconFile C:\Data\Icon.ico -noConsole -title "MyScript" -version 0.0.0.1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScriptGUI.exe as graphical executable, icon and meta data
 .NOTES
-Version: 0.5.0.30
-Date: 2024-09-14
+Version: 0.5.0.31
+Date: 2025-01-05
 Author: Ingo Karstein, Markus Scholtes
 .LINK
 https://github.com/MScholtes/TechNet-Gallery
@@ -114,7 +114,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 <################################################################################>
 <##                                                                            ##>
-<##      PS2EXE-GUI v0.5.0.30                                                  ##>
+<##      PS2EXE-GUI v0.5.0.31                                                  ##>
 <##      Written by: Ingo Karstein (http://blog.karstein-consulting.com)       ##>
 <##      Reworked and GUI support by Markus Scholtes                           ##>
 <##                                                                            ##>
@@ -126,7 +126,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 if (!$nested)
 {
-	Write-Output "PS2EXE-GUI v0.5.0.30 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
+	Write-Output "PS2EXE-GUI v0.5.0.31 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
 }
 else
 {
@@ -2260,7 +2260,6 @@ $(if (!$noConsole -and !$credentialGUI) {@"
 		}
 
 $(if ($noConsole) {@"
-		private string ib_caption;
 		private string ib_message;
 "@ })
 
@@ -2270,8 +2269,7 @@ $(if (!$noConsole) {@"
 			return Console.ReadLine();
 "@ } else {@"
 			string sWert = "";
-			ib_caption = rawUI.WindowTitle;
-			if (Input_Box.Show(ib_caption, ib_message, ref sWert) == DialogResult.OK)
+			if (Input_Box.Show(rawUI.WindowTitle, ib_message, ref sWert) == DialogResult.OK)
 				return sWert;
 			else
 "@ })
@@ -2318,8 +2316,7 @@ $(if (!$noConsole) {@"
 			secstr = getPassword();
 "@ } else {@"
 			string sWert = "";
-			ib_caption = rawUI.WindowTitle;
-			if (Input_Box.Show(ib_caption, ib_message, ref sWert, true) == DialogResult.OK)
+			if (Input_Box.Show(rawUI.WindowTitle, ib_message, ref sWert, true) == DialogResult.OK)
 			{
 				foreach (char ch in sWert)
 					secstr.AppendChar(ch);
@@ -2632,7 +2629,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return new Version(0, 5, 0, 30);
+				return new Version(0, 5, 0, 31);
 			}
 		}
 

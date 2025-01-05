@@ -1,19 +1,15 @@
-**If your compiled script is mistakenly detected as malware, the best way to prevent this is to certify the executable.**
-
-**Please do not use PS2EXE to create harmful programs!**
-
 # PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
 Overworking of the great script of Ingo Karstein with GUI support. The GUI output and input is activated with one switch, real windows executables are generated. With Powershell 5.x support and graphical front end.
 
 Since Technet Gallery is closed, now here.
 
-Script Center version was here: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI](https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5).
+Script Center version was here, but now offline: [PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI](https://gallery.technet.microsoft.com/PS2EXE-GUI-Convert-e7cb69d5).
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.30
+### Version: v0.5.0.31
 
-### Date: 2024-09-15
+### Date: 2025-01-05
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -28,9 +24,9 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.30 - 2024-09-15
-- new parameter -? for compiled executables to show the help of the original Powershell script
-- in GUI mode window titles are the application title (when set compiling with parameter -title)
+### Update v0.5.0.31 - 2025-01-05
+- supplements to readme text
+- only changes for compatibility with module version of PS2EXE
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 
@@ -66,15 +62,18 @@ Every script will be compiled to a console and a GUI version (-NoConsole).
 
 ## Remarks:
 
+### Use of Powershell Core:
+PS2EXE can be used with Powershell Core. But since .Net Core is not delivered with a compiler, the compiler of .Net Framework is used (.Net Framework and Powershell 5.1 are included in Windows).
+
+**For this reason PS2EXE can only compile Powershell 5.1 compatible scripts and generates .Net 4.x binaries, but can still be used directly on every supported Windows OS without dependencies.**
+
 ### List of cmdlets not implemented:
 The basic input/output commands had to be rewritten in C# for PS2EXE. Not implemented are *Write-Progress* in console mode (too much work) and *Start-Transcript*/*Stop-Transcript* (no proper reference implementation by Microsoft).
 
 ### GUI mode output formatting:
-
-Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
+By default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
 
 ### Parameter processing:
-
 Compiled scripts process parameters like the original script does. One restriction comes from the Windows environment: for all executables all parameters have the type STRING, if there is no implicit conversion for your parameter type you have to convert explicitly in your script. You can even pipe content to the executable with the same restriction (all piped values have the type STRING).
 
 A generated executable has the following reserved parameters:
@@ -95,7 +94,6 @@ Output.exe -extract:C:\Output.ps1
 will decompile the script stored in Output.exe.
 
 ### Script variables:
-
 Since PS2EXE converts a script to an executable, script related variables are not available anymore. Especially the variable $PSScriptRoot is empty.
 
 The variable $MyInvocation is set to other values than in a script.
@@ -106,11 +104,11 @@ You can retrieve the script/executable path independant of compiled/not compiled
 if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript")
 { $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition }
 else
-{ $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0]) }
+{ $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
+	if (!$ScriptPath){ $ScriptPath = "." } }
 ```
 
 ### Window in background in -noConsole mode:
-
 When an external window is opened in a script with -noConsole mode (i.e. for Get-Credential or for a command that needs a cmd.exe shell) the next window is opened in the background.
 
 The reason for this is that on closing the external window windows tries to activate the parent window. Since the compiled script has no window, the parent window of the compiled script is activated instead, normally the window of Explorer or Powershell.

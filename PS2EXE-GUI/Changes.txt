@@ -1,3 +1,9 @@
+PS2EXE-GUI v0.5.0.31
+Changes:
+- supplements to readme text
+- only changes for compatibility with module version of PS2EXE
+
+
 PS2EXE-GUI v0.5.0.30
 Changes:
 - new parameter -? for compiled executables to show the help of the original Powershell script

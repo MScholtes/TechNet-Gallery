@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.30
-Release: 2024-09-15
+PS2EXE-GUI v0.5.0.31
+Release: 2024-01-05
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -7,10 +7,10 @@ The GUI output and input is activated with one switch, real windows executables
 are generated.
 
 https://github.com/MScholtes/TechNet-Gallery/
-https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-GUI-Convert-e7cb69d5
 
 
-All of you know the fabulous script PS2EXE by Ingo Karstein you can download here: PS2EXE : "Convert" PowerShell Scripts to EXE Files.
+All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: PS2EXE : "Convert" PowerShell Scripts to EXE Files.
+https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1
 
 Unfortunately Ingo seems to have stopped working on his script so I overworked his script with some error fixes, improvements and output support for non-console WinForms scripts (parameter -noConsole to ps2exe.ps1).
 
@@ -19,9 +19,9 @@ Module based version available now on Powershell Gallery, see here (https://www.
 
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
-Update v0.5.0.30 - 2024-09-15
-- new parameter -? for compiled executables to show the help of the original Powershell script
-- in GUI mode window titles are the application title (when set compiling with parameter -title)
+Update v0.5.0.31 - 2025-01-05
+- supplements to readme text
+- only changes for compatibility with module version of PS2EXE
 
 
 Full list of changes and fixes in Changes.txt.
@@ -49,11 +49,16 @@ Every script will be compiled to a console and a GUI version (-NoConsole).
 
 Remarks:
 
+Use of Powershell Core:
+PS2EXE can be used with Powershell Core. But since .Net Core is not delivered with a compiler, the compiler of .Net Framework is used (.Net Framework and Powershell 5.1 are included in Windows).
+
+For this reason PS2EXE can only compile Powershell 5.1 compatible scripts and generates .Net 4.x binaries, but can still be used directly on every supported Windows OS without dependencies.
+
 List of cmdlets not implemented:
 The basic input/output commands had to be rewritten in C# for PS2EXE. Not implemented are Write-Progress in console mode (too much work) and Start-Transcript/Stop-Transcript (no proper reference implementation by Microsoft).
 
 GUI mode output formatting:
-Per default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
+By default output of commands are formatted line per line (as an array of strings). When your command generates 10 lines of output and you use GUI output, 10 message boxes will appear each awaitung for an OK. To prevent this pipe your command to the comandlet Out-String. This will convert the output to a string array with 10 lines, all output will be shown in one message box (for example: dir C:\ | Out-String).
 
 Config files:
 PS2EXE can create config files with the name of the generated executable + ".config". In most cases those config files are not necessary, they are a manifest that tells which .Net Framework version should be used. As you will usually use the actual .Net Framework, try running your excutable without the config file.
