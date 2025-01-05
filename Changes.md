@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.38 / 2025-01-05
+PS2EXE v0.5.0.31:
+- supplements to readme text
+- only changes for compatibility with module version of PS2EXE
+
 ### Version 1.0.37 / 2024-09-21
 VirtualDesktop 2.20:
 - faster API call FindWindow instead of EnumWindows
