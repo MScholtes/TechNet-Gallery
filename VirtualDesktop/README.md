@@ -22,6 +22,10 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.21
+- new commands Pin-ActiveWindow and Unpin-ActiveWindow
+- Windows 11: parameter -NoAnimation for Switch-Desktop
+
 ### Update 2.20
 - faster API call FindWindow instead of EnumWindows
 - Windows 11: animated switch to new desktop
@@ -179,14 +183,14 @@ New-Desktop
 Create virtual desktop. Returns desktop object.
 
 ```powershell
-Switch-Desktop -Desktop desktop
+Switch-Desktop -Desktop desktop -NoAnimation
 ```
-Switch to virtual desktop. Parameter is number of desktop (starting with 0 to count-1) or desktop object.
+Switch to virtual desktop. Parameter is number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name). Parameter -NoAnimation only on Windows 11.
 
 ```powershell
 Remove-Desktop -Desktop desktop
 ```
-Remove virtual desktop. Parameter is number of desktop (starting with 0 to count-1) or desktop object.
+Remove virtual desktop. Parameter is number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name).
 
 Windows on the desktop to be removed are moved to the virtual desktop to the left except for desktop 0 where the second desktop is used instead. If the current desktop is removed, this fallback desktop is activated too.
 
@@ -208,6 +212,11 @@ Get-Desktop -Index index
 Get virtual desktop with index number (0 to count-1). Returns desktop object.
 
 ```powershell
+Get-DesktopIndex -Desktop desktop
+```
+Get index number (0 to count-1) of virtual desktop. Returns integer or -1 if not found.
+
+```powershell
 Get-DesktopName -Desktop desktop
 ```
 Get name of virtual desktop. Returns string.
@@ -226,11 +235,6 @@ Set wallpaper of virtual desktop to path. Works only with Windows 11.
 Set-AllDesktopWallpapers -Path path
 ```
 Set wallpaper of all virtual desktops to path. Works only with Windows 11.
-
-```powershell
-Get-DesktopIndex -Desktop desktop
-```
-Get index number (0 to count-1) of virtual desktop. Returns integer or -1 if not found.
 
 ```powershell
 Get-DesktopFromWindow -Hwnd hwnd
@@ -292,9 +296,19 @@ Pin-Window -Hwnd hwnd
 Pin window whose window handle is given to all desktops.
 
 ```powershell
+Pin-ActiveWindow
+```
+Pin active window to all desktops.
+
+```powershell
 Unpin-Window -Hwnd hwnd
 ```
 Unpin window whose window handle is given to all desktops.
+
+```powershell
+Unpin-ActiveWindow
+```
+Unpin active window from all desktops.
 
 ```powershell
 Test-WindowPinned -Hwnd hwnd

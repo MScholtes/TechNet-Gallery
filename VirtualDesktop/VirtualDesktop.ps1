@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.20 - faster API call FindWindow, Windows 11: animated switch to new desktop, 2024/09/01
+# Version 2.21 - new commands Pin-ActiveWindow and Unpin-ActiveWindow, Windows 11: parameter -NoAnimation for Switch-Desktop, 2025/03/03
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -945,6 +945,15 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 "@ })
 		}
 
+$(if ($OSBuild -ge 22621) {@"
+		private static bool AnimateDesktopSwitch = true;
+
+		public static void SetAnimation(bool OnOff)
+		{ // set switch animation on or off
+			AnimateDesktopSwitch = OnOff;
+		}
+"@ })
+
 		public void MakeVisible()
 		{ // make this desktop visible
 			IntPtr hWnd = FindWindow("Progman", "Program Manager");
@@ -967,11 +976,16 @@ $(if (($OSBuild -lt 20348) -Or ($OSBuild -ge 22621)) {@"
 $(if ($OSBuild -lt 20348) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
 "@ })
-$(if ($OSBuild -eq 20348) {@"
+$(if (($OSBuild -ge 20348) -And ($OSBuild -lt 22621)) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(IntPtr.Zero, ivd);
 "@ })
-$(if ($OSBuild -ge 22000) {@"
-			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktopWithAnimation(ivd);
+$(if ($OSBuild -ge 22621) {@"
+			if (AnimateDesktopSwitch)
+			{
+				DesktopManager.VirtualDesktopManagerInternal.SwitchDesktopWithAnimation(ivd);
+			} else {
+				DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
+			}
 "@ })
 
 			// direct desktop to give away focus
@@ -1031,7 +1045,7 @@ $(if ($OSBuild -ge 22000) {@"
 					DesktopManager.VirtualDesktopManagerInternal.MoveViewToDesktop(view, ivd);
 				}
 				catch
-				{ // could not move active window, try main window (or whatever windows thinks is the main window)
+				{ // could not move active window, try main window (or whatever Windows thinks is the main window)
 					DesktopManager.ApplicationViewCollection.GetViewForHwnd(System.Diagnostics.Process.GetProcessById(processId).MainWindowHandle, out view);
 					DesktopManager.VirtualDesktopManagerInternal.MoveViewToDesktop(view, ivd);
 				}
@@ -1069,6 +1083,11 @@ $(if ($OSBuild -ge 22000) {@"
 			}
 		}
 
+		public static void PinActiveWindow()
+		{ // pin active window to all desktops
+			PinWindow(GetForegroundWindow());
+		}
+
 		public static void UnpinWindow(IntPtr hWnd)
 		{ // unpin window from all desktops
 			if (hWnd == IntPtr.Zero) throw new ArgumentNullException();
@@ -1077,6 +1096,11 @@ $(if ($OSBuild -ge 22000) {@"
 			{ // unpin only if not already unpinned
 				DesktopManager.VirtualDesktopPinnedApps.UnpinView(view);
 			}
+		}
+
+		public static void UnpinActiveWindow()
+		{ // unpin active window from all desktops
+			UnpinWindow(GetForegroundWindow());
 		}
 
 		public static bool IsApplicationPinned(IntPtr hWnd)
@@ -1328,83 +1352,184 @@ Updated: 2020/06/27
 }
 
 
-function Switch-Desktop
+if ($OSBuild -ge 22621)
 {
-<#
-.SYNOPSIS
-Switch to virtual desktop
-.DESCRIPTION
-Switch to virtual desktop
-.PARAMETER Desktop
-Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
-.INPUTS
-Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
-.OUTPUTS
-None
-.EXAMPLE
-Switch-Desktop 0
-
-Switch to first virtual desktop
-.EXAMPLE
-Switch-Desktop $Desktop
-
-Switch to virtual desktop $Desktop
-.EXAMPLE
-"Desktop 1" | Switch-Desktop
-
-Switch to second virtual desktop
-.EXAMPLE
-New-Desktop | Switch-Desktop
-
-Create virtual desktop and switch to it
-.LINK
-https://github.com/MScholtes/PSVirtualDesktop
-.LINK
-https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
-.LINK
-https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
-.NOTES
-Author: Markus Scholtes
-Created: 2017/05/08
-Updated: 2020/06/27
-#>
-	[Cmdletbinding()]
-	Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
-
-	if ($Desktop -is [VirtualDesktop.Desktop])
+	function Switch-Desktop
 	{
-		$Desktop.MakeVisible()
-		Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
-	}
-	else
-	{
-		if ($Desktop -is [ValueType])
+	<#
+	.SYNOPSIS
+	Switch to virtual desktop
+	.DESCRIPTION
+	Switch to virtual desktop
+	.PARAMETER Desktop
+	Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+	.PARAMETER NoAnimation
+	Disable animation (default: enabled)
+	.INPUTS
+	Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+	.OUTPUTS
+	None
+	.EXAMPLE
+	Switch-Desktop 0
+
+	Switch to first virtual desktop
+	.EXAMPLE
+	Switch-Desktop $Desktop
+
+	Switch to virtual desktop $Desktop
+	.EXAMPLE
+	"Desktop 1" | Switch-Desktop
+
+	Switch to second virtual desktop
+	.EXAMPLE
+	New-Desktop | Switch-Desktop
+
+	Create virtual desktop and switch to it
+	$(if ($OSBuild -ge 22621) {@"
+	.EXAMPLE
+	New-Desktop | Switch-Desktop -NoAnimation
+
+	Create virtual desktop and switch to it without animation
+	"@ })
+	.LINK
+	https://github.com/MScholtes/PSVirtualDesktop
+	.LINK
+	https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+	.LINK
+	https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
+	.NOTES
+	Author: Markus Scholtes
+	Created: 2017/05/08
+	Updated: 2020/06/27
+	#>
+		[Cmdletbinding()]
+		Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop, [SWITCH]$NoAnimation)
+
+		if ($NoAnimation) { [VirtualDesktop.Desktop]::SetAnimation($FALSE) } else { [VirtualDesktop.Desktop]::SetAnimation($TRUE) }
+
+		if ($Desktop -is [VirtualDesktop.Desktop])
 		{
-			$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
-			if ($TempDesktop)
-			{
-				$TempDesktop.MakeVisible()
-				Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
-			}
+			$Desktop.MakeVisible()
+			Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
 		}
 		else
 		{
-			if ($Desktop -is [STRING])
+			if ($Desktop -is [ValueType])
 			{
-				$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
-				if ($TempIndex -ge 0)
+				$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+				if ($TempDesktop)
 				{
-					([VirtualDesktop.Desktop]::FromIndex($TempIndex)).MakeVisible()
-					Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
-				}
-				else
-				{
-					Write-Error "No desktop with name part '$Desktop' found"
+					$TempDesktop.MakeVisible()
+					Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
 				}
 			}
 			else
 			{
-				Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+				if ($Desktop -is [STRING])
+				{
+					$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+					if ($TempIndex -ge 0)
+					{
+						([VirtualDesktop.Desktop]::FromIndex($TempIndex)).MakeVisible()
+						Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+					}
+					else
+					{
+						Write-Error "No desktop with name part '$Desktop' found"
+					}
+				}
+				else
+				{
+					Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+				}
+			}
+		}
+	}
+} else {
+	function Switch-Desktop
+	{
+	<#
+	.SYNOPSIS
+	Switch to virtual desktop
+	.DESCRIPTION
+	Switch to virtual desktop
+	.PARAMETER Desktop
+	Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+	.INPUTS
+	Number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name)
+	.OUTPUTS
+	None
+	.EXAMPLE
+	Switch-Desktop 0
+
+	Switch to first virtual desktop
+	.EXAMPLE
+	Switch-Desktop $Desktop
+
+	Switch to virtual desktop $Desktop
+	.EXAMPLE
+	"Desktop 1" | Switch-Desktop
+
+	Switch to second virtual desktop
+	.EXAMPLE
+	New-Desktop | Switch-Desktop
+
+	Create virtual desktop and switch to it
+	$(if ($OSBuild -ge 22621) {@"
+	.EXAMPLE
+	New-Desktop | Switch-Desktop -NoAnimation
+
+	Create virtual desktop and switch to it without animation
+	"@ })
+	.LINK
+	https://github.com/MScholtes/PSVirtualDesktop
+	.LINK
+	https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+	.LINK
+	https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
+	.NOTES
+	Author: Markus Scholtes
+	Created: 2017/05/08
+	Updated: 2020/06/27
+	#>
+		[Cmdletbinding()]
+		Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop)
+
+		if ($Desktop -is [VirtualDesktop.Desktop])
+		{
+			$Desktop.MakeVisible()
+			Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($Desktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($Desktop))')"
+		}
+		else
+		{
+			if ($Desktop -is [ValueType])
+			{
+				$TempDesktop = [VirtualDesktop.Desktop]::FromIndex($Desktop)
+				if ($TempDesktop)
+				{
+					$TempDesktop.MakeVisible()
+					Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop($TempDesktop)) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop($TempDesktop))')"
+				}
+			}
+			else
+			{
+				if ($Desktop -is [STRING])
+				{
+					$TempIndex = [VirtualDesktop.Desktop]::SearchDesktop($Desktop)
+					if ($TempIndex -ge 0)
+					{
+						([VirtualDesktop.Desktop]::FromIndex($TempIndex)).MakeVisible()
+						Write-Verbose "Switched to desktop number $([VirtualDesktop.Desktop]::FromDesktop(([VirtualDesktop.Desktop]::FromIndex($TempIndex)))) ('$([VirtualDesktop.Desktop]::DesktopNameFromDesktop([VirtualDesktop.Desktop]::FromIndex($TempIndex)))')"
+					}
+					else
+					{
+						Write-Error "No desktop with name part '$Desktop' found"
+					}
+				}
+				else
+				{
+					Write-Error "Parameter -Desktop has to be a desktop object, an integer or a string"
+				}
 			}
 		}
 	}
@@ -2748,6 +2873,39 @@ Updated: 2020/06/27
 }
 
 
+function Pin-ActiveWindow
+{
+<#
+.SYNOPSIS
+Pin active window to all desktops
+.DESCRIPTION
+Pin active window to all desktops.
+.INPUTS
+None
+.OUTPUTS
+None
+.EXAMPLE
+Pin-ActiveWindow
+
+Pin active window to all desktops
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
+https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
+.NOTES
+Author: Markus Scholtes
+Created: 2025/03/02
+#>
+	[Cmdletbinding()]
+	Param()
+
+	[VirtualDesktop.Desktop]::PinActiveWindow()
+	Write-Verbose "Pinned active window to all desktops"
+}
+
+
 function Unpin-Window
 {
 <#
@@ -2796,6 +2954,39 @@ Updated: 2020/06/27
 			Write-Error "Parameter -Hwnd has to be an IntPtr or an integer"
 		}
 	}
+}
+
+
+function Unpin-ActiveWindow
+{
+<#
+.SYNOPSIS
+Unpin active window from all desktops
+.DESCRIPTION
+Unpin active window from all desktops.
+.INPUTS
+None
+.OUTPUTS
+None
+.EXAMPLE
+Unpin-ActiveWindow
+
+Unpin active window from all desktops
+.LINK
+https://github.com/MScholtes/PSVirtualDesktop
+.LINK
+https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
+.LINK
+https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
+.NOTES
+Author: Markus Scholtes
+Created: 2025/03/02
+#>
+	[Cmdletbinding()]
+	Param()
+
+	[VirtualDesktop.Desktop]::UnpinActiveWindow()
+	Write-Verbose "Unpinned active window from all desktops"
 }
 
 

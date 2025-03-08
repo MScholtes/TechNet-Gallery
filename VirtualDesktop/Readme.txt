@@ -1,4 +1,4 @@
-Virtualdesktop.ps1		by Markus Scholtes, 2024
+Virtualdesktop.ps1		by Markus Scholtes, 2025
 
 Powershell commands to manage virtual desktops of Windows 10 and Windows 11
 
@@ -9,11 +9,14 @@ document a programming interface to manage virtual desktops from a script or
 program. This set of powershell commands helps out and lets you control virtual
 desktops from scripts.
 
-Now with support for Windows 11 including Insider up to 24H2!
+Now with support for Windows 11 including Insider!
 Now with support for Windows Server 2022!
-Now with support for Powershell Core (pin application commandlets still not work)!
+Now with support for Powershell Core!
 Now with support for Windows Terminal!
 
+Update 2.21
+new commands Pin-ActiveWindow and Unpin-ActiveWindow
+Windows 11: parameter -NoAnimation for Switch-Desktop
 Update 2.20
 faster API call FindWindow instead of EnumWindows
 Windows 11: animated switch to new desktop
@@ -123,11 +126,12 @@ Show list of virtual desktops
 New-Desktop
 Create virtual desktop. Returns desktop object.
 
-Switch-Desktop -Desktop desktop
-Switch to virtual desktop. Parameter is number of desktop (starting with 0 to count-1) or desktop object.
+Switch-Desktop -Desktop desktop -NoAnimation
+Switch to virtual desktop. Parameter is number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name).
+Parameter -NoAnimation only on Windows 11.
 
 Remove-Desktop -Desktop desktop
-Remove virtual desktop. Parameter is number of desktop (starting with 0 to count-1) or desktop object.
+Remove virtual desktop. Parameter is number of desktop (starting with 0 to count-1), desktop object or string (part of desktop name).
 Windows on the desktop to be removed are moved to the virtual desktop to the left except for desktop 0 where the
 second desktop is used instead. If the current desktop is removed, this fallback desktop is activated too.
 If no parameter is supplied, the last desktop is removed.
@@ -190,8 +194,14 @@ The parameter values are auto detected and can change places. If parameter deskt
 Pin-Window -Hwnd hwnd
 Pin window whose window handle is given to all desktops.
 
+Pin-ActiveWindow
+Pin active window to all desktops.
+
 Unpin-Window -Hwnd hwnd
 Unpin window whose window handle is given to all desktops.
+
+Unpin-ActiveWindow
+Unpin active window from all desktops.
 
 Test-WindowPinned -Hwnd hwnd
 Checks whether a window whose window handle is given is pinned to all desktops. Returns boolean.
