@@ -12,13 +12,6 @@ Control-IE: Create or close tabs in Internet Explorer
 
 For a complete list of changes see here: [Changes](Changes.md)
 
-### Version 1.0.38 / 2025-01-05
-PS2EXE v0.5.0.31:
-- supplements to readme text
-- only changes for compatibility with module version of PS2EXE
-
-For a complete list of changes see here: [Changes](Changes.md)
-
 ##
 ## PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
 Overworking of the great script of Ingo Karstein with GUI support. The GUI output and input is activated with one switch, real windows executables are generated. With Powershell 5.x support and graphical front end.
