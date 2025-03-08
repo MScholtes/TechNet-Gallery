@@ -2,6 +2,16 @@
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 
+### Version 1.0.39 / 2025-03-08
+VirtualDesktop 2.21:
+- new commands Pin-ActiveWindow and Unpin-ActiveWindow
+- Windows 11: parameter -NoAnimation for Switch-Desktop
+
+Control-IE: Create or close tabs in Internet Explorer
+- removed since no longer required
+
+For a complete list of changes see here: [Changes](Changes.md)
+
 ### Version 1.0.38 / 2025-01-05
 PS2EXE v0.5.0.31:
 - supplements to readme text
@@ -142,12 +152,6 @@ Some fun powershell scripts to add additional information to your output or obje
 Add-LineNumbering adds line numbering, Add-LineColoring adds alternating line colors and Add-SizeToDir adds file count and length.
 
 #### Project page: [Add-LineNumbering](https://github.com/MScholtes/TechNet-Gallery/tree/master/Add-LineNumbering)
-
-##
-## Create or close tabs in Internet Explorer
-With the COM interface and DOM you can control the browser Internet Explorer. I made a - for me - useful script to start a new Internet Explorer tab from powershell or close an existing tab.
-
-#### Project page: [Control-IE](https://github.com/MScholtes/TechNet-Gallery/tree/master/Control-IE)
 
 ##
 ## Tutorial: Graphical WPF programs in C# with just one source file

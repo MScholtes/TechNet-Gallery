@@ -1,5 +1,13 @@
 # Changes
 
+### Version 1.0.39 / 2025-03-08
+VirtualDesktop 2.21:
+- new commands Pin-ActiveWindow and Unpin-ActiveWindow
+- Windows 11: parameter -NoAnimation for Switch-Desktop
+
+Control-IE: Create or close tabs in Internet Explorer
+- removed since no longer required
+
 ### Version 1.0.38 / 2025-01-05
 PS2EXE v0.5.0.31:
 - supplements to readme text
