@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.40 / 2025-07-20
+PS2EXE v0.5.0.32:
+- new parameter -conHost for force starting compiled executanles in Conhost instead of Windows Terminal
+- removed .Net 3.5 stuff from .Net 4.x executables
+
 ### Version 1.0.39 / 2025-03-08
 VirtualDesktop 2.21:
 - new commands Pin-ActiveWindow and Unpin-ActiveWindow
