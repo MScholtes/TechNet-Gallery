@@ -1,3 +1,9 @@
+PS2EXE-GUI v0.5.0.32
+Changes:
+- new parameter -conHost for force starting compiled executanles in Conhost instead of Windows Terminal
+- removed .Net 3.5 stuff from .Net 4.x executables
+
+
 PS2EXE-GUI v0.5.0.31
 Changes:
 - supplements to readme text

@@ -7,9 +7,9 @@ Script Center version was here, but now offline: [PS2EXE-GUI: "Convert" PowerShe
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.31
+### Version: v0.5.0.32
 
-### Date: 2025-01-05
+### Date: 2025-07-20
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -24,9 +24,9 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.31 - 2025-01-05
-- supplements to readme text
-- only changes for compatibility with module version of PS2EXE
+### Update v0.5.0.32 - 2025-07-20
+- new parameter -conHost for force starting compiled executanles in Conhost instead of Windows Terminal
+- removed .Net 3.5 stuff from .Net 4.x executables
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 

@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.31
-Release: 2024-01-05
+PS2EXE-GUI v0.5.0.32
+Release: 2025-07-20
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -19,9 +19,10 @@ Module based version available now on Powershell Gallery, see here (https://www.
 
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
-Update v0.5.0.31 - 2025-01-05
-- supplements to readme text
-- only changes for compatibility with module version of PS2EXE
+Update v0.5.0.32 - 2025-07-20
+Changes:
+- new parameter -conHost for force starting compiled executanles in Conhost instead of Windows Terminal
+- removed .Net 3.5 stuff from .Net 4.x executables
 
 
 Full list of changes and fixes in Changes.txt.
