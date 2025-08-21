@@ -34,6 +34,8 @@ Usage:
 	UNICODEEncoding = encode output as UNICODE in console mode
    credentialGUI = use GUI for prompting credentials in console mode
         iconFile = icon file name for the compiled executable
+      embedFiles = files to embed given as hash, will be extracted to key of hash, source file names must be unique
+                   (e.g. -embedFiles @{'Targetfilepath'='Sourcefilepath'} )
            title = title information (displayed in details tab of Windows Explorer's properties dialog)
      description = description information (not displayed, but embedded in executable)
          company = company information (not displayed, but embedded in executable)

@@ -7,9 +7,9 @@ Script Center version was here, but now offline: [PS2EXE-GUI: "Convert" PowerShe
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.32
+### Version: v0.5.0.33
 
-### Date: 2025-07-20
+### Date: 2025-08-21
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -24,16 +24,15 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.32 - 2025-07-20
-- new parameter -conHost for force starting compiled executanles in Conhost instead of Windows Terminal
-- removed .Net 3.5 stuff from .Net 4.x executables
+### Update v0.5.0.33 - 2025-08-21
+- new parameter -embedFiles to embed files in compiled executable
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 
 
 ### Includes Win-PS2EXE, a small graphical front end for PS2EXE.
 
-Not all parameters are supported, requires .Net 4.x. C# WPF application. With drag'n'drop for file names. Has to be placed in the same directory as ps2exe.ps1. Source code and .Net 3.5x version are here: (https://github.com/MScholtes/Win-PS2EXE).
+Not all parameters are supported, requires .Net 4.x. C# WPF application. With drag'n'drop for file names. Has to be placed in the same directory as ps2exe.ps1. Source code and .Net 3.5 version are here: (https://github.com/MScholtes/Win-PS2EXE).
 
 ![Screenshot](Screenshot-Small.jpg)
 
@@ -66,6 +65,13 @@ Every script will be compiled to a console and a GUI version (-NoConsole).
 PS2EXE can be used with Powershell Core. But since .Net Core is not delivered with a compiler, the compiler of .Net Framework is used (.Net Framework and Powershell 5.1 are included in Windows).
 
 **For this reason PS2EXE can only compile Powershell 5.1 compatible scripts and generates .Net 4.x binaries, but can still be used directly on every supported Windows OS without dependencies.**
+
+### Embedding files in compiled executables:
+With the parameter -embedFiles followed by a hash table with paths to files those files will be embedded in the compiled executable.
+At startup of the executable those files will be written to disk to the specified paths, e.g. *-embedFiles @{'Targetfilepath1'='Sourcefilepath1';'Targetfilepath2'='Sourcefilepath2'}*.
+Source file names must be unique. Absolute and relative paths are allowed. For target paths a relative path beginning with *'.\'* is interpreted as relative to the executable, without the leading *'.\'* as relative to the current path at runtime.
+Directories are created automaticly on startup if necessary. In the target path environment variables in cmd.exe notation like *%TEMP%* or *%APPDATA%* are expanded at runtime.
+A failure in creating one of the embedded files will stop the execution of the compiled executable.
 
 ### List of cmdlets not implemented:
 The basic input/output commands had to be rewritten in C# for PS2EXE. Not implemented are *Write-Progress* in console mode (too much work) and *Start-Transcript*/*Stop-Transcript* (no proper reference implementation by Microsoft).
