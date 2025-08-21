@@ -2,10 +2,10 @@
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 
-### Version 1.0.40 / 2025-07-20
-PS2EXE v0.5.0.32:
-- new parameter -conHost for force starting compiled executanles in Conhost instead of Windows Terminal
-- removed .Net 3.5 stuff from .Net 4.x executables
+### Version 1.0.41 / 2025-08-21
+PS2EXE-GUI v0.5.0.33:
+- new parameter -embedFiles to embed files in compiled executable
+
 
 For a complete list of changes see here: [Changes](Changes.md)
 

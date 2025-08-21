@@ -1,7 +1,11 @@
 # Changes
 
+### Version 1.0.41 / 2025-08-21
+PS2EXE-GUI v0.5.0.33:
+- new parameter -embedFiles to embed files in compiled executable
+
 ### Version 1.0.40 / 2025-07-20
-PS2EXE v0.5.0.32:
+PS2EXE-GUI v0.5.0.32:
 - new parameter -conHost for force starting compiled executanles in Conhost instead of Windows Terminal
 - removed .Net 3.5 stuff from .Net 4.x executables
 
@@ -14,7 +18,7 @@ Control-IE: Create or close tabs in Internet Explorer
 - removed since no longer required
 
 ### Version 1.0.38 / 2025-01-05
-PS2EXE v0.5.0.31:
+PS2EXE-GUI v0.5.0.31:
 - supplements to readme text
 - only changes for compatibility with module version of PS2EXE
 
