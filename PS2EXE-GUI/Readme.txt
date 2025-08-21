@@ -59,7 +59,7 @@ With the parameter -embedFiles followed by a hash table with paths to files thos
 At startup of the executable those files will be written to disk to the specified paths, e.g. -embedFiles @{'Targetfilepath1'='Sourcefilepath1';'Targetfilepath2'='Sourcefilepath2'}.
 Source file names must be unique. Absolute and relative paths are allowed. For target paths a relative path beginning with '.\' is interpreted as relative to the executable, without the leading '.\' as relative to the current path at runtime.
 Directories are created automaticly on startup if necessary. In the target path environment variables in cmd.exe notation like %TEMP% or %APPDATA% are expanded at runtime.
-A failure in creating one of the embedded file will stop the execution of the compiled executable.
+A failure in creating one of the embedded file will stop the execution of the compiled executable immediately.
 
 List of cmdlets not implemented:
 The basic input/output commands had to be rewritten in C# for PS2EXE. Not implemented are Write-Progress in console mode (too much work) and Start-Transcript/Stop-Transcript (no proper reference implementation by Microsoft).
