@@ -1,5 +1,5 @@
 # Author: Markus Scholtes, 2017/05/08
-# Version 2.21 - new commands Pin-ActiveWindow and Unpin-ActiveWindow, Windows 11: parameter -NoAnimation for Switch-Desktop, 2025/03/03
+# Version 2.22 - bugfixes for Windows 11: fixes Windows Explorer crash and missing activiation after desktop switch, 2025-08-25
 
 # prefer $PSVersionTable.BuildVersion to [Environment]::OSVersion.Version
 # since a wrong Windows version might be returned in RunSpaces
@@ -956,21 +956,34 @@ $(if ($OSBuild -ge 22621) {@"
 
 		public void MakeVisible()
 		{ // make this desktop visible
+$(if ($OSBuild -lt 26100) {@"
 			IntPtr hWnd = FindWindow("Progman", "Program Manager");
-
-			// activate desktop to prevent flashing icons in taskbar
-			int dummy;
-			uint DesktopThreadId = GetWindowThreadProcessId(hWnd, out dummy);
-			uint ForegroundThreadId = GetWindowThreadProcessId(GetForegroundWindow(), out dummy);
-			uint CurrentThreadId = GetCurrentThreadId();
-
-			if ((DesktopThreadId != 0) && (ForegroundThreadId != 0) && (ForegroundThreadId != CurrentThreadId))
+"@ } else {@"
+			IntPtr hWnd;
+			if (AnimateDesktopSwitch)
 			{
-				AttachThreadInput(DesktopThreadId, CurrentThreadId, true);
-				AttachThreadInput(ForegroundThreadId, CurrentThreadId, true);
-				SetForegroundWindow(hWnd);
-				AttachThreadInput(ForegroundThreadId, CurrentThreadId, false);
-				AttachThreadInput(DesktopThreadId, CurrentThreadId, false);
+				hWnd = FindWindow("Shell_TrayWnd", "");
+			} else {
+				hWnd = FindWindow("XamlExplorerHostIslandWindow", null);
+			}
+"@ })
+
+			if (hWnd != (IntPtr)0)
+			{
+				// activate desktop/taskbar to prevent flashing icons in taskbar
+				int dummy;
+				uint DesktopThreadId = GetWindowThreadProcessId(hWnd, out dummy);
+				uint ForegroundThreadId = GetWindowThreadProcessId(GetForegroundWindow(), out dummy);
+				uint CurrentThreadId = GetCurrentThreadId();
+
+				if ((DesktopThreadId != 0) && (ForegroundThreadId != 0) && (ForegroundThreadId != CurrentThreadId))
+				{
+					AttachThreadInput(DesktopThreadId, CurrentThreadId, true);
+					AttachThreadInput(ForegroundThreadId, CurrentThreadId, true);
+					SetForegroundWindow(hWnd);
+					AttachThreadInput(ForegroundThreadId, CurrentThreadId, false);
+					AttachThreadInput(DesktopThreadId, CurrentThreadId, false);
+				}
 			}
 
 $(if ($OSBuild -lt 20348) {@"
@@ -980,16 +993,18 @@ $(if (($OSBuild -ge 20348) -And ($OSBuild -lt 22621)) {@"
 			DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(IntPtr.Zero, ivd);
 "@ })
 $(if ($OSBuild -ge 22621) {@"
+			DesktopManager.VirtualDesktopManagerInternal.WaitForAnimationToComplete();
 			if (AnimateDesktopSwitch)
 			{
 				DesktopManager.VirtualDesktopManagerInternal.SwitchDesktopWithAnimation(ivd);
+				DesktopManager.VirtualDesktopManagerInternal.WaitForAnimationToComplete();
 			} else {
 				DesktopManager.VirtualDesktopManagerInternal.SwitchDesktop(ivd);
 			}
 "@ })
 
-			// direct desktop to give away focus
-			ShowWindow(hWnd, SW_MINIMIZE);
+			// direct desktop/taskbar to give away focus
+			if (hWnd != (IntPtr)0) { ShowWindow(hWnd, SW_MINIMIZE); }
 		}
 
 		public Desktop Left
@@ -1400,7 +1415,7 @@ if ($OSBuild -ge 22621)
 	.NOTES
 	Author: Markus Scholtes
 	Created: 2017/05/08
-	Updated: 2020/06/27
+	Updated: 2023/03/03
 	#>
 		[Cmdletbinding()]
 		Param([Parameter(ValueFromPipeline = $TRUE)] $Desktop, [SWITCH]$NoAnimation)
@@ -2896,7 +2911,7 @@ https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
-Created: 2025/03/02
+Created: 2025/03/03
 #>
 	[Cmdletbinding()]
 	Param()
@@ -2980,7 +2995,7 @@ https://github.com/MScholtes/TechNet-Gallery/tree/master/VirtualDesktop
 https://gallery.technet.microsoft.com/scriptcenter/Powershell-commands-to-d0e79cc5
 .NOTES
 Author: Markus Scholtes
-Created: 2025/03/02
+Created: 2025/03/03
 #>
 	[Cmdletbinding()]
 	Param()

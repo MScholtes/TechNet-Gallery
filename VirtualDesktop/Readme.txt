@@ -14,6 +14,10 @@ Now with support for Windows Server 2022!
 Now with support for Powershell Core!
 Now with support for Windows Terminal!
 
+Update 2.22
+bugfixes for Windows 11:
+- fixes Windows Explorer crash
+- fixes missing activiation after desktop switch
 Update 2.21
 new commands Pin-ActiveWindow and Unpin-ActiveWindow
 Windows 11: parameter -NoAnimation for Switch-Desktop

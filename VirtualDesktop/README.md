@@ -22,6 +22,10 @@ Install-Module VirtualDesktop
 Project page on github is [here](https://github.com/MScholtes/PSVirtualDesktop).
 
 ## Versions
+### Update 2.22
+- bugfix for Windows 11: fixes Windows Explorer crash
+- bugfix for Windows 11: fixes missing activiation after desktop switch
+
 ### Update 2.21
 - new commands Pin-ActiveWindow and Unpin-ActiveWindow
 - Windows 11: parameter -NoAnimation for Switch-Desktop
