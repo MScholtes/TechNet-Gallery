@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.42 / 2025-08-25
+VirtualDesktop 2.22:
+- bugfix for Windows 11: fixes Windows Explorer crash
+- bugfix for Windows 11: fixes missing activiation after desktop switch
+
 ### Version 1.0.41 / 2025-08-21
 PS2EXE-GUI v0.5.0.33:
 - new parameter -embedFiles to embed files in compiled executable
