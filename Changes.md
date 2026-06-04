@@ -1,5 +1,10 @@
 # Changes
 
+### Version 1.0.43 / 2026-06-04
+PS2EXE-GUI v0.5.0.34:
+- predefined variable $ScriptRoot as replacement for $PSScriptRoot
+- new version of Win-PS2EXE
+
 ### Version 1.0.42 / 2025-08-25
 VirtualDesktop 2.22:
 - bugfix for Windows 11: fixes Windows Explorer crash
