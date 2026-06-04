@@ -1,11 +1,13 @@
+### AI free repository - artificial intelligence is killing creativity and our nature!
+
 # TechNet-Gallery
 You find copies of my *'Script Center'* and *'Technet Gallery'* publications here because *Script Center* and *Technet Gallery* are closed.
 
 
-### Version 1.0.42 / 2025-08-25
-VirtualDesktop 2.22:
-- bugfix for Windows 11: fixes Windows Explorer crash
-- bugfix for Windows 11: fixes missing activiation after desktop switch
+### Version 1.0.43 / 2026-06-04
+PS2EXE-GUI v0.5.0.34:
+- predefined variable $ScriptRoot as replacement for $PSScriptRoot
+- new version of Win-PS2EXE
 
 
 For a complete list of changes see here: [Changes](Changes.md)
