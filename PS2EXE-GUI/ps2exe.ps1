@@ -109,8 +109,8 @@ Compiles C:\Data\MyScript.ps1 to C:\Data\MyScript.exe as console executable
 ps2exe.ps1 -inputFile C:\Data\MyScript.ps1 -outputFile C:\Data\MyScriptGUI.exe -iconFile C:\Data\Icon.ico -noConsole -title "MyScript" -version 0.0.0.1
 Compiles C:\Data\MyScript.ps1 to C:\Data\MyScriptGUI.exe as graphical executable, icon and meta data
 .NOTES
-Version: 0.5.0.33
-Date: 2025-08-19
+Version: 0.5.0.34
+Date: 2026-06-04
 Author: Ingo Karstein, Markus Scholtes
 .LINK
 https://github.com/MScholtes/TechNet-Gallery
@@ -125,7 +125,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 <################################################################################>
 <##                                                                            ##>
-<##      PS2EXE-GUI v0.5.0.33                                                  ##>
+<##      PS2EXE-GUI v0.5.0.34                                                  ##>
 <##      Written by: Ingo Karstein (http://blog.karstein-consulting.com)       ##>
 <##      Reworked and GUI support by Markus Scholtes                           ##>
 <##                                                                            ##>
@@ -137,7 +137,7 @@ Param([STRING]$inputFile = $NULL, [STRING]$outputFile = $NULL, [SWITCH]$prepareD
 
 if (!$nested)
 {
-	Write-Output "PS2EXE-GUI v0.5.0.33 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
+	Write-Output "PS2EXE-GUI v0.5.0.34 by Ingo Karstein, reworked and GUI support by Markus Scholtes`n"
 }
 else
 {
@@ -223,9 +223,9 @@ if (!$nested -and ($PSVersionTable.PSEdition -eq "Core"))
 				{
 					$CallParam += " -$($Param.Key) @{"
 					$Param.Value.Keys | % { $CallParam += "'$_'='$($Param.Value[$_])';" }
-					$CallParam += "}" 
+					$CallParam += "}"
 				} else {
-					$CallParam += " -$($Param.Key) $($Param.Value)" 
+					$CallParam += " -$($Param.Key) $($Param.Value)"
 				}
 			}
 		}
@@ -439,7 +439,7 @@ if ($psversion -ge 3 -and $runtime20)
 		{
 			$arguments += "-embedFiles @{"
 			$embedFiles.Keys | % { $arguments += "'$_'='$($embedFiles[$_])';" }
-			$arguments += "} " 
+			$arguments += "} "
 		}
 	}
 
@@ -630,7 +630,7 @@ if ($embedFiles -is [HASHTABLE])
 
 		$embedFiles.Keys | % {
 			[VOID]$cp.EmbeddedResources.Add($embedFiles["$_"])
-			
+
 			if ($runtime20) {
 				$EMBEDSECTION += "tgtFile = Environment.ExpandEnvironmentVariables(@`"$_`");`r`nif (string.Compare(`".\\`", 0, tgtFile, 0, 2) == 0) { tgtFile = System.AppDomain.CurrentDomain.BaseDirectory + tgtFile.Substring(2); }`r`ntry { tgtDir = System.IO.Path.GetDirectoryName(tgtFile);`r`nif (tgtDir != string.Empty) { System.IO.Directory.CreateDirectory(tgtDir); }`r`nusing (System.IO.Stream srcStream = executingAssembly.GetManifestResourceStream(`"$([System.IO.Path]::GetFileName($embedFiles["$_"]))`"))`r`n  using (System.IO.Stream tgtStream = System.IO.File.Create(tgtFile))`r`n    { while ((srcRead = srcStream.Read(srcBuffer, 0, srcBuffer.Length)) > 0) { tgtStream.Write(srcBuffer, 0, srcRead); } }`r`n}`r`ncatch { throw new System.IO.IOException(`"Error creating '`" + tgtFile + `"'\r\n`"); }`r`n"
 			} else {
@@ -2699,7 +2699,7 @@ $(if (!$noError) { if (!$noConsole) {@"
 		{
 			get
 			{
-				return new Version(0, 5, 0, 33);
+				return new Version(0, 5, 0, 34);
 			}
 		}
 
@@ -2800,6 +2800,9 @@ $(if (!$noConsole -and $UNICODEEncoding) {@"
 				{
 					$(if ($STA -or $MTA) {"myRunSpace.ApartmentState = System.Threading.ApartmentState."})$(if ($STA){"STA"})$(if ($MTA){"MTA"});
 					myRunSpace.Open();
+
+					// add variable $ScriptRoot with absolute directory path of binary
+					myRunSpace.SessionStateProxy.SetVariable("ScriptRoot", System.AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\'));
 
 					using (PowerShell posh = PowerShell.Create())
 					{

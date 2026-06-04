@@ -1,3 +1,9 @@
+PS2EXE-GUI v0.5.0.34
+Changes:
+- predefined variable $ScriptRoot as replacement for $PSScriptRoot
+- new version of Win-PS2EXE
+
+
 PS2EXE-GUI v0.5.0.33
 Changes:
 - new parameter -embedFiles to embed files in compiled executable

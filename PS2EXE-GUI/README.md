@@ -1,3 +1,5 @@
+### AI free repository - artificial intelligence is killing creativity and our nature!
+
 # PS2EXE-GUI: "Convert" PowerShell Scripts to EXE Files with GUI
 Overworking of the great script of Ingo Karstein with GUI support. The GUI output and input is activated with one switch, real windows executables are generated. With Powershell 5.x support and graphical front end.
 
@@ -7,9 +9,9 @@ Script Center version was here, but now offline: [PS2EXE-GUI: "Convert" PowerShe
 
 ### Author: Markus Scholtes
 
-### Version: v0.5.0.33
+### Version: v0.5.0.34
 
-### Date: 2025-08-21
+### Date: 2026-06-04
 
 All of you know the fabulous script PS2EXE by Ingo Karstein you could download here: [PS2EXE : "Convert" PowerShell Scripts to EXE Files](https://gallery.technet.microsoft.com/scriptcenter/PS2EXE-Convert-PowerShell-9e4e07f1).
 
@@ -24,15 +26,16 @@ Install-Module PS2EXE
 Project page on github is [here](https://github.com/MScholtes/PS2EXE).
 
 
-### Update v0.5.0.33 - 2025-08-21
-- new parameter -embedFiles to embed files in compiled executable
+### Update v0.5.0.34 - 2026-06-04
+- predefined variable $ScriptRoot as replacement for $PSScriptRoot
+- new version of Win-PS2EXE
 
 Full list of changes and fixes in [Changes.txt](Changes.txt).
 
 
 ### Includes Win-PS2EXE, a small graphical front end for PS2EXE.
 
-Not all parameters are supported, requires .Net 4.x. C# WPF application. With drag'n'drop for file names. Has to be placed in the same directory as ps2exe.ps1. Source code and .Net 3.5 version are here: (https://github.com/MScholtes/Win-PS2EXE).
+Not all parameters are supported, requires .Net 4.x. C# WPF application. With drag 'n' drop for file names. Has to be placed in the same directory as ps2exe.ps1. Source code and .Net 3.5 version are here: (https://github.com/MScholtes/Win-PS2EXE).
 
 ![Screenshot](Screenshot-Small.jpg)
 
@@ -100,18 +103,14 @@ Output.exe -extract:C:\Output.ps1
 will decompile the script stored in Output.exe.
 
 ### Script variables:
-Since PS2EXE converts a script to an executable, script related variables are not available anymore. Especially the variable $PSScriptRoot is empty.
+Since PS2EXE converts a script to an executable, script related variables are not available anymore. The variable $MyInvocation is set to other values than in a script.
 
-The variable $MyInvocation is set to other values than in a script.
+Especially the variable $PSScriptRoot is empty - you can use $ScriptRoot as an replacement.
 
-You can retrieve the script/executable path independant of compiled/not compiled with the following code (thanks to JacquesFS):
+You can get $PSScriptRoot independant of compiled/not compiled with the following code line:
 
 ```powershell
-if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript")
-{ $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition }
-else
-{ $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
-	if (!$ScriptPath){ $ScriptPath = "." } }
+if (!$PSScriptRoot) { $PSScriptRoot = $ScriptRoot }
 ```
 
 ### Window in background in -noConsole mode:

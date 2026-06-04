@@ -1,5 +1,5 @@
-PS2EXE-GUI v0.5.0.33
-Release: 2025-08-21
+PS2EXE-GUI v0.5.0.34
+Release: 2026-06-04
 
 Overworking of the great script of Igor Karstein with GUI support by Markus Scholtes.
 
@@ -19,10 +19,10 @@ Module based version available now on Powershell Gallery, see here (https://www.
 
 Project page on github is here: https://github.com/MScholtes/PS2EXE.
 
-Update v0.5.0.33 - 2025-08-21
+Update v0.5.0.34 - 2026-06-04
 Changes:
-- new parameter -embedFiles to embed files in compiled executable
-
+- predefined variable $ScriptRoot as replacement for $PSScriptRoot
+- new version of Win-PS2EXE
 
 Full list of changes and fixes in Changes.txt.
 
@@ -84,19 +84,15 @@ A generated executable has the following reserved parameters:
 Password security:
 Never store passwords in your compiled script! One can simply decompile the script with the parameter -extract. For example
 Output.exe -extract:C:\Output.ps1
-will decompile the script stored in Output.exe.
+will decompile the script stored in Output.exe. And notice: the script (intentionally) is stored in clear text in the executable!
 
 Script variables:
-Since PS2EXE converts a script to an executable, script related variables are not available anymore. Especially the variable $PSScriptRoot is empty.
-The variable $MyInvocation is set to other values than in a script.
+Since PS2EXE converts a script to an executable, script related variables are not available anymore. The variable $MyInvocation is set to other values than in a script.
+Especially the variable $PSScriptRoot is empty - you can use $ScriptRoot as an replacement.
 
-You can retrieve the script/executable path independant of compiled/not compiled with the following code (thanks to JacquesFS):
+You can get $PSScriptRoot independant of compiled/not compiled with the following code line:
 
-if ($MyInvocation.MyCommand.CommandType -eq "ExternalScript")
- { $ScriptPath = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition }
- else
- { $ScriptPath = Split-Path -Parent -Path ([Environment]::GetCommandLineArgs()[0])
-   if (!$ScriptPath){ $ScriptPath = "." } }
+if (!$PSScriptRoot) { $PSScriptRoot = $ScriptRoot }
 
 Window in background in -noConsole mode:
 When an external window is opened in a script with -noConsole mode (i.e. for Get-Credential or for a command that needs a cmd.exe shell) the next window is opened in the background.
