@@ -100,7 +100,7 @@ Never store passwords in your compiled script! One can simply decompile the scri
 ```powershell
 Output.exe -extract:C:\Output.ps1
 ```
-will decompile the script stored in Output.exe.
+will decompile the script stored in Output.exe. And notice: the script (intentionally) is stored in clear text in the executable!
 
 ### Script variables:
 Since PS2EXE converts a script to an executable, script related variables are not available anymore. The variable $MyInvocation is set to other values than in a script.
