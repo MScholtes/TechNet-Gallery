@@ -107,7 +107,7 @@ Since PS2EXE converts a script to an executable, script related variables are no
 
 Especially the variable $PSScriptRoot is empty - you can use $ScriptRoot as an replacement.
 
-You can get $PSScriptRoot independant of compiled/not compiled with the following code line:
+You can get $PSScriptRoot independently of compiled/not compiled with the following code line:
 
 ```powershell
 if (!$PSScriptRoot) { $PSScriptRoot = $ScriptRoot }
